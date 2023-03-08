@@ -49,10 +49,10 @@ class NeuronalNetwork:
 
     def _add_synapses(self, synapses):
         for i in synapses:
-            self.synapses[i] = synapse.Synapse(synapses[i],
-                                               synapses[i]['name'],
+            self.synapses[i] = synapse.Synapse(i,
                                                self.connected_neurons[synapses[i]['source']],
                                                self.connected_neurons[synapses[i]['target']],
+                                               self.synapses[i]
                                                )
 
     def _connect(self):

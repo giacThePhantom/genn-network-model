@@ -1,0 +1,27 @@
+{
+    "matrix_type": "SPARSE_GLOBALG",
+    "w_update_model": {
+        "name": "pass_or",
+        "param_names": [],
+        "var_name_types": [],
+        "sim_code": "",
+        "synapse_dynamics_code": "$(addToInSyn, $(ra_pre))"
+    },
+    "postsyn_model": {
+        "name": "pass_postsyn",
+        "apply_input_code": "$(Isyn)+= $(inSyn);\n$(inSyn)= 0.0;"
+    },
+    "connectivity": {
+        "name": "or_type_specific",
+        "type": "CustomSparse",
+        "row_build_code": [
+            "const unsigned int row_length= $(num_post)/$(num_pre);",
+            "const unsigned int offset= $(id_pre)*row_length;",
+            "for (unsigned int k= 0; k < row_length; k++) {",
+            "    $(addSynapse, (offset + k));",
+            "}",
+            "$(endRow);"
+        ],
+        "calc_max_row_len_func": "eval 1: create_cmlf_class(lambda num_pre, num_post, pars: int(num_post/num_pre))()"
+    }
+}

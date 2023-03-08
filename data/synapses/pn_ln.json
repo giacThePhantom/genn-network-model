@@ -1,0 +1,32 @@
+{
+    "ini": {
+        "g": 0.001
+    },
+    "postsyn": {
+        "tau": 10.0,
+        "E": 0.0
+    },
+    "connectivity": {
+        "name": "pns_lns_within_glo",
+        "type": "CustomSparse",
+        "param_names": [
+            "n_pn",
+            "n_ln"
+        ],
+        "row_build_code": [
+            "const unsigned int offset= (unsigned int) $(id_pre)/((unsigned int) $(n_pn))*$(n_ln);",
+            "for (unsigned int k= 0; k < $(n_ln); k++) {",
+            "$(addSynapse, (offset+k));",
+            "}",
+            "$(endRow);",
+            ""
+        ],
+        "calc_max_row_len_func": "eval 1: create_cmlf_class(lambda num_pre, num_post, pars: int(pars[1]))()"
+    },
+    "param_space": {
+        "n_pn": "eval 1: params['n']['PNs']",
+        "n_ln": "eval 1: params['n']['LNs']"
+    },
+    "matrix_type": "SPARSE_INDIVIDUALG",
+    "w_update_model": "StaticPulse"
+}
