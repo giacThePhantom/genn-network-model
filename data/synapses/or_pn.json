@@ -2,9 +2,14 @@
     "ini": {
         "g": 0.008
     },
-    "postsyn": {
+    "ps_param_space": {
         "tau": 10.0,
         "E": 0.0
+    },
+    "param_space": {
+        "n_orn": "eval 1: params['neuron_populations']['or']['n']",
+        "n_trg": "eval 1: params['neuron_populations']['pn']['n']",
+        "n_pre": 12
     },
     "matrix_type": "SPARSE_GLOBALG",
     "w_update_model": "StaticPulse",
@@ -34,10 +39,5 @@
             ]
         ],
         "calc_max_col_len_func": "eval 1: create_cmlf_class(lambda num_pre, num_post, pars: int(pars[2]))()"
-    },
-    "param_space": {
-        "n_orn": "eval 1: params['n']['ORNs']",
-        "n_trg": "eval 1: params['n']['PNs']",
-        "n_pre": 12
     }
 }

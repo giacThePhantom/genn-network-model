@@ -2,6 +2,8 @@ from pathlib import Path
 import json
 import numpy as np
 from pygenn import genn_wrapper
+# needed for lambda evaluation
+from pygenn.genn_model import create_cmlf_class
 
 def get_all_parameter_files(dir_name):
     """From the input directory exports all parameter files in json format.

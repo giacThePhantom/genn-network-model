@@ -49,10 +49,12 @@ class NeuronalNetwork:
 
     def _add_synapses(self, synapses):
         for i in synapses:
+            source, target = i.split("_")
+            print(synapses.keys())
             self.synapses[i] = synapse.Synapse(i,
-                                               self.connected_neurons[synapses[i]['source']],
-                                               self.connected_neurons[synapses[i]['target']],
-                                               self.synapses[i]
+                                               self.connected_neurons[source],
+                                               self.connected_neurons[target],
+                                               synapses[i]
                                                )
 
     def _connect(self):
@@ -97,3 +99,4 @@ if __name__ == '__main__':
     from reading_parameters import get_parameters
     params = get_parameters(sys.argv[1])
     model = NeuronalNetwork("Test", params['neuron_populations'], params['synapses'])
+    model.build_and_load()

@@ -60,16 +60,19 @@ class Synapse:
         self.source = source
         self.target = target
         self.external_g = external_g
-        self.__dict__.extend(self._parse(data, data, None, name, external_g))
+        self.__dict__.update(self._parse(data, external_g=external_g))
 
     @staticmethod
-    def _parse(data: DataFormat, _parent_key="", external_g=None):
+    def _parse(data: DataFormat, _parent_key="", external_g=None, root=None):
         # To keep the grammar simple only dicts can contain other dicts
+        if root is None:
+            root = data
+
         if isinstance(data, float) or isinstance(data, int):
             return data
 
         if isinstance(data, dict):
-            return Synapse._parse_dict(data, external_g)
+            return Synapse._parse_dict(data, external_g, root)
 
         if isinstance(data, list):
             return Synapse._parse_list(data, _parent_key)
@@ -78,18 +81,18 @@ class Synapse:
             return data
     
     @staticmethod
-    def _parse_dict(data, external_g):
+    def _parse_dict(data, external_g, root):
         parsed = {}
         for k, v in data.items():
             parsed[k] = {}
-            parsed_v = parsed[k] = Synapse._parse(v, parsed[k], k)
+            parsed_v = parsed[k] = Synapse._parse(v, k, external_g=external_g, root=root)
 
             if isinstance(parsed_v, dict):
-                Synapse._subparse_dict(parsed, k, external_g)
+                Synapse._subparse_dict(parsed, k, external_g, root)
         return parsed
     
     @staticmethod
-    def _subparse_dict(parsed, k, external_g):
+    def _subparse_dict(parsed, k, external_g, root):
         parsed_v = parsed[k]
         name = parsed_v.pop("name", None)
 
@@ -102,15 +105,17 @@ class Synapse:
             del parsed_v["type"]
             if _type == "CustomSparse":
                 conn = create_custom_sparse_connect_init_snippet_class(name, **parsed_v)
-                param_space = parsed[k].pop("param_space", {})
-                parsed[k] = init_connectivity(conn, param_space)
+                param_space = root.get("param_space", {})
+                parsed["connectivity_initialiser"] = init_connectivity(conn, param_space)
+                del parsed["connectivity"]
             elif _type == "CustomInit":
+                # this will be popped out later
                 parsed[k] = create_custom_init_var_snippet_class(name, **parsed_v)
 
         elif k == "ini":
-            wu_var_space = parsed_v.pop("ini")
-            if parsed_v.pop("requires_initing", False):
-                init_param_space = wu_var_space.pop("param_space")
+            wu_var_space = parsed.pop("ini")
+            if wu_var_space.pop("requires_initing", False):
+                init_param_space = root["param_space"]
                 var_connectivity = wu_var_space.pop("connectivity")
                 if external_g is not None: 
                     wu_var_space = {k: external_g*v for k, v in wu_var_space.items()}
@@ -118,7 +123,6 @@ class Synapse:
                     wu_var_space = {k: init_var(var_connectivity, init_param_space) for k in wu_var_space}
                 
             parsed["wu_var_space"] = wu_var_space
-            del parsed["ini"]
 
     @staticmethod
     def _parse_list(data: list, _parent_key):
@@ -144,25 +148,25 @@ class Synapse:
         
         params = vars(self).copy()
         del params["name"] # name -> pop_name
+        del params["external_g"]
+        params.pop("param_space", None) # no longer needed
 
-        if self.target and self.target.size > 0:
-            postsyn_model = params.setdefault("postsyn_model", "ExpCond")
-            wu_param_space = params.setdefault("wu_param_space", {})
-            wu_post_var_space = params.setdefault("wu_post_var_space", {})
-            ps_var_space = params.setdefault("ps_var_space", {})
-            wu_pre_var_space = params.setdefault("wu_pre_var_space", {})
+        #source = model.neuron_populations[self.source]
+        target = model.neuron_populations[self.target]
 
-            connectivity = params.setdefault("connectivity", None)
+        if target and target.size > 0:
+            params.setdefault("postsyn_model", "ExpCond")
+            params.setdefault("wu_param_space", {})
+            params.setdefault("wu_post_var_space", {})
+            params.setdefault("ps_var_space", {})
+            params.setdefault("wu_var_space", {})
+            params.setdefault("wu_pre_var_space", {})
+            params.setdefault("ps_param_space", {})
+            params.setdefault("connectivity_initialiser", None)
 
             model.add_synapse_population(
                 self.name,
                 delay_steps=genn_wrapper.NO_DELAY,
-                postsyn_model=postsyn_model,
-                wu_param_space=wu_param_space,
-                wu_pre_var_space=wu_pre_var_space,
-                wu_post_var_space=wu_post_var_space,
-                ps_var_space=ps_var_space,
-                connectivity_initialiser=connectivity,
                 **params
             )
         else:

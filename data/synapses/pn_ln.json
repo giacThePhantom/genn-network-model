@@ -2,9 +2,13 @@
     "ini": {
         "g": 0.001
     },
-    "postsyn": {
+    "ps_param_space": {
         "tau": 10.0,
         "E": 0.0
+    },
+    "param_space": {
+        "n_pn": "eval 1: params['neuron_populations']['pn']['n']",
+        "n_ln": "eval 1: params['neuron_populations']['ln']['n']"
     },
     "connectivity": {
         "name": "pns_lns_within_glo",
@@ -22,10 +26,6 @@
             ""
         ],
         "calc_max_row_len_func": "eval 1: create_cmlf_class(lambda num_pre, num_post, pars: int(pars[1]))()"
-    },
-    "param_space": {
-        "n_pn": "eval 1: params['n']['PNs']",
-        "n_ln": "eval 1: params['n']['LNs']"
     },
     "matrix_type": "SPARSE_INDIVIDUALG",
     "w_update_model": "StaticPulse"
