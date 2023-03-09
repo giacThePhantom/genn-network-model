@@ -1,6 +1,6 @@
 {
 	"name" : "OR",
-	"n" : 20,
+	"n" : 160,
 	"spike_rec" : false,
 	"sim_code" : [
     "// update all bound receptors and activated receptors",
@@ -56,7 +56,7 @@
 		{
 			"name" : "ra_1",
 			"type" : "scalar",
-			"value" : 0.0,
+			"value" : 25.0,
 			"_comment_" : "activated receptor fraction to odor channel 1"
 		},
     {

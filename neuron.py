@@ -82,6 +82,8 @@ class NeuronPopulation:
 
         for var in params['variables']:
             self.variables.append((var['name'],  var['type']))
+            if not isinstance(var['value'], list):
+                var['value'] = [var['value'] for i in range(self.n)]
             self.initial_variables[var['name']] = var['value']
 
         self.eqs = "\n".join(params['sim_code'])
@@ -183,4 +185,4 @@ if __name__ == '__main__':
     from reading_parameters import get_parameters
     params = get_parameters(sys.argv[1])
     orn = NeuronPopulation(params['neuron_populations']['orn'], 'orn')
-    print(orn)
+    #print(orn)

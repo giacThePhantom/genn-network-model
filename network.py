@@ -1,7 +1,7 @@
 import numpy as np
 import neuron
 import synapse
-from pygenn.genn_model import GeNNModel
+from pygenn.genn_model import GeNNModel, GeNNType
 
 class NeuronalNetwork:
     """
@@ -27,6 +27,7 @@ class NeuronalNetwork:
     neuron_populations = {}
     connected_neurons = {}
     synapses = {}
+    connected_synapses = {}
 
     def _add_neuron_population(self, neuron_populations):
         """Reads the neuron_population dictionary and creates corresponding
@@ -50,7 +51,6 @@ class NeuronalNetwork:
     def _add_synapses(self, synapses):
         for i in synapses:
             source, target = i.split("_")
-            print(synapses.keys())
             self.synapses[i] = synapse.Synapse(i,
                                                self.connected_neurons[source],
                                                self.connected_neurons[target],
@@ -59,7 +59,7 @@ class NeuronalNetwork:
 
     def _connect(self):
         for i in self.synapses:
-            self.synapses[i].add_to_network(self.network)
+            self.connected_synapses[i] = self.synapses[i].add_to_network(self.network)
 
 
     def __init__(self, name, neuron_populations, synapses, cuda_capable = True):
@@ -100,3 +100,8 @@ if __name__ == '__main__':
     params = get_parameters(sys.argv[1])
     model = NeuronalNetwork("Test", params['neuron_populations'], params['synapses'])
     model.build_and_load()
+    print(model.connected_neurons['or'].vars['ra_1'].view[:])
+    model.network.step_time()
+    print(model.connected_neurons['or'].vars['ra_1'].view[:])
+    model.connected_neurons['or'].vars['ra_1'].view = np.arange(160)
+    print(model.connected_neurons['or'].vars['ra_1'].view[:])

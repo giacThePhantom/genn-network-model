@@ -146,6 +146,10 @@ def sort_params(param):
 
     """
     res = param[0][param[1]].split()[1][:-1] #In an evaluable parameters eval is followed by a number, which defines the order in which they have to be evaluated
+    try:
+        int(res)
+    except:
+        raise Exception("Could not read order of evaluation, string should be in the form eval n: expression, beware of whitespaces")
     return(int(res))
 
 def evaluate_param(to_be_eval, params):

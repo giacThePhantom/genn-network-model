@@ -79,7 +79,7 @@ def convert_protocol_to_cuda(protocol: Protocol, odors, hill_n, row_major=True) 
         the exponents to use for each receptor
     row_major: bool
         if true (default) make the vectors horizontal.
-    
+
     Returns
     -------
 
@@ -88,15 +88,22 @@ def convert_protocol_to_cuda(protocol: Protocol, odors, hill_n, row_major=True) 
 
     # Hacky way to do this
     _, n_glo_size, __ = odors.shape
-    data = np.zeros((len(protocol), 4 + n_glo_size))
+    print(protocol)
+    data = np.zeros((len(protocol), 4, n_glo_size))
+    # odor_array = np.repeat(np.array([[step.odor] for step in protocol]), repeats = n_glo_size, axis = 1)
+    # print(odor_array)
+
+    kp1cn = np.squeeze(np.power(odors[protocol[0].odor, :, 0]*protocol[0].concentration, hill_n))
+    print(kp1cn)
+    print(np.shape(kp1cn))
+
 
     for i, step in enumerate(protocol):
         odor = step.odor
-        kp1cn = np.squeeze(np.power(odors[odor, :, 0]*step.concentration, hill_n))
         data[i] = np.hstack((
             np.array([np.float32(step.odor), step.t_start, step.t_end, step.concentration], dtype=np.float32),
             kp1cn))
-    
+
     if row_major:
         return data.T
 
@@ -127,7 +134,7 @@ def exp1_protocol(n_odors = 3, n_conc=25):
                 )
             )
             t_start += 6000 # immediately apply the next odor
-    
+
     return protocol
 
 def exp2_protocol(n_conc=25, odor1=0, odor2=1):
@@ -178,7 +185,7 @@ def exp2_protocol(n_conc=25, odor1=0, odor2=1):
 
 def exp3_protocol(odor1, odor2):
     # Similar to exp2, but with hand-picked concentrations
-    
+
     protocol = []
     base = np.power(10, 1/4) # every 4 steps we have a decuplication
     t_start = 0.0
@@ -231,6 +238,7 @@ if __name__ == "__main__":
     hill_exp = np.random.uniform(0.95, 1.05, n_glo)
     odors = np.random.randn(100, n_glo, 2).astype(np.float32)
 
+    print(np.shape(odors))
 
     print(convert_protocol_to_cuda(exp1_protocol(), odors, hill_exp))
     print(convert_protocol_to_cuda(exp2_protocol(), odors, hill_exp))
