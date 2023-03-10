@@ -44,7 +44,7 @@ from asyncio import protocols
 from collections import deque
 from copy import copy
 from dataclasses import dataclass
-from typing import List
+from typing import List, TypeAlias
 
 import numpy as np
 
@@ -56,7 +56,7 @@ class ProtocolStep:
     odor: int
     concentration: float
 
-Protocol = List[ProtocolStep]
+Protocol: TypeAlias = List[ProtocolStep]
 
 def convert_protocol_to_cuda(protocol: Protocol, odors, hill_n, row_major=True) -> np.ndarray:
     """
@@ -99,7 +99,6 @@ def convert_protocol_to_cuda(protocol: Protocol, odors, hill_n, row_major=True) 
 
 
     for i, step in enumerate(protocol):
-        odor = step.odor
         data[i] = np.hstack((
             np.array([np.float32(step.odor), step.t_start, step.t_end, step.concentration], dtype=np.float32),
             kp1cn))

@@ -178,8 +178,6 @@ class NeuronPopulation:
         return self.n
 
 
-
-
 if __name__ == '__main__':
     import sys
     from reading_parameters import get_parameters
