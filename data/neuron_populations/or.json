@@ -1,6 +1,7 @@
 {
 	"name" : "OR",
 	"n" : 160,
+	"num_channels" : 3,
 	"spike_rec" : false,
 	"sim_code" : [
     "// update all bound receptors and activated receptors",
@@ -86,7 +87,7 @@
 		{
 			"name" : "km1_0",
 			"type" : "scalar",
-			"value" : 0.0,
+			"value" : 0.025,
 			"_comment_" : "unbinding rate 0"
 		},
 		{
@@ -98,7 +99,7 @@
 		{
 			"name" : "km2_0",
 			"type" : "scalar",
-			"value" : 0.0,
+			"value" : 0.025,
 			"_comment_" : "inactivation rate 0"
 		},
     {
@@ -110,7 +111,7 @@
 		{
 			"name" : "km1_1",
 			"type" : "scalar",
-			"value" : 0.0,
+			"value" : 0.025,
 			"_comment_" : "unbinding rate 1"
 		},
 		{
@@ -122,7 +123,7 @@
 		{
 			"name" : "km2_1",
 			"type" : "scalar",
-			"value" : 0.0,
+			"value" : 0.025,
 			"_comment_" : "inactivation rate 1"
 		},
     {
@@ -134,7 +135,7 @@
 		{
 			"name" : "km1_2",
 			"type" : "scalar",
-			"value" : 0.0,
+			"value" : 0.025,
 			"_comment_" : "unbinding rate 2"
 		},
 		{
@@ -146,7 +147,7 @@
 		{
 			"name" : "km2_2",
 			"type" : "scalar",
-			"value" : 0.0,
+			"value" : 0.025,
 			"_comment_" : "inactivation rate 2"
 		}
 

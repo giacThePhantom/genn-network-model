@@ -60,7 +60,7 @@ class Odor:
 
     def get_name(self):
         return self.name
-    
+
     def get_cuda_rates(self):
         """Get a cuda-friendly representation of these odors"""
         return np.vstack([self.binding_rates, self.activation_rates]).T

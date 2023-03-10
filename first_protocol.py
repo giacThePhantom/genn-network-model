@@ -25,11 +25,14 @@ class FirstProtocol(Protocol):
             for c_exp in range(num_concentration_increases):
                 res.append(self._event_generation(t, odor, c_exp))
                 t = res[-1]['t_end'] + self.get_resting_duration()
-        return res
+        self.events = res
+        self.assign_channel_to_events()
 
 if __name__ == "__main__":
     from reading_parameters import get_parameters
     import sys
     params = get_parameters(sys.argv[1])
     temp = FirstProtocol(params['protocols']['experiment1'])
-    events = temp.events_generation(2)
+    temp.events_generation(1)
+    temp.assign_channel_to_events()
+    temp.generate_or_param(params['neuron_populations']['or'])

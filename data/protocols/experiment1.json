@@ -1,6 +1,7 @@
 {
 	"num_odors" : 100,
 	"num_glomeruli" : "eval 2: params['neuron_populations']['or']['n']",
+	"num_channels" : "eval 2: params['neuron_populations']['or']['num_channels']",
 	"homogeneous" : false,
 	"concentration" : {
 		"start" : 1e-7,
