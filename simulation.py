@@ -65,7 +65,7 @@ class Simulator:
 
         # FIXME
         while model.t < until:
-            print(f"Time: {model.t}")
+            #print(f"Time: {model.t}")
             model.step_time()
 
 
@@ -80,6 +80,6 @@ if __name__ == "__main__":
         "Test", params['neuron_populations'], params['synapses'])
 
     sim = Simulator(model)
-    sim.run(500.0)
+    sim.run(100000.0)
 
     # model.build_and_load() # no longer necessary
