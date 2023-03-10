@@ -61,6 +61,11 @@ class Odor:
     def get_name(self):
         return self.name
 
+    def get_binding_rates(self):
+        return self.binding_rates
+
+    def get_activation_rates(self):
+        return self.activation_rates
 
 
 

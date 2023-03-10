@@ -2,9 +2,19 @@
 	"num_odors" : 100,
 	"num_glomeruli" : "eval 2: params['neuron_populations']['or']['n']",
 	"homogeneous" : false,
-	"starting_concentration" : 1e-7,
-	"single_event_duration" : 3000.0,
+	"concentration" : {
+		"start" : 1e-7,
+		"dilution_factor" : {
+			"base" : 10,
+			"exponent" : 0.25
+		}
+	},
+	"event_duration" : 3000.0,
 	"resting_duration" : 3000.0,
+	"hill_exponential" : {
+		"min" : 0.95,
+		"max" : 1.05
+	},
 	"odors" :{
 		"default" : {
 			"binding" : {
