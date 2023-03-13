@@ -1,7 +1,8 @@
+from typing import Dict
 import numpy as np
 import neuron
 import synapse
-from pygenn.genn_model import GeNNModel, GeNNType
+from pygenn.genn_model import GeNNModel, GeNNType, NeuronGroup
 
 class NeuronalNetwork:
     """
@@ -25,7 +26,7 @@ class NeuronalNetwork:
 
     network = None
     neuron_populations = {}
-    connected_neurons = {}
+    connected_neurons: Dict[str, NeuronGroup] = {}
     synapses = {}
     connected_synapses = {}
 
@@ -88,11 +89,26 @@ class NeuronalNetwork:
         self._add_synapses(synapses)
         self._connect()
 
-    def build_and_load(self):
+    def build_and_load(self, num_recording_steps=None):
         """Builds the corresponding code (C++ or CUDA) and loads it for later use
+
+        Parameters
+        ----------
+        num_recording_steps: Optional[int]
+            When recording, this provides the size of the internal buffer
+            used to keep track of the events (if using event batching). The user *must* pull from the
+            event buffer once it is full, not any earlier (and possibly not further or it will fill up)
         """
         self.network.build()
-        self.network.load()
+        self.network.load(num_recording_timesteps=num_recording_steps)
+    
+    def reinitialize(self):
+        """
+        Reset the internal model variables and clear all currents logs
+        """
+        self.network.reinitialise()
+        for pop in self.neuron_populations.values():
+            pop.recorded_outputs.clear()
 
 if __name__ == '__main__':
     import sys
