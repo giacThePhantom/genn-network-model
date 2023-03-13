@@ -108,7 +108,7 @@ class Protocol(ABC):
         else:
             or_params['sim_code'].insert(0, sim_code_to_be_added)
 
-    def generate_inhibitory_connectivity(self, n_source, n_target, connectivity_type, self_inhibition):
+    def _generate_inhibitory_connectivity(self, connectivity_type, self_inhibition):
         binding_rates_matrix = np.array([i.get_binding_rates() for i in self.odors])
         if connectivity_type == 'correlation':
             connectivity_matrix = np.corrcoef(binding_rates_matrix,rowvar=False)
@@ -125,16 +125,13 @@ class Protocol(ABC):
 
         if not self_inhibition:
             np.fill_diagonal(connectivity_matrix, 0)
+        return connectivity_matrix.flatten()
 
+    def generate_inhibitory_conductance(self, ln_pn_param):
+        connectivity_matrix = self.connectivity_matrix * ln_pm_param['wu_var_space']['g']
+        ln_pm_param['wu_var_space']['g'] = connectivity_matrix
         connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_source / binding_rates_matrix.shape[1], axis = 0)
         connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_target / binding_rates_matrix.shape[1], axis = 1)
-        self.connectivity_matrix = connectivity_matrix.flatten()
-
-    def generate_ln_pn_connectivity_parameters(self, ln_pn_param):
-        pass
-
-
-
 
     @abstractmethod
     def _event_generation(self):
@@ -151,6 +148,7 @@ class Protocol(ABC):
         self._odor_binding_rate_permutation()
         self.param['hill_exponential'] = self._compute_hill_exponential(self.param['hill_exponential'])
         self.events = []
+        self.connectivity_matrix = self._generate_inhibitory_connectivity(param['connectivity_type'], param['self_inhibition'])
 
 if __name__ == "__main__":
     from reading_parameters import get_parameters

@@ -9,11 +9,26 @@ struct MergedNeuronUpdateGroup0
     scalar* V;
     scalar* a;
     double* inSynInSyn0;
+    double* inSynInSyn1;
+    double* inSynInSyn2;
+    uint32_t* recordSpk;
     unsigned int numNeurons;
     
 }
 ;
 struct MergedNeuronUpdateGroup1
+ {
+    unsigned int* spkCnt;
+    unsigned int* spk;
+    curandState* rng;
+    scalar* V;
+    scalar* a;
+    double* inSynInSyn0;
+    unsigned int numNeurons;
+    
+}
+;
+struct MergedNeuronUpdateGroup2
  {
     scalar* kp1cn_0_65;
     scalar* kp2_0_58;
@@ -241,20 +256,6 @@ struct MergedNeuronUpdateGroup1
     
 }
 ;
-struct MergedNeuronUpdateGroup2
- {
-    unsigned int* spkCnt;
-    unsigned int* spk;
-    curandState* rng;
-    scalar* V;
-    scalar* a;
-    double* inSynInSyn0;
-    double* inSynInSyn1;
-    double* inSynInSyn2;
-    unsigned int numNeurons;
-    
-}
-;
 struct MergedNeuronUpdateGroup3
  {
     unsigned int* spkCnt;
@@ -264,6 +265,7 @@ struct MergedNeuronUpdateGroup3
     scalar* a;
     double* inSynInSyn0;
     double* inSynInSyn1;
+    uint32_t* recordSpk;
     unsigned int numNeurons;
     
 }
@@ -291,23 +293,23 @@ void pushMergedNeuronSpikeQueueUpdateGroup1ToDevice(unsigned int idx, unsigned i
     CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronSpikeQueueUpdateGroup1, &group, sizeof(MergedNeuronSpikeQueueUpdateGroup1), idx * sizeof(MergedNeuronSpikeQueueUpdateGroup1)));
 }
 __device__ __constant__ MergedNeuronUpdateGroup0 d_mergedNeuronUpdateGroup0[1];
-void pushMergedNeuronUpdateGroup0ToDevice(unsigned int idx, unsigned int* spkCnt, unsigned int* spk, curandState* rng, scalar* V, scalar* a, double* inSynInSyn0, unsigned int numNeurons) {
-    MergedNeuronUpdateGroup0 group = {spkCnt, spk, rng, V, a, inSynInSyn0, numNeurons, };
+void pushMergedNeuronUpdateGroup0ToDevice(unsigned int idx, unsigned int* spkCnt, unsigned int* spk, curandState* rng, scalar* V, scalar* a, double* inSynInSyn0, double* inSynInSyn1, double* inSynInSyn2, uint32_t* recordSpk, unsigned int numNeurons) {
+    MergedNeuronUpdateGroup0 group = {spkCnt, spk, rng, V, a, inSynInSyn0, inSynInSyn1, inSynInSyn2, recordSpk, numNeurons, };
     CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronUpdateGroup0, &group, sizeof(MergedNeuronUpdateGroup0), idx * sizeof(MergedNeuronUpdateGroup0)));
 }
 __device__ __constant__ MergedNeuronUpdateGroup1 d_mergedNeuronUpdateGroup1[1];
-void pushMergedNeuronUpdateGroup1ToDevice(unsigned int idx, scalar* kp1cn_0_65, scalar* kp2_0_58, scalar* kp1cn_0_59, scalar* kp2_0_59, scalar* kp1cn_0_60, scalar* kp2_0_60, scalar* kp1cn_0_61, scalar* kp2_0_61, scalar* kp1cn_0_62, scalar* kp2_0_62, scalar* kp1cn_0_63, scalar* kp2_0_63, scalar* kp1cn_0_64, scalar* kp2_0_64, scalar* kp1cn_0_58, scalar* kp2_0_65, scalar* kp1cn_0_66, scalar* kp2_0_66, scalar* kp1cn_0_67, scalar* kp2_0_67, scalar* kp1cn_0_68, scalar* kp2_0_68, scalar* kp1cn_0_69, scalar* kp2_0_69, scalar* kp1cn_0_70, scalar* kp2_0_70, scalar* kp1cn_0_71, scalar* kp2_0_71, scalar* kp1cn_0_51, scalar* kp2_0_44, scalar* kp1cn_0_45, scalar* kp2_0_45, scalar* kp1cn_0_46, scalar* kp2_0_46, scalar* kp1cn_0_47, scalar* kp2_0_47, scalar* kp1cn_0_48, scalar* kp2_0_48, scalar* kp1cn_0_49, scalar* kp2_0_49, scalar* kp1cn_0_50, scalar* kp2_0_50, scalar* kp1cn_0_72, scalar* kp2_0_51, scalar* kp1cn_0_52, scalar* kp2_0_52, scalar* kp1cn_0_53, scalar* kp2_0_53, scalar* kp1cn_0_54, scalar* kp2_0_54, scalar* kp1cn_0_55, scalar* kp2_0_55, scalar* kp1cn_0_56, scalar* kp2_0_56, scalar* kp1cn_0_57, scalar* kp2_0_57, scalar* kp1cn_0_93, scalar* kp2_0_86, scalar* kp1cn_0_87, scalar* kp2_0_87, scalar* kp1cn_0_88, scalar* kp2_0_88, scalar* kp1cn_0_89, scalar* kp2_0_89, scalar* kp1cn_0_90, scalar* kp2_0_90, scalar* kp1cn_0_91, scalar* kp2_0_91, scalar* kp1cn_0_92, scalar* kp2_0_92, scalar* kp1cn_0_86, scalar* kp2_0_93, scalar* kp1cn_0_94, scalar* kp2_0_94, scalar* kp1cn_0_95, scalar* kp2_0_95, scalar* kp1cn_0_96, scalar* kp2_0_96, scalar* kp1cn_0_97, scalar* kp2_0_97, scalar* kp1cn_0_98, scalar* kp2_0_98, scalar* kp1cn_0_99, scalar* kp2_0_99, scalar* kp1cn_0_79, scalar* kp2_0_72, scalar* kp1cn_0_73, scalar* kp2_0_73, scalar* kp1cn_0_74, scalar* kp2_0_74, scalar* kp1cn_0_75, scalar* kp2_0_75, scalar* kp1cn_0_76, scalar* kp2_0_76, scalar* kp1cn_0_77, scalar* kp2_0_77, scalar* kp1cn_0_78, scalar* kp2_0_78, scalar* kp1cn_0_44, scalar* kp2_0_79, scalar* kp1cn_0_80, scalar* kp2_0_80, scalar* kp1cn_0_81, scalar* kp2_0_81, scalar* kp1cn_0_82, scalar* kp2_0_82, scalar* kp1cn_0_83, scalar* kp2_0_83, scalar* kp1cn_0_84, scalar* kp2_0_84, scalar* kp1cn_0_85, scalar* kp2_0_85, scalar* kp2_0_9, scalar* kp1cn_0_3, scalar* kp2_0_3, scalar* kp1cn_0_4, scalar* kp2_0_4, scalar* kp1cn_0_5, scalar* kp2_0_5, scalar* kp1cn_0_6, scalar* kp2_0_6, scalar* kp1cn_0_7, scalar* kp2_0_7, scalar* kp1cn_0_8, scalar* kp2_0_8, scalar* kp1cn_0_9, scalar* kp2_0_2, scalar* kp1cn_0_10, scalar* kp2_0_10, scalar* kp1cn_0_11, scalar* kp2_0_11, scalar* kp1cn_0_12, scalar* kp2_0_12, scalar* kp1cn_0_13, scalar* kp2_0_13, scalar* kp1cn_0_14, scalar* kp2_0_14, scalar* kp1cn_0_15, scalar* kp2_0_15, scalar* kp1cn_0_16, scalar* km2_0, unsigned int* spkCnt, unsigned int* spk, scalar* r0, scalar* rb_0, scalar* ra_0, scalar* rb_1, scalar* ra_1, scalar* rb_2, scalar* ra_2, scalar* ra, scalar* kp1cn_0, scalar* km1_0, scalar* kp2_0, scalar* kp2_0_16, scalar* kp1cn_1, scalar* km1_1, scalar* kp2_1, scalar* km2_1, scalar* kp1cn_2, scalar* km1_2, scalar* kp2_2, scalar* km2_2, scalar* kp1cn_0_0, scalar* kp2_0_0, scalar* kp1cn_0_1, scalar* kp2_0_1, scalar* kp1cn_0_2, scalar* kp1cn_0_37, scalar* kp2_0_30, scalar* kp1cn_0_31, scalar* kp2_0_31, scalar* kp1cn_0_32, scalar* kp2_0_32, scalar* kp1cn_0_33, scalar* kp2_0_33, scalar* kp1cn_0_34, scalar* kp2_0_34, scalar* kp1cn_0_35, scalar* kp2_0_35, scalar* kp1cn_0_36, scalar* kp2_0_36, scalar* kp1cn_0_30, scalar* kp2_0_37, scalar* kp1cn_0_38, scalar* kp2_0_38, scalar* kp1cn_0_39, scalar* kp2_0_39, scalar* kp1cn_0_40, scalar* kp2_0_40, scalar* kp1cn_0_41, scalar* kp2_0_41, scalar* kp1cn_0_42, scalar* kp2_0_42, scalar* kp1cn_0_43, scalar* kp2_0_43, scalar* kp2_0_23, scalar* kp1cn_0_17, scalar* kp2_0_17, scalar* kp1cn_0_18, scalar* kp2_0_18, scalar* kp1cn_0_19, scalar* kp2_0_19, scalar* kp1cn_0_20, scalar* kp2_0_20, scalar* kp1cn_0_21, scalar* kp2_0_21, scalar* kp1cn_0_22, scalar* kp2_0_22, scalar* kp1cn_0_23, scalar* kp1cn_0_24, scalar* kp2_0_24, scalar* kp1cn_0_25, scalar* kp2_0_25, scalar* kp1cn_0_26, scalar* kp2_0_26, scalar* kp1cn_0_27, scalar* kp2_0_27, scalar* kp1cn_0_28, scalar* kp2_0_28, scalar* kp1cn_0_29, scalar* kp2_0_29, unsigned int numNeurons) {
-    MergedNeuronUpdateGroup1 group = {kp1cn_0_65, kp2_0_58, kp1cn_0_59, kp2_0_59, kp1cn_0_60, kp2_0_60, kp1cn_0_61, kp2_0_61, kp1cn_0_62, kp2_0_62, kp1cn_0_63, kp2_0_63, kp1cn_0_64, kp2_0_64, kp1cn_0_58, kp2_0_65, kp1cn_0_66, kp2_0_66, kp1cn_0_67, kp2_0_67, kp1cn_0_68, kp2_0_68, kp1cn_0_69, kp2_0_69, kp1cn_0_70, kp2_0_70, kp1cn_0_71, kp2_0_71, kp1cn_0_51, kp2_0_44, kp1cn_0_45, kp2_0_45, kp1cn_0_46, kp2_0_46, kp1cn_0_47, kp2_0_47, kp1cn_0_48, kp2_0_48, kp1cn_0_49, kp2_0_49, kp1cn_0_50, kp2_0_50, kp1cn_0_72, kp2_0_51, kp1cn_0_52, kp2_0_52, kp1cn_0_53, kp2_0_53, kp1cn_0_54, kp2_0_54, kp1cn_0_55, kp2_0_55, kp1cn_0_56, kp2_0_56, kp1cn_0_57, kp2_0_57, kp1cn_0_93, kp2_0_86, kp1cn_0_87, kp2_0_87, kp1cn_0_88, kp2_0_88, kp1cn_0_89, kp2_0_89, kp1cn_0_90, kp2_0_90, kp1cn_0_91, kp2_0_91, kp1cn_0_92, kp2_0_92, kp1cn_0_86, kp2_0_93, kp1cn_0_94, kp2_0_94, kp1cn_0_95, kp2_0_95, kp1cn_0_96, kp2_0_96, kp1cn_0_97, kp2_0_97, kp1cn_0_98, kp2_0_98, kp1cn_0_99, kp2_0_99, kp1cn_0_79, kp2_0_72, kp1cn_0_73, kp2_0_73, kp1cn_0_74, kp2_0_74, kp1cn_0_75, kp2_0_75, kp1cn_0_76, kp2_0_76, kp1cn_0_77, kp2_0_77, kp1cn_0_78, kp2_0_78, kp1cn_0_44, kp2_0_79, kp1cn_0_80, kp2_0_80, kp1cn_0_81, kp2_0_81, kp1cn_0_82, kp2_0_82, kp1cn_0_83, kp2_0_83, kp1cn_0_84, kp2_0_84, kp1cn_0_85, kp2_0_85, kp2_0_9, kp1cn_0_3, kp2_0_3, kp1cn_0_4, kp2_0_4, kp1cn_0_5, kp2_0_5, kp1cn_0_6, kp2_0_6, kp1cn_0_7, kp2_0_7, kp1cn_0_8, kp2_0_8, kp1cn_0_9, kp2_0_2, kp1cn_0_10, kp2_0_10, kp1cn_0_11, kp2_0_11, kp1cn_0_12, kp2_0_12, kp1cn_0_13, kp2_0_13, kp1cn_0_14, kp2_0_14, kp1cn_0_15, kp2_0_15, kp1cn_0_16, km2_0, spkCnt, spk, r0, rb_0, ra_0, rb_1, ra_1, rb_2, ra_2, ra, kp1cn_0, km1_0, kp2_0, kp2_0_16, kp1cn_1, km1_1, kp2_1, km2_1, kp1cn_2, km1_2, kp2_2, km2_2, kp1cn_0_0, kp2_0_0, kp1cn_0_1, kp2_0_1, kp1cn_0_2, kp1cn_0_37, kp2_0_30, kp1cn_0_31, kp2_0_31, kp1cn_0_32, kp2_0_32, kp1cn_0_33, kp2_0_33, kp1cn_0_34, kp2_0_34, kp1cn_0_35, kp2_0_35, kp1cn_0_36, kp2_0_36, kp1cn_0_30, kp2_0_37, kp1cn_0_38, kp2_0_38, kp1cn_0_39, kp2_0_39, kp1cn_0_40, kp2_0_40, kp1cn_0_41, kp2_0_41, kp1cn_0_42, kp2_0_42, kp1cn_0_43, kp2_0_43, kp2_0_23, kp1cn_0_17, kp2_0_17, kp1cn_0_18, kp2_0_18, kp1cn_0_19, kp2_0_19, kp1cn_0_20, kp2_0_20, kp1cn_0_21, kp2_0_21, kp1cn_0_22, kp2_0_22, kp1cn_0_23, kp1cn_0_24, kp2_0_24, kp1cn_0_25, kp2_0_25, kp1cn_0_26, kp2_0_26, kp1cn_0_27, kp2_0_27, kp1cn_0_28, kp2_0_28, kp1cn_0_29, kp2_0_29, numNeurons, };
+void pushMergedNeuronUpdateGroup1ToDevice(unsigned int idx, unsigned int* spkCnt, unsigned int* spk, curandState* rng, scalar* V, scalar* a, double* inSynInSyn0, unsigned int numNeurons) {
+    MergedNeuronUpdateGroup1 group = {spkCnt, spk, rng, V, a, inSynInSyn0, numNeurons, };
     CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronUpdateGroup1, &group, sizeof(MergedNeuronUpdateGroup1), idx * sizeof(MergedNeuronUpdateGroup1)));
 }
 __device__ __constant__ MergedNeuronUpdateGroup2 d_mergedNeuronUpdateGroup2[1];
-void pushMergedNeuronUpdateGroup2ToDevice(unsigned int idx, unsigned int* spkCnt, unsigned int* spk, curandState* rng, scalar* V, scalar* a, double* inSynInSyn0, double* inSynInSyn1, double* inSynInSyn2, unsigned int numNeurons) {
-    MergedNeuronUpdateGroup2 group = {spkCnt, spk, rng, V, a, inSynInSyn0, inSynInSyn1, inSynInSyn2, numNeurons, };
+void pushMergedNeuronUpdateGroup2ToDevice(unsigned int idx, scalar* kp1cn_0_65, scalar* kp2_0_58, scalar* kp1cn_0_59, scalar* kp2_0_59, scalar* kp1cn_0_60, scalar* kp2_0_60, scalar* kp1cn_0_61, scalar* kp2_0_61, scalar* kp1cn_0_62, scalar* kp2_0_62, scalar* kp1cn_0_63, scalar* kp2_0_63, scalar* kp1cn_0_64, scalar* kp2_0_64, scalar* kp1cn_0_58, scalar* kp2_0_65, scalar* kp1cn_0_66, scalar* kp2_0_66, scalar* kp1cn_0_67, scalar* kp2_0_67, scalar* kp1cn_0_68, scalar* kp2_0_68, scalar* kp1cn_0_69, scalar* kp2_0_69, scalar* kp1cn_0_70, scalar* kp2_0_70, scalar* kp1cn_0_71, scalar* kp2_0_71, scalar* kp1cn_0_51, scalar* kp2_0_44, scalar* kp1cn_0_45, scalar* kp2_0_45, scalar* kp1cn_0_46, scalar* kp2_0_46, scalar* kp1cn_0_47, scalar* kp2_0_47, scalar* kp1cn_0_48, scalar* kp2_0_48, scalar* kp1cn_0_49, scalar* kp2_0_49, scalar* kp1cn_0_50, scalar* kp2_0_50, scalar* kp1cn_0_72, scalar* kp2_0_51, scalar* kp1cn_0_52, scalar* kp2_0_52, scalar* kp1cn_0_53, scalar* kp2_0_53, scalar* kp1cn_0_54, scalar* kp2_0_54, scalar* kp1cn_0_55, scalar* kp2_0_55, scalar* kp1cn_0_56, scalar* kp2_0_56, scalar* kp1cn_0_57, scalar* kp2_0_57, scalar* kp1cn_0_93, scalar* kp2_0_86, scalar* kp1cn_0_87, scalar* kp2_0_87, scalar* kp1cn_0_88, scalar* kp2_0_88, scalar* kp1cn_0_89, scalar* kp2_0_89, scalar* kp1cn_0_90, scalar* kp2_0_90, scalar* kp1cn_0_91, scalar* kp2_0_91, scalar* kp1cn_0_92, scalar* kp2_0_92, scalar* kp1cn_0_86, scalar* kp2_0_93, scalar* kp1cn_0_94, scalar* kp2_0_94, scalar* kp1cn_0_95, scalar* kp2_0_95, scalar* kp1cn_0_96, scalar* kp2_0_96, scalar* kp1cn_0_97, scalar* kp2_0_97, scalar* kp1cn_0_98, scalar* kp2_0_98, scalar* kp1cn_0_99, scalar* kp2_0_99, scalar* kp1cn_0_79, scalar* kp2_0_72, scalar* kp1cn_0_73, scalar* kp2_0_73, scalar* kp1cn_0_74, scalar* kp2_0_74, scalar* kp1cn_0_75, scalar* kp2_0_75, scalar* kp1cn_0_76, scalar* kp2_0_76, scalar* kp1cn_0_77, scalar* kp2_0_77, scalar* kp1cn_0_78, scalar* kp2_0_78, scalar* kp1cn_0_44, scalar* kp2_0_79, scalar* kp1cn_0_80, scalar* kp2_0_80, scalar* kp1cn_0_81, scalar* kp2_0_81, scalar* kp1cn_0_82, scalar* kp2_0_82, scalar* kp1cn_0_83, scalar* kp2_0_83, scalar* kp1cn_0_84, scalar* kp2_0_84, scalar* kp1cn_0_85, scalar* kp2_0_85, scalar* kp2_0_9, scalar* kp1cn_0_3, scalar* kp2_0_3, scalar* kp1cn_0_4, scalar* kp2_0_4, scalar* kp1cn_0_5, scalar* kp2_0_5, scalar* kp1cn_0_6, scalar* kp2_0_6, scalar* kp1cn_0_7, scalar* kp2_0_7, scalar* kp1cn_0_8, scalar* kp2_0_8, scalar* kp1cn_0_9, scalar* kp2_0_2, scalar* kp1cn_0_10, scalar* kp2_0_10, scalar* kp1cn_0_11, scalar* kp2_0_11, scalar* kp1cn_0_12, scalar* kp2_0_12, scalar* kp1cn_0_13, scalar* kp2_0_13, scalar* kp1cn_0_14, scalar* kp2_0_14, scalar* kp1cn_0_15, scalar* kp2_0_15, scalar* kp1cn_0_16, scalar* km2_0, unsigned int* spkCnt, unsigned int* spk, scalar* r0, scalar* rb_0, scalar* ra_0, scalar* rb_1, scalar* ra_1, scalar* rb_2, scalar* ra_2, scalar* ra, scalar* kp1cn_0, scalar* km1_0, scalar* kp2_0, scalar* kp2_0_16, scalar* kp1cn_1, scalar* km1_1, scalar* kp2_1, scalar* km2_1, scalar* kp1cn_2, scalar* km1_2, scalar* kp2_2, scalar* km2_2, scalar* kp1cn_0_0, scalar* kp2_0_0, scalar* kp1cn_0_1, scalar* kp2_0_1, scalar* kp1cn_0_2, scalar* kp1cn_0_37, scalar* kp2_0_30, scalar* kp1cn_0_31, scalar* kp2_0_31, scalar* kp1cn_0_32, scalar* kp2_0_32, scalar* kp1cn_0_33, scalar* kp2_0_33, scalar* kp1cn_0_34, scalar* kp2_0_34, scalar* kp1cn_0_35, scalar* kp2_0_35, scalar* kp1cn_0_36, scalar* kp2_0_36, scalar* kp1cn_0_30, scalar* kp2_0_37, scalar* kp1cn_0_38, scalar* kp2_0_38, scalar* kp1cn_0_39, scalar* kp2_0_39, scalar* kp1cn_0_40, scalar* kp2_0_40, scalar* kp1cn_0_41, scalar* kp2_0_41, scalar* kp1cn_0_42, scalar* kp2_0_42, scalar* kp1cn_0_43, scalar* kp2_0_43, scalar* kp2_0_23, scalar* kp1cn_0_17, scalar* kp2_0_17, scalar* kp1cn_0_18, scalar* kp2_0_18, scalar* kp1cn_0_19, scalar* kp2_0_19, scalar* kp1cn_0_20, scalar* kp2_0_20, scalar* kp1cn_0_21, scalar* kp2_0_21, scalar* kp1cn_0_22, scalar* kp2_0_22, scalar* kp1cn_0_23, scalar* kp1cn_0_24, scalar* kp2_0_24, scalar* kp1cn_0_25, scalar* kp2_0_25, scalar* kp1cn_0_26, scalar* kp2_0_26, scalar* kp1cn_0_27, scalar* kp2_0_27, scalar* kp1cn_0_28, scalar* kp2_0_28, scalar* kp1cn_0_29, scalar* kp2_0_29, unsigned int numNeurons) {
+    MergedNeuronUpdateGroup2 group = {kp1cn_0_65, kp2_0_58, kp1cn_0_59, kp2_0_59, kp1cn_0_60, kp2_0_60, kp1cn_0_61, kp2_0_61, kp1cn_0_62, kp2_0_62, kp1cn_0_63, kp2_0_63, kp1cn_0_64, kp2_0_64, kp1cn_0_58, kp2_0_65, kp1cn_0_66, kp2_0_66, kp1cn_0_67, kp2_0_67, kp1cn_0_68, kp2_0_68, kp1cn_0_69, kp2_0_69, kp1cn_0_70, kp2_0_70, kp1cn_0_71, kp2_0_71, kp1cn_0_51, kp2_0_44, kp1cn_0_45, kp2_0_45, kp1cn_0_46, kp2_0_46, kp1cn_0_47, kp2_0_47, kp1cn_0_48, kp2_0_48, kp1cn_0_49, kp2_0_49, kp1cn_0_50, kp2_0_50, kp1cn_0_72, kp2_0_51, kp1cn_0_52, kp2_0_52, kp1cn_0_53, kp2_0_53, kp1cn_0_54, kp2_0_54, kp1cn_0_55, kp2_0_55, kp1cn_0_56, kp2_0_56, kp1cn_0_57, kp2_0_57, kp1cn_0_93, kp2_0_86, kp1cn_0_87, kp2_0_87, kp1cn_0_88, kp2_0_88, kp1cn_0_89, kp2_0_89, kp1cn_0_90, kp2_0_90, kp1cn_0_91, kp2_0_91, kp1cn_0_92, kp2_0_92, kp1cn_0_86, kp2_0_93, kp1cn_0_94, kp2_0_94, kp1cn_0_95, kp2_0_95, kp1cn_0_96, kp2_0_96, kp1cn_0_97, kp2_0_97, kp1cn_0_98, kp2_0_98, kp1cn_0_99, kp2_0_99, kp1cn_0_79, kp2_0_72, kp1cn_0_73, kp2_0_73, kp1cn_0_74, kp2_0_74, kp1cn_0_75, kp2_0_75, kp1cn_0_76, kp2_0_76, kp1cn_0_77, kp2_0_77, kp1cn_0_78, kp2_0_78, kp1cn_0_44, kp2_0_79, kp1cn_0_80, kp2_0_80, kp1cn_0_81, kp2_0_81, kp1cn_0_82, kp2_0_82, kp1cn_0_83, kp2_0_83, kp1cn_0_84, kp2_0_84, kp1cn_0_85, kp2_0_85, kp2_0_9, kp1cn_0_3, kp2_0_3, kp1cn_0_4, kp2_0_4, kp1cn_0_5, kp2_0_5, kp1cn_0_6, kp2_0_6, kp1cn_0_7, kp2_0_7, kp1cn_0_8, kp2_0_8, kp1cn_0_9, kp2_0_2, kp1cn_0_10, kp2_0_10, kp1cn_0_11, kp2_0_11, kp1cn_0_12, kp2_0_12, kp1cn_0_13, kp2_0_13, kp1cn_0_14, kp2_0_14, kp1cn_0_15, kp2_0_15, kp1cn_0_16, km2_0, spkCnt, spk, r0, rb_0, ra_0, rb_1, ra_1, rb_2, ra_2, ra, kp1cn_0, km1_0, kp2_0, kp2_0_16, kp1cn_1, km1_1, kp2_1, km2_1, kp1cn_2, km1_2, kp2_2, km2_2, kp1cn_0_0, kp2_0_0, kp1cn_0_1, kp2_0_1, kp1cn_0_2, kp1cn_0_37, kp2_0_30, kp1cn_0_31, kp2_0_31, kp1cn_0_32, kp2_0_32, kp1cn_0_33, kp2_0_33, kp1cn_0_34, kp2_0_34, kp1cn_0_35, kp2_0_35, kp1cn_0_36, kp2_0_36, kp1cn_0_30, kp2_0_37, kp1cn_0_38, kp2_0_38, kp1cn_0_39, kp2_0_39, kp1cn_0_40, kp2_0_40, kp1cn_0_41, kp2_0_41, kp1cn_0_42, kp2_0_42, kp1cn_0_43, kp2_0_43, kp2_0_23, kp1cn_0_17, kp2_0_17, kp1cn_0_18, kp2_0_18, kp1cn_0_19, kp2_0_19, kp1cn_0_20, kp2_0_20, kp1cn_0_21, kp2_0_21, kp1cn_0_22, kp2_0_22, kp1cn_0_23, kp1cn_0_24, kp2_0_24, kp1cn_0_25, kp2_0_25, kp1cn_0_26, kp2_0_26, kp1cn_0_27, kp2_0_27, kp1cn_0_28, kp2_0_28, kp1cn_0_29, kp2_0_29, numNeurons, };
     CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronUpdateGroup2, &group, sizeof(MergedNeuronUpdateGroup2), idx * sizeof(MergedNeuronUpdateGroup2)));
 }
 __device__ __constant__ MergedNeuronUpdateGroup3 d_mergedNeuronUpdateGroup3[1];
-void pushMergedNeuronUpdateGroup3ToDevice(unsigned int idx, unsigned int* spkCnt, unsigned int* spk, curandState* rng, scalar* V, scalar* a, double* inSynInSyn0, double* inSynInSyn1, unsigned int numNeurons) {
-    MergedNeuronUpdateGroup3 group = {spkCnt, spk, rng, V, a, inSynInSyn0, inSynInSyn1, numNeurons, };
+void pushMergedNeuronUpdateGroup3ToDevice(unsigned int idx, unsigned int* spkCnt, unsigned int* spk, curandState* rng, scalar* V, scalar* a, double* inSynInSyn0, double* inSynInSyn1, uint32_t* recordSpk, unsigned int numNeurons) {
+    MergedNeuronUpdateGroup3 group = {spkCnt, spk, rng, V, a, inSynInSyn0, inSynInSyn1, recordSpk, numNeurons, };
     CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronUpdateGroup3, &group, sizeof(MergedNeuronUpdateGroup3), idx * sizeof(MergedNeuronUpdateGroup3)));
 }
 // ------------------------------------------------------------------------
@@ -316,9 +318,17 @@ void pushMergedNeuronUpdateGroup3ToDevice(unsigned int idx, unsigned int* spkCnt
 // ------------------------------------------------------------------------
 // merged extra global parameter functions
 // ------------------------------------------------------------------------
+void pushMergedNeuronUpdate0recordSpkToDevice(unsigned int idx, uint32_t* value) {
+    CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronUpdateGroup0, &value, sizeof(value), (sizeof(MergedNeuronUpdateGroup0) * (idx)) + offsetof(MergedNeuronUpdateGroup0, recordSpk)));
+}
+
+void pushMergedNeuronUpdate3recordSpkToDevice(unsigned int idx, uint32_t* value) {
+    CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronUpdateGroup3, &value, sizeof(value), (sizeof(MergedNeuronUpdateGroup3) * (idx)) + offsetof(MergedNeuronUpdateGroup3, recordSpk)));
+}
+
 __device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID0[] = {0, };
-__device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID1[] = {9600, };
-__device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID2[] = {9760, };
+__device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID1[] = {800, };
+__device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID2[] = {10400, };
 __device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID3[] = {10560, };
 
 extern "C" __global__ void neuronSpikeQueueUpdateKernel() {
@@ -333,7 +343,7 @@ extern "C" __global__ void neuronSpikeQueueUpdateKernel() {
     }
 }
 
-extern "C" __global__ void updateNeuronsKernel(double t)
+extern "C" __global__ void updateNeuronsKernel(double t, unsigned int recordingTimestep)
  {
     const unsigned int id = 32 * blockIdx.x + threadIdx.x; 
     __shared__ unsigned int shSpk[32];
@@ -343,11 +353,82 @@ extern "C" __global__ void updateNeuronsKernel(double t)
         shSpkCount = 0;
     }
     
+    __shared__ uint32_t shSpkRecord;
+    if (threadIdx.x == 0) {
+        shSpkRecord = 0;
+    }
     __syncthreads();
     // merged0
-    if(id < 9600) {
+    if(id < 800) {
         struct MergedNeuronUpdateGroup0 *group = &d_mergedNeuronUpdateGroup0[0]; 
         const unsigned int lid = id - 0;
+        
+        if(lid < group->numNeurons) {
+            scalar lV = group->V[lid];
+            scalar la = group->a[lid];
+            
+            double Isyn = 0;
+             {
+                // pull inSyn values in a coalesced access
+                double linSyn = group->inSynInSyn0[lid];
+                Isyn += linSyn * ((0.00000000000000000e+00) - lV);
+                linSyn*=(9.90049833749168107e-01);
+                group->inSynInSyn0[lid] = linSyn;
+            }
+             {
+                // pull inSyn values in a coalesced access
+                double linSyn = group->inSynInSyn1[lid];
+                Isyn += linSyn * ((0.00000000000000000e+00) - lV);
+                linSyn*=(9.90049833749168107e-01);
+                group->inSynInSyn1[lid] = linSyn;
+            }
+             {
+                // pull inSyn values in a coalesced access
+                double linSyn = group->inSynInSyn2[lid];
+                Isyn += linSyn * ((-8.00000000000000000e+01) - lV);
+                linSyn*=(9.95012479192682320e-01);
+                group->inSynInSyn2[lid] = linSyn;
+            }
+            // test whether spike condition was fulfilled previously
+            const bool oldSpike = (lV >= (-4.00000000000000000e+01));
+            // calculate membrane potential
+            lV+= (-(1.00000000000000002e-02)*(lV-(-6.00000000000000000e+01)) - (0.00000000000000000e+00)*la*(lV-(-7.00000000000000000e+01)) + (1.00000000000000000e+00)*Isyn+(3.13049516849970555e+00)*curand_normal_double(&group->rng[lid]))*DT/(1.00000000000000000e+00);
+            la+= -la*DT/(1.00000000000000000e+03);
+            // test for and register a true spike
+            if ((lV >= (-4.00000000000000000e+01)) && !(oldSpike)) {
+                const unsigned int spkIdx = atomicAdd(&shSpkCount, 1);
+                shSpk[spkIdx] = lid;
+                atomicOr(&shSpkRecord, 1 << threadIdx.x);
+                // spike reset code
+                lV= (-7.00000000000000000e+01);
+                la+= 0.5;
+            }
+            group->V[lid] = lV;
+            group->a[lid] = la;
+        }
+        __syncthreads();
+        if(threadIdx.x == 0) {
+            if (shSpkCount > 0) {
+                shPosSpk = atomicAdd(&group->spkCnt[0], shSpkCount);
+            }
+        }
+        __syncthreads();
+        if(threadIdx.x < shSpkCount) {
+            const unsigned int n = shSpk[threadIdx.x];
+            group->spk[shPosSpk + threadIdx.x] = n;
+        }
+        if(threadIdx.x < 1) {
+            const unsigned int numRecordingWords = (group->numNeurons + 31) / 32;
+            const unsigned int popWordIdx = (lid / 32) + threadIdx.x;
+            if(popWordIdx < numRecordingWords) {
+                group->recordSpk[(recordingTimestep * numRecordingWords * 1) + popWordIdx] = shSpkRecord;
+            }
+        }
+    }
+    // merged1
+    if(id >= 800 && id < 10400) {
+        struct MergedNeuronUpdateGroup1 *group = &d_mergedNeuronUpdateGroup1[0]; 
+        const unsigned int lid = id - 800;
         
         if(lid < group->numNeurons) {
             scalar lV = group->V[lid];
@@ -390,10 +471,10 @@ extern "C" __global__ void updateNeuronsKernel(double t)
             group->spk[shPosSpk + threadIdx.x] = n;
         }
     }
-    // merged1
-    if(id >= 9600 && id < 9760) {
-        struct MergedNeuronUpdateGroup1 *group = &d_mergedNeuronUpdateGroup1[0]; 
-        const unsigned int lid = id - 9600;
+    // merged2
+    if(id >= 10400 && id < 10560) {
+        struct MergedNeuronUpdateGroup2 *group = &d_mergedNeuronUpdateGroup2[0]; 
+        const unsigned int lid = id - 10400;
         
         if(lid < group->numNeurons) {
             scalar lr0 = group->r0[lid];
@@ -863,65 +944,6 @@ extern "C" __global__ void updateNeuronsKernel(double t)
         }
         __syncthreads();
     }
-    // merged2
-    if(id >= 9760 && id < 10560) {
-        struct MergedNeuronUpdateGroup2 *group = &d_mergedNeuronUpdateGroup2[0]; 
-        const unsigned int lid = id - 9760;
-        
-        if(lid < group->numNeurons) {
-            scalar lV = group->V[lid];
-            scalar la = group->a[lid];
-            
-            double Isyn = 0;
-             {
-                // pull inSyn values in a coalesced access
-                double linSyn = group->inSynInSyn0[lid];
-                Isyn += linSyn * ((0.00000000000000000e+00) - lV);
-                linSyn*=(9.90049833749168107e-01);
-                group->inSynInSyn0[lid] = linSyn;
-            }
-             {
-                // pull inSyn values in a coalesced access
-                double linSyn = group->inSynInSyn1[lid];
-                Isyn += linSyn * ((0.00000000000000000e+00) - lV);
-                linSyn*=(9.90049833749168107e-01);
-                group->inSynInSyn1[lid] = linSyn;
-            }
-             {
-                // pull inSyn values in a coalesced access
-                double linSyn = group->inSynInSyn2[lid];
-                Isyn += linSyn * ((-8.00000000000000000e+01) - lV);
-                linSyn*=(9.95012479192682320e-01);
-                group->inSynInSyn2[lid] = linSyn;
-            }
-            // test whether spike condition was fulfilled previously
-            const bool oldSpike = (lV >= (-4.00000000000000000e+01));
-            // calculate membrane potential
-            lV+= (-(1.00000000000000002e-02)*(lV-(-6.00000000000000000e+01)) - (0.00000000000000000e+00)*la*(lV-(-7.00000000000000000e+01)) + (1.00000000000000000e+00)*Isyn+(3.13049516849970555e+00)*curand_normal_double(&group->rng[lid]))*DT/(1.00000000000000000e+00);
-            la+= -la*DT/(1.00000000000000000e+03);
-            // test for and register a true spike
-            if ((lV >= (-4.00000000000000000e+01)) && !(oldSpike)) {
-                const unsigned int spkIdx = atomicAdd(&shSpkCount, 1);
-                shSpk[spkIdx] = lid;
-                // spike reset code
-                lV= (-7.00000000000000000e+01);
-                la+= 0.5;
-            }
-            group->V[lid] = lV;
-            group->a[lid] = la;
-        }
-        __syncthreads();
-        if(threadIdx.x == 0) {
-            if (shSpkCount > 0) {
-                shPosSpk = atomicAdd(&group->spkCnt[0], shSpkCount);
-            }
-        }
-        __syncthreads();
-        if(threadIdx.x < shSpkCount) {
-            const unsigned int n = shSpk[threadIdx.x];
-            group->spk[shPosSpk + threadIdx.x] = n;
-        }
-    }
     // merged3
     if(id >= 10560 && id < 14560) {
         struct MergedNeuronUpdateGroup3 *group = &d_mergedNeuronUpdateGroup3[0]; 
@@ -955,6 +977,7 @@ extern "C" __global__ void updateNeuronsKernel(double t)
             if ((lV >= (-4.00000000000000000e+01)) && !(oldSpike)) {
                 const unsigned int spkIdx = atomicAdd(&shSpkCount, 1);
                 shSpk[spkIdx] = lid;
+                atomicOr(&shSpkRecord, 1 << threadIdx.x);
                 // spike reset code
                 lV= (-7.00000000000000000e+01);
                 la+= 0.5;
@@ -973,9 +996,16 @@ extern "C" __global__ void updateNeuronsKernel(double t)
             const unsigned int n = shSpk[threadIdx.x];
             group->spk[shPosSpk + threadIdx.x] = n;
         }
+        if(threadIdx.x < 1) {
+            const unsigned int numRecordingWords = (group->numNeurons + 31) / 32;
+            const unsigned int popWordIdx = (lid / 32) + threadIdx.x;
+            if(popWordIdx < numRecordingWords) {
+                group->recordSpk[(recordingTimestep * numRecordingWords * 1) + popWordIdx] = shSpkRecord;
+            }
+        }
     }
 }
-void updateNeurons(double t) {
+void updateNeurons(double t, unsigned int recordingTimestep) {
      {
         const dim3 threads(32, 1);
         const dim3 grid(1, 1);
@@ -985,7 +1015,7 @@ void updateNeurons(double t) {
      {
         const dim3 threads(32, 1);
         const dim3 grid(455, 1);
-        updateNeuronsKernel<<<grid, threads>>>(t);
+        updateNeuronsKernel<<<grid, threads>>>(t, recordingTimestep);
         CHECK_CUDA_ERRORS(cudaPeekAtLastError());
     }
 }

@@ -180,6 +180,6 @@ if __name__ == "__main__":
     # to change the verbosity
     # logging.setLevel(logging.DEBUG)
     sim = Simulator("test_sim", model)
-    sim.track_vars([("or", ["kp1cn_0"]), ("ln", ["spikes"], ("pn", ["spikes"]))])
+    sim.track_vars([("or", ["kp1cn_0"]), ("ln", ["spikes"]), ("pn", ["spikes"])])
     sim.run(100000.0, batch=1000.0, poll_spike_readings=False)
     sim.save_output()

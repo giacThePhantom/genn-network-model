@@ -46,6 +46,7 @@ struct MergedNeuronInitGroup3
 ;
 struct MergedSynapseDenseInitGroup0
  {
+    scalar constantg;
     scalar* g;
     unsigned int rowStride;
     unsigned int numSrcNeurons;
@@ -105,8 +106,8 @@ void pushMergedNeuronInitGroup3ToDevice(unsigned int idx, unsigned int* spkCnt, 
     CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronInitGroup3, &group, sizeof(MergedNeuronInitGroup3), idx * sizeof(MergedNeuronInitGroup3)));
 }
 __device__ __constant__ MergedSynapseDenseInitGroup0 d_mergedSynapseDenseInitGroup0[2];
-void pushMergedSynapseDenseInitGroup0ToDevice(unsigned int idx, scalar* g, unsigned int rowStride, unsigned int numSrcNeurons, unsigned int numTrgNeurons) {
-    MergedSynapseDenseInitGroup0 group = {g, rowStride, numSrcNeurons, numTrgNeurons, };
+void pushMergedSynapseDenseInitGroup0ToDevice(unsigned int idx, scalar constantg, scalar* g, unsigned int rowStride, unsigned int numSrcNeurons, unsigned int numTrgNeurons) {
+    MergedSynapseDenseInitGroup0 group = {constantg, g, rowStride, numSrcNeurons, numTrgNeurons, };
     CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedSynapseDenseInitGroup0, &group, sizeof(MergedSynapseDenseInitGroup0), idx * sizeof(MergedSynapseDenseInitGroup0)));
 }
 __device__ __constant__ MergedSynapseConnectivityInitGroup0 d_mergedSynapseConnectivityInitGroup0[1];
@@ -256,7 +257,7 @@ extern "C" __global__ void initializeKernel(unsigned long long deviceRNGSeed) {
             for(unsigned int i = 0; i < group->numSrcNeurons; i++) {
                  {
                     scalar initVal;
-                    initVal = (0.00000000000000000e+00);
+                    initVal = group->constantg;
                     group->g[(i * group->rowStride) + lid] = initVal;
                 }
             }

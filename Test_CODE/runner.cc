@@ -6,6 +6,7 @@ extern "C" {
 // ------------------------------------------------------------------------
 unsigned long long iT;
 double t;
+unsigned long long numRecordingTimesteps = 0;
 __device__ curandStatePhilox4_32_10_t d_rng;
 
 // ------------------------------------------------------------------------
@@ -27,6 +28,8 @@ unsigned int* glbSpkCntln;
 unsigned int* d_glbSpkCntln;
 unsigned int* glbSpkln;
 unsigned int* d_glbSpkln;
+uint32_t* recordSpkln;
+uint32_t* d_recordSpkln;
 curandState* d_rngln;
 scalar* Vln;
 scalar* d_Vln;
@@ -489,6 +492,8 @@ unsigned int* glbSpkCntpn;
 unsigned int* d_glbSpkCntpn;
 unsigned int* glbSpkpn;
 unsigned int* d_glbSpkpn;
+uint32_t* recordSpkpn;
+uint32_t* d_recordSpkpn;
 curandState* d_rngpn;
 scalar* Vpn;
 scalar* d_Vpn;
@@ -5919,6 +5924,52 @@ void copyCurrentSpikesFromDevice() {
 void copyCurrentSpikeEventsFromDevice() {
 }
 
+void allocateRecordingBuffers(unsigned int timesteps) {
+    numRecordingTimesteps = timesteps;
+     {
+        const unsigned int numWords = 125 * timesteps;
+         {
+            CHECK_CUDA_ERRORS(cudaHostAlloc(&recordSpkln, numWords * sizeof(uint32_t), cudaHostAllocPortable));
+            CHECK_CUDA_ERRORS(cudaMalloc(&d_recordSpkln, numWords * sizeof(uint32_t)));
+            pushMergedNeuronUpdate3recordSpkToDevice(0, d_recordSpkln);
+        }
+    }
+     {
+    }
+     {
+    }
+     {
+        const unsigned int numWords = 25 * timesteps;
+         {
+            CHECK_CUDA_ERRORS(cudaHostAlloc(&recordSpkpn, numWords * sizeof(uint32_t), cudaHostAllocPortable));
+            CHECK_CUDA_ERRORS(cudaMalloc(&d_recordSpkpn, numWords * sizeof(uint32_t)));
+            pushMergedNeuronUpdate0recordSpkToDevice(0, d_recordSpkpn);
+        }
+    }
+}
+
+void pullRecordingBuffersFromDevice() {
+    if(numRecordingTimesteps == 0) {
+        throw std::runtime_error("Recording buffer not allocated - cannot pull from device");
+    }
+     {
+        const unsigned int numWords = 125 * numRecordingTimesteps;
+         {
+            CHECK_CUDA_ERRORS(cudaMemcpy(recordSpkln, d_recordSpkln, numWords * sizeof(uint32_t), cudaMemcpyDeviceToHost));
+        }
+    }
+     {
+    }
+     {
+    }
+     {
+        const unsigned int numWords = 25 * numRecordingTimesteps;
+         {
+            CHECK_CUDA_ERRORS(cudaMemcpy(recordSpkpn, d_recordSpkpn, numWords * sizeof(uint32_t), cudaMemcpyDeviceToHost));
+        }
+    }
+}
+
 void allocateMem() {
     int deviceID;
     CHECK_CUDA_ERRORS(cudaDeviceGetByPCIBusId(&deviceID, "0000:01:00.0"));
@@ -6458,16 +6509,16 @@ void allocateMem() {
     pushMergedNeuronInitGroup1ToDevice(0, d_glbSpkCntorn, d_glbSpkorn, d_rngorn, d_inSynor_orn, 9600);
     pushMergedNeuronInitGroup2ToDevice(0, d_glbSpkCntor, d_glbSpkor, 160);
     pushMergedNeuronInitGroup3ToDevice(0, d_glbSpkCntln, d_glbSpkln, d_rngln, d_inSynpn_ln, d_inSynln_ln, 4000);
-    pushMergedSynapseDenseInitGroup0ToDevice(0, d_gln_ln, 4000, 4000, 4000);
-    pushMergedSynapseDenseInitGroup0ToDevice(1, d_gln_pn, 800, 4000, 800);
+    pushMergedSynapseDenseInitGroup0ToDevice(0, 2.00000000000000016e-05, d_gln_ln, 4000, 4000, 4000);
+    pushMergedSynapseDenseInitGroup0ToDevice(1, 5.50000000000000020e-05, d_gln_pn, 800, 4000, 800);
     pushMergedSynapseConnectivityInitGroup0ToDevice(0, d_rowLengthpn_ln, d_indpn_ln, 25, 800, 4000);
     pushMergedSynapseConnectivityInitGroup1ToDevice(0, d_rowLengthorn_ln, d_indorn_ln, 2.50000000000000000e+01, 800, 9600, 800);
     pushMergedSynapseConnectivityInitGroup1ToDevice(1, d_rowLengthorn_pn, d_indorn_pn, 5.00000000000000000e+00, 800, 9600, 800);
     pushMergedSynapseConnectivityInitGroup2ToDevice(0, d_rowLengthor_orn, d_indor_orn, 60, 160, 9600);
-    pushMergedNeuronUpdateGroup0ToDevice(0, d_glbSpkCntorn, d_glbSpkorn, d_rngorn, d_Vorn, d_aorn, d_inSynor_orn, 9600);
-    pushMergedNeuronUpdateGroup1ToDevice(0, d_kp1cn_0_65or, d_kp2_0_58or, d_kp1cn_0_59or, d_kp2_0_59or, d_kp1cn_0_60or, d_kp2_0_60or, d_kp1cn_0_61or, d_kp2_0_61or, d_kp1cn_0_62or, d_kp2_0_62or, d_kp1cn_0_63or, d_kp2_0_63or, d_kp1cn_0_64or, d_kp2_0_64or, d_kp1cn_0_58or, d_kp2_0_65or, d_kp1cn_0_66or, d_kp2_0_66or, d_kp1cn_0_67or, d_kp2_0_67or, d_kp1cn_0_68or, d_kp2_0_68or, d_kp1cn_0_69or, d_kp2_0_69or, d_kp1cn_0_70or, d_kp2_0_70or, d_kp1cn_0_71or, d_kp2_0_71or, d_kp1cn_0_51or, d_kp2_0_44or, d_kp1cn_0_45or, d_kp2_0_45or, d_kp1cn_0_46or, d_kp2_0_46or, d_kp1cn_0_47or, d_kp2_0_47or, d_kp1cn_0_48or, d_kp2_0_48or, d_kp1cn_0_49or, d_kp2_0_49or, d_kp1cn_0_50or, d_kp2_0_50or, d_kp1cn_0_72or, d_kp2_0_51or, d_kp1cn_0_52or, d_kp2_0_52or, d_kp1cn_0_53or, d_kp2_0_53or, d_kp1cn_0_54or, d_kp2_0_54or, d_kp1cn_0_55or, d_kp2_0_55or, d_kp1cn_0_56or, d_kp2_0_56or, d_kp1cn_0_57or, d_kp2_0_57or, d_kp1cn_0_93or, d_kp2_0_86or, d_kp1cn_0_87or, d_kp2_0_87or, d_kp1cn_0_88or, d_kp2_0_88or, d_kp1cn_0_89or, d_kp2_0_89or, d_kp1cn_0_90or, d_kp2_0_90or, d_kp1cn_0_91or, d_kp2_0_91or, d_kp1cn_0_92or, d_kp2_0_92or, d_kp1cn_0_86or, d_kp2_0_93or, d_kp1cn_0_94or, d_kp2_0_94or, d_kp1cn_0_95or, d_kp2_0_95or, d_kp1cn_0_96or, d_kp2_0_96or, d_kp1cn_0_97or, d_kp2_0_97or, d_kp1cn_0_98or, d_kp2_0_98or, d_kp1cn_0_99or, d_kp2_0_99or, d_kp1cn_0_79or, d_kp2_0_72or, d_kp1cn_0_73or, d_kp2_0_73or, d_kp1cn_0_74or, d_kp2_0_74or, d_kp1cn_0_75or, d_kp2_0_75or, d_kp1cn_0_76or, d_kp2_0_76or, d_kp1cn_0_77or, d_kp2_0_77or, d_kp1cn_0_78or, d_kp2_0_78or, d_kp1cn_0_44or, d_kp2_0_79or, d_kp1cn_0_80or, d_kp2_0_80or, d_kp1cn_0_81or, d_kp2_0_81or, d_kp1cn_0_82or, d_kp2_0_82or, d_kp1cn_0_83or, d_kp2_0_83or, d_kp1cn_0_84or, d_kp2_0_84or, d_kp1cn_0_85or, d_kp2_0_85or, d_kp2_0_9or, d_kp1cn_0_3or, d_kp2_0_3or, d_kp1cn_0_4or, d_kp2_0_4or, d_kp1cn_0_5or, d_kp2_0_5or, d_kp1cn_0_6or, d_kp2_0_6or, d_kp1cn_0_7or, d_kp2_0_7or, d_kp1cn_0_8or, d_kp2_0_8or, d_kp1cn_0_9or, d_kp2_0_2or, d_kp1cn_0_10or, d_kp2_0_10or, d_kp1cn_0_11or, d_kp2_0_11or, d_kp1cn_0_12or, d_kp2_0_12or, d_kp1cn_0_13or, d_kp2_0_13or, d_kp1cn_0_14or, d_kp2_0_14or, d_kp1cn_0_15or, d_kp2_0_15or, d_kp1cn_0_16or, d_km2_0or, d_glbSpkCntor, d_glbSpkor, d_r0or, d_rb_0or, d_ra_0or, d_rb_1or, d_ra_1or, d_rb_2or, d_ra_2or, d_raor, d_kp1cn_0or, d_km1_0or, d_kp2_0or, d_kp2_0_16or, d_kp1cn_1or, d_km1_1or, d_kp2_1or, d_km2_1or, d_kp1cn_2or, d_km1_2or, d_kp2_2or, d_km2_2or, d_kp1cn_0_0or, d_kp2_0_0or, d_kp1cn_0_1or, d_kp2_0_1or, d_kp1cn_0_2or, d_kp1cn_0_37or, d_kp2_0_30or, d_kp1cn_0_31or, d_kp2_0_31or, d_kp1cn_0_32or, d_kp2_0_32or, d_kp1cn_0_33or, d_kp2_0_33or, d_kp1cn_0_34or, d_kp2_0_34or, d_kp1cn_0_35or, d_kp2_0_35or, d_kp1cn_0_36or, d_kp2_0_36or, d_kp1cn_0_30or, d_kp2_0_37or, d_kp1cn_0_38or, d_kp2_0_38or, d_kp1cn_0_39or, d_kp2_0_39or, d_kp1cn_0_40or, d_kp2_0_40or, d_kp1cn_0_41or, d_kp2_0_41or, d_kp1cn_0_42or, d_kp2_0_42or, d_kp1cn_0_43or, d_kp2_0_43or, d_kp2_0_23or, d_kp1cn_0_17or, d_kp2_0_17or, d_kp1cn_0_18or, d_kp2_0_18or, d_kp1cn_0_19or, d_kp2_0_19or, d_kp1cn_0_20or, d_kp2_0_20or, d_kp1cn_0_21or, d_kp2_0_21or, d_kp1cn_0_22or, d_kp2_0_22or, d_kp1cn_0_23or, d_kp1cn_0_24or, d_kp2_0_24or, d_kp1cn_0_25or, d_kp2_0_25or, d_kp1cn_0_26or, d_kp2_0_26or, d_kp1cn_0_27or, d_kp2_0_27or, d_kp1cn_0_28or, d_kp2_0_28or, d_kp1cn_0_29or, d_kp2_0_29or, 160);
-    pushMergedNeuronUpdateGroup2ToDevice(0, d_glbSpkCntpn, d_glbSpkpn, d_rngpn, d_Vpn, d_apn, d_inSynorn_ln, d_inSynorn_pn, d_inSynln_pn, 800);
-    pushMergedNeuronUpdateGroup3ToDevice(0, d_glbSpkCntln, d_glbSpkln, d_rngln, d_Vln, d_aln, d_inSynpn_ln, d_inSynln_ln, 4000);
+    pushMergedNeuronUpdateGroup0ToDevice(0, d_glbSpkCntpn, d_glbSpkpn, d_rngpn, d_Vpn, d_apn, d_inSynorn_ln, d_inSynorn_pn, d_inSynln_pn, d_recordSpkpn, 800);
+    pushMergedNeuronUpdateGroup1ToDevice(0, d_glbSpkCntorn, d_glbSpkorn, d_rngorn, d_Vorn, d_aorn, d_inSynor_orn, 9600);
+    pushMergedNeuronUpdateGroup2ToDevice(0, d_kp1cn_0_65or, d_kp2_0_58or, d_kp1cn_0_59or, d_kp2_0_59or, d_kp1cn_0_60or, d_kp2_0_60or, d_kp1cn_0_61or, d_kp2_0_61or, d_kp1cn_0_62or, d_kp2_0_62or, d_kp1cn_0_63or, d_kp2_0_63or, d_kp1cn_0_64or, d_kp2_0_64or, d_kp1cn_0_58or, d_kp2_0_65or, d_kp1cn_0_66or, d_kp2_0_66or, d_kp1cn_0_67or, d_kp2_0_67or, d_kp1cn_0_68or, d_kp2_0_68or, d_kp1cn_0_69or, d_kp2_0_69or, d_kp1cn_0_70or, d_kp2_0_70or, d_kp1cn_0_71or, d_kp2_0_71or, d_kp1cn_0_51or, d_kp2_0_44or, d_kp1cn_0_45or, d_kp2_0_45or, d_kp1cn_0_46or, d_kp2_0_46or, d_kp1cn_0_47or, d_kp2_0_47or, d_kp1cn_0_48or, d_kp2_0_48or, d_kp1cn_0_49or, d_kp2_0_49or, d_kp1cn_0_50or, d_kp2_0_50or, d_kp1cn_0_72or, d_kp2_0_51or, d_kp1cn_0_52or, d_kp2_0_52or, d_kp1cn_0_53or, d_kp2_0_53or, d_kp1cn_0_54or, d_kp2_0_54or, d_kp1cn_0_55or, d_kp2_0_55or, d_kp1cn_0_56or, d_kp2_0_56or, d_kp1cn_0_57or, d_kp2_0_57or, d_kp1cn_0_93or, d_kp2_0_86or, d_kp1cn_0_87or, d_kp2_0_87or, d_kp1cn_0_88or, d_kp2_0_88or, d_kp1cn_0_89or, d_kp2_0_89or, d_kp1cn_0_90or, d_kp2_0_90or, d_kp1cn_0_91or, d_kp2_0_91or, d_kp1cn_0_92or, d_kp2_0_92or, d_kp1cn_0_86or, d_kp2_0_93or, d_kp1cn_0_94or, d_kp2_0_94or, d_kp1cn_0_95or, d_kp2_0_95or, d_kp1cn_0_96or, d_kp2_0_96or, d_kp1cn_0_97or, d_kp2_0_97or, d_kp1cn_0_98or, d_kp2_0_98or, d_kp1cn_0_99or, d_kp2_0_99or, d_kp1cn_0_79or, d_kp2_0_72or, d_kp1cn_0_73or, d_kp2_0_73or, d_kp1cn_0_74or, d_kp2_0_74or, d_kp1cn_0_75or, d_kp2_0_75or, d_kp1cn_0_76or, d_kp2_0_76or, d_kp1cn_0_77or, d_kp2_0_77or, d_kp1cn_0_78or, d_kp2_0_78or, d_kp1cn_0_44or, d_kp2_0_79or, d_kp1cn_0_80or, d_kp2_0_80or, d_kp1cn_0_81or, d_kp2_0_81or, d_kp1cn_0_82or, d_kp2_0_82or, d_kp1cn_0_83or, d_kp2_0_83or, d_kp1cn_0_84or, d_kp2_0_84or, d_kp1cn_0_85or, d_kp2_0_85or, d_kp2_0_9or, d_kp1cn_0_3or, d_kp2_0_3or, d_kp1cn_0_4or, d_kp2_0_4or, d_kp1cn_0_5or, d_kp2_0_5or, d_kp1cn_0_6or, d_kp2_0_6or, d_kp1cn_0_7or, d_kp2_0_7or, d_kp1cn_0_8or, d_kp2_0_8or, d_kp1cn_0_9or, d_kp2_0_2or, d_kp1cn_0_10or, d_kp2_0_10or, d_kp1cn_0_11or, d_kp2_0_11or, d_kp1cn_0_12or, d_kp2_0_12or, d_kp1cn_0_13or, d_kp2_0_13or, d_kp1cn_0_14or, d_kp2_0_14or, d_kp1cn_0_15or, d_kp2_0_15or, d_kp1cn_0_16or, d_km2_0or, d_glbSpkCntor, d_glbSpkor, d_r0or, d_rb_0or, d_ra_0or, d_rb_1or, d_ra_1or, d_rb_2or, d_ra_2or, d_raor, d_kp1cn_0or, d_km1_0or, d_kp2_0or, d_kp2_0_16or, d_kp1cn_1or, d_km1_1or, d_kp2_1or, d_km2_1or, d_kp1cn_2or, d_km1_2or, d_kp2_2or, d_km2_2or, d_kp1cn_0_0or, d_kp2_0_0or, d_kp1cn_0_1or, d_kp2_0_1or, d_kp1cn_0_2or, d_kp1cn_0_37or, d_kp2_0_30or, d_kp1cn_0_31or, d_kp2_0_31or, d_kp1cn_0_32or, d_kp2_0_32or, d_kp1cn_0_33or, d_kp2_0_33or, d_kp1cn_0_34or, d_kp2_0_34or, d_kp1cn_0_35or, d_kp2_0_35or, d_kp1cn_0_36or, d_kp2_0_36or, d_kp1cn_0_30or, d_kp2_0_37or, d_kp1cn_0_38or, d_kp2_0_38or, d_kp1cn_0_39or, d_kp2_0_39or, d_kp1cn_0_40or, d_kp2_0_40or, d_kp1cn_0_41or, d_kp2_0_41or, d_kp1cn_0_42or, d_kp2_0_42or, d_kp1cn_0_43or, d_kp2_0_43or, d_kp2_0_23or, d_kp1cn_0_17or, d_kp2_0_17or, d_kp1cn_0_18or, d_kp2_0_18or, d_kp1cn_0_19or, d_kp2_0_19or, d_kp1cn_0_20or, d_kp2_0_20or, d_kp1cn_0_21or, d_kp2_0_21or, d_kp1cn_0_22or, d_kp2_0_22or, d_kp1cn_0_23or, d_kp1cn_0_24or, d_kp2_0_24or, d_kp1cn_0_25or, d_kp2_0_25or, d_kp1cn_0_26or, d_kp2_0_26or, d_kp1cn_0_27or, d_kp2_0_27or, d_kp1cn_0_28or, d_kp2_0_28or, d_kp1cn_0_29or, d_kp2_0_29or, 160);
+    pushMergedNeuronUpdateGroup3ToDevice(0, d_glbSpkCntln, d_glbSpkln, d_rngln, d_Vln, d_aln, d_inSynpn_ln, d_inSynln_ln, d_recordSpkln, 4000);
     pushMergedPresynapticUpdateGroup0ToDevice(0, d_inSynorn_ln, d_glbSpkCntorn, d_glbSpkorn, d_rowLengthorn_ln, d_indorn_ln, 8.00000000000000017e-03, 800, 9600, 800);
     pushMergedPresynapticUpdateGroup0ToDevice(1, d_inSynorn_pn, d_glbSpkCntorn, d_glbSpkorn, d_rowLengthorn_pn, d_indorn_pn, 8.00000000000000017e-03, 800, 9600, 800);
     pushMergedPresynapticUpdateGroup0ToDevice(2, d_inSynpn_ln, d_glbSpkCntpn, d_glbSpkpn, d_rowLengthpn_ln, d_indpn_ln, 1.00000000000000002e-03, 25, 800, 4000);
@@ -6495,6 +6546,8 @@ void freeMem() {
     CHECK_CUDA_ERRORS(cudaFree(d_glbSpkCntln));
     CHECK_CUDA_ERRORS(cudaFreeHost(glbSpkln));
     CHECK_CUDA_ERRORS(cudaFree(d_glbSpkln));
+    CHECK_CUDA_ERRORS(cudaFreeHost(recordSpkln));
+    CHECK_CUDA_ERRORS(cudaFree(d_recordSpkln));
     CHECK_CUDA_ERRORS(cudaFree(d_rngln));
     CHECK_CUDA_ERRORS(cudaFreeHost(Vln));
     CHECK_CUDA_ERRORS(cudaFree(d_Vln));
@@ -6957,6 +7010,8 @@ void freeMem() {
     CHECK_CUDA_ERRORS(cudaFree(d_glbSpkCntpn));
     CHECK_CUDA_ERRORS(cudaFreeHost(glbSpkpn));
     CHECK_CUDA_ERRORS(cudaFree(d_glbSpkpn));
+    CHECK_CUDA_ERRORS(cudaFreeHost(recordSpkpn));
+    CHECK_CUDA_ERRORS(cudaFree(d_recordSpkpn));
     CHECK_CUDA_ERRORS(cudaFree(d_rngpn));
     CHECK_CUDA_ERRORS(cudaFreeHost(Vpn));
     CHECK_CUDA_ERRORS(cudaFree(d_Vpn));
@@ -7022,7 +7077,7 @@ size_t getFreeDeviceMemBytes() {
 
 void stepTime() {
     updateSynapses(t);
-    updateNeurons(t); 
+    updateNeurons(t, (unsigned int)(iT % numRecordingTimesteps)); 
     iT++;
     t = iT*DT;
 }
