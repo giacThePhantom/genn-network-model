@@ -506,34 +506,34 @@ double* inSynpn_ln;
 double* d_inSynpn_ln;
 double* inSynln_ln;
 double* d_inSynln_ln;
-double* inSynor_ln;
-double* d_inSynor_ln;
 double* inSynor_orn;
 double* d_inSynor_orn;
+double* inSynorn_ln;
+double* d_inSynorn_ln;
 double* inSynln_pn;
 double* d_inSynln_pn;
-double* inSynor_pn;
-double* d_inSynor_pn;
+double* inSynorn_pn;
+double* d_inSynorn_pn;
 
 // ------------------------------------------------------------------------
 // synapse connectivity
 // ------------------------------------------------------------------------
-const unsigned int maxRowLengthor_ln = 15;
-unsigned int* rowLengthor_ln;
-unsigned int* d_rowLengthor_ln;
-uint32_t* indor_ln;
-uint32_t* d_indor_ln;
-const unsigned int maxRowLengthor_orn = 20;
+const unsigned int maxRowLengthor_orn = 60;
 unsigned int* rowLengthor_orn;
 unsigned int* d_rowLengthor_orn;
 uint32_t* indor_orn;
 uint32_t* d_indor_orn;
-const unsigned int maxRowLengthor_pn = 21;
-unsigned int* rowLengthor_pn;
-unsigned int* d_rowLengthor_pn;
-uint32_t* indor_pn;
-uint32_t* d_indor_pn;
-const unsigned int maxRowLengthpn_ln = 15;
+const unsigned int maxRowLengthorn_ln = 800;
+unsigned int* rowLengthorn_ln;
+unsigned int* d_rowLengthorn_ln;
+uint32_t* indorn_ln;
+uint32_t* d_indorn_ln;
+const unsigned int maxRowLengthorn_pn = 800;
+unsigned int* rowLengthorn_pn;
+unsigned int* d_rowLengthorn_pn;
+uint32_t* indorn_pn;
+uint32_t* d_indorn_pn;
+const unsigned int maxRowLengthpn_ln = 25;
 unsigned int* rowLengthpn_ln;
 unsigned int* d_rowLengthpn_ln;
 uint32_t* indpn_ln;
@@ -546,8 +546,6 @@ scalar* gln_ln;
 scalar* d_gln_ln;
 scalar* gln_pn;
 scalar* d_gln_pn;
-scalar* gpn_ln;
-scalar* d_gpn_ln;
 
 }  // extern "C"
 // ------------------------------------------------------------------------
@@ -562,7 +560,7 @@ void pushlnSpikesToDevice(bool uninitialisedOnly) {
         CHECK_CUDA_ERRORS(cudaMemcpy(d_glbSpkCntln, glbSpkCntln, 1 * sizeof(unsigned int), cudaMemcpyHostToDevice));
     }
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_glbSpkln, glbSpkln, 15 * sizeof(unsigned int), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_glbSpkln, glbSpkln, 4000 * sizeof(unsigned int), cudaMemcpyHostToDevice));
     }
 }
 
@@ -572,19 +570,19 @@ void pushlnCurrentSpikesToDevice(bool uninitialisedOnly) {
 }
 
 void pushVlnToDevice(bool uninitialisedOnly) {
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_Vln, Vln, 15 * sizeof(scalar), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_Vln, Vln, 4000 * sizeof(scalar), cudaMemcpyHostToDevice));
 }
 
 void pushCurrentVlnToDevice(bool uninitialisedOnly) {
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_Vln, Vln, 15 * sizeof(scalar), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_Vln, Vln, 4000 * sizeof(scalar), cudaMemcpyHostToDevice));
 }
 
 void pushalnToDevice(bool uninitialisedOnly) {
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_aln, aln, 15 * sizeof(scalar), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_aln, aln, 4000 * sizeof(scalar), cudaMemcpyHostToDevice));
 }
 
 void pushCurrentalnToDevice(bool uninitialisedOnly) {
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_aln, aln, 15 * sizeof(scalar), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_aln, aln, 4000 * sizeof(scalar), cudaMemcpyHostToDevice));
 }
 
 void pushlnStateToDevice(bool uninitialisedOnly) {
@@ -2594,7 +2592,7 @@ void pushornSpikesToDevice(bool uninitialisedOnly) {
         CHECK_CUDA_ERRORS(cudaMemcpy(d_glbSpkCntorn, glbSpkCntorn, 1 * sizeof(unsigned int), cudaMemcpyHostToDevice));
     }
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_glbSpkorn, glbSpkorn, 20 * sizeof(unsigned int), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_glbSpkorn, glbSpkorn, 9600 * sizeof(unsigned int), cudaMemcpyHostToDevice));
     }
 }
 
@@ -2604,19 +2602,19 @@ void pushornCurrentSpikesToDevice(bool uninitialisedOnly) {
 }
 
 void pushVornToDevice(bool uninitialisedOnly) {
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_Vorn, Vorn, 20 * sizeof(scalar), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_Vorn, Vorn, 9600 * sizeof(scalar), cudaMemcpyHostToDevice));
 }
 
 void pushCurrentVornToDevice(bool uninitialisedOnly) {
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_Vorn, Vorn, 20 * sizeof(scalar), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_Vorn, Vorn, 9600 * sizeof(scalar), cudaMemcpyHostToDevice));
 }
 
 void pushaornToDevice(bool uninitialisedOnly) {
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_aorn, aorn, 20 * sizeof(scalar), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_aorn, aorn, 9600 * sizeof(scalar), cudaMemcpyHostToDevice));
 }
 
 void pushCurrentaornToDevice(bool uninitialisedOnly) {
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_aorn, aorn, 20 * sizeof(scalar), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_aorn, aorn, 9600 * sizeof(scalar), cudaMemcpyHostToDevice));
 }
 
 void pushornStateToDevice(bool uninitialisedOnly) {
@@ -2629,7 +2627,7 @@ void pushpnSpikesToDevice(bool uninitialisedOnly) {
         CHECK_CUDA_ERRORS(cudaMemcpy(d_glbSpkCntpn, glbSpkCntpn, 1 * sizeof(unsigned int), cudaMemcpyHostToDevice));
     }
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_glbSpkpn, glbSpkpn, 21 * sizeof(unsigned int), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_glbSpkpn, glbSpkpn, 800 * sizeof(unsigned int), cudaMemcpyHostToDevice));
     }
 }
 
@@ -2639,19 +2637,19 @@ void pushpnCurrentSpikesToDevice(bool uninitialisedOnly) {
 }
 
 void pushVpnToDevice(bool uninitialisedOnly) {
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_Vpn, Vpn, 21 * sizeof(scalar), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_Vpn, Vpn, 800 * sizeof(scalar), cudaMemcpyHostToDevice));
 }
 
 void pushCurrentVpnToDevice(bool uninitialisedOnly) {
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_Vpn, Vpn, 21 * sizeof(scalar), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_Vpn, Vpn, 800 * sizeof(scalar), cudaMemcpyHostToDevice));
 }
 
 void pushapnToDevice(bool uninitialisedOnly) {
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_apn, apn, 21 * sizeof(scalar), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_apn, apn, 800 * sizeof(scalar), cudaMemcpyHostToDevice));
 }
 
 void pushCurrentapnToDevice(bool uninitialisedOnly) {
-    CHECK_CUDA_ERRORS(cudaMemcpy(d_apn, apn, 21 * sizeof(scalar), cudaMemcpyHostToDevice));
+    CHECK_CUDA_ERRORS(cudaMemcpy(d_apn, apn, 800 * sizeof(scalar), cudaMemcpyHostToDevice));
 }
 
 void pushpnStateToDevice(bool uninitialisedOnly) {
@@ -2659,51 +2657,51 @@ void pushpnStateToDevice(bool uninitialisedOnly) {
     pushapnToDevice(uninitialisedOnly);
 }
 
-void pushor_lnConnectivityToDevice(bool uninitialisedOnly) {
-    if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_rowLengthor_ln, rowLengthor_ln, 160 * sizeof(unsigned int), cudaMemcpyHostToDevice));
-    }
-    if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_indor_ln, indor_ln, 2400 * sizeof(uint32_t), cudaMemcpyHostToDevice));
-    }
-}
-
 void pushor_ornConnectivityToDevice(bool uninitialisedOnly) {
     if(!uninitialisedOnly) {
         CHECK_CUDA_ERRORS(cudaMemcpy(d_rowLengthor_orn, rowLengthor_orn, 160 * sizeof(unsigned int), cudaMemcpyHostToDevice));
     }
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_indor_orn, indor_orn, 3200 * sizeof(uint32_t), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_indor_orn, indor_orn, 9600 * sizeof(uint32_t), cudaMemcpyHostToDevice));
     }
 }
 
-void pushor_pnConnectivityToDevice(bool uninitialisedOnly) {
+void pushorn_lnConnectivityToDevice(bool uninitialisedOnly) {
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_rowLengthor_pn, rowLengthor_pn, 160 * sizeof(unsigned int), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_rowLengthorn_ln, rowLengthorn_ln, 9600 * sizeof(unsigned int), cudaMemcpyHostToDevice));
     }
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_indor_pn, indor_pn, 3360 * sizeof(uint32_t), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_indorn_ln, indorn_ln, 7680000 * sizeof(uint32_t), cudaMemcpyHostToDevice));
+    }
+}
+
+void pushorn_pnConnectivityToDevice(bool uninitialisedOnly) {
+    if(!uninitialisedOnly) {
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_rowLengthorn_pn, rowLengthorn_pn, 9600 * sizeof(unsigned int), cudaMemcpyHostToDevice));
+    }
+    if(!uninitialisedOnly) {
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_indorn_pn, indorn_pn, 7680000 * sizeof(uint32_t), cudaMemcpyHostToDevice));
     }
 }
 
 void pushpn_lnConnectivityToDevice(bool uninitialisedOnly) {
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_rowLengthpn_ln, rowLengthpn_ln, 21 * sizeof(unsigned int), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_rowLengthpn_ln, rowLengthpn_ln, 800 * sizeof(unsigned int), cudaMemcpyHostToDevice));
     }
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_indpn_ln, indpn_ln, 315 * sizeof(uint32_t), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_indpn_ln, indpn_ln, 20000 * sizeof(uint32_t), cudaMemcpyHostToDevice));
     }
 }
 
 void pushgln_lnToDevice(bool uninitialisedOnly) {
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_gln_ln, gln_ln, 225 * sizeof(scalar), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_gln_ln, gln_ln, 16000000 * sizeof(scalar), cudaMemcpyHostToDevice));
     }
 }
 
 void pushinSynln_lnToDevice(bool uninitialisedOnly) {
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_inSynln_ln, inSynln_ln, 15 * sizeof(double), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_inSynln_ln, inSynln_ln, 4000 * sizeof(double), cudaMemcpyHostToDevice));
     }
 }
 
@@ -2714,13 +2712,13 @@ void pushln_lnStateToDevice(bool uninitialisedOnly) {
 
 void pushgln_pnToDevice(bool uninitialisedOnly) {
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_gln_pn, gln_pn, 315 * sizeof(scalar), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_gln_pn, gln_pn, 3200000 * sizeof(scalar), cudaMemcpyHostToDevice));
     }
 }
 
 void pushinSynln_pnToDevice(bool uninitialisedOnly) {
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_inSynln_pn, inSynln_pn, 21 * sizeof(double), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_inSynln_pn, inSynln_pn, 800 * sizeof(double), cudaMemcpyHostToDevice));
     }
 }
 
@@ -2729,19 +2727,9 @@ void pushln_pnStateToDevice(bool uninitialisedOnly) {
     pushinSynln_pnToDevice(uninitialisedOnly);
 }
 
-void pushinSynor_lnToDevice(bool uninitialisedOnly) {
-    if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_inSynor_ln, inSynor_ln, 15 * sizeof(double), cudaMemcpyHostToDevice));
-    }
-}
-
-void pushor_lnStateToDevice(bool uninitialisedOnly) {
-    pushinSynor_lnToDevice(uninitialisedOnly);
-}
-
 void pushinSynor_ornToDevice(bool uninitialisedOnly) {
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_inSynor_orn, inSynor_orn, 20 * sizeof(double), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_inSynor_orn, inSynor_orn, 9600 * sizeof(double), cudaMemcpyHostToDevice));
     }
 }
 
@@ -2749,30 +2737,33 @@ void pushor_ornStateToDevice(bool uninitialisedOnly) {
     pushinSynor_ornToDevice(uninitialisedOnly);
 }
 
-void pushinSynor_pnToDevice(bool uninitialisedOnly) {
+void pushinSynorn_lnToDevice(bool uninitialisedOnly) {
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_inSynor_pn, inSynor_pn, 21 * sizeof(double), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_inSynorn_ln, inSynorn_ln, 800 * sizeof(double), cudaMemcpyHostToDevice));
     }
 }
 
-void pushor_pnStateToDevice(bool uninitialisedOnly) {
-    pushinSynor_pnToDevice(uninitialisedOnly);
+void pushorn_lnStateToDevice(bool uninitialisedOnly) {
+    pushinSynorn_lnToDevice(uninitialisedOnly);
 }
 
-void pushgpn_lnToDevice(bool uninitialisedOnly) {
+void pushinSynorn_pnToDevice(bool uninitialisedOnly) {
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_gpn_ln, gpn_ln, 315 * sizeof(scalar), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_inSynorn_pn, inSynorn_pn, 800 * sizeof(double), cudaMemcpyHostToDevice));
     }
+}
+
+void pushorn_pnStateToDevice(bool uninitialisedOnly) {
+    pushinSynorn_pnToDevice(uninitialisedOnly);
 }
 
 void pushinSynpn_lnToDevice(bool uninitialisedOnly) {
     if(!uninitialisedOnly) {
-        CHECK_CUDA_ERRORS(cudaMemcpy(d_inSynpn_ln, inSynpn_ln, 15 * sizeof(double), cudaMemcpyHostToDevice));
+        CHECK_CUDA_ERRORS(cudaMemcpy(d_inSynpn_ln, inSynpn_ln, 4000 * sizeof(double), cudaMemcpyHostToDevice));
     }
 }
 
 void pushpn_lnStateToDevice(bool uninitialisedOnly) {
-    pushgpn_lnToDevice(uninitialisedOnly);
     pushinSynpn_lnToDevice(uninitialisedOnly);
 }
 
@@ -2782,7 +2773,7 @@ void pushpn_lnStateToDevice(bool uninitialisedOnly) {
 // ------------------------------------------------------------------------
 void pulllnSpikesFromDevice() {
     CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkCntln, d_glbSpkCntln, 1 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
-    CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkln, d_glbSpkln, 15 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkln, d_glbSpkln, 4000 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
 }
 
 void pulllnCurrentSpikesFromDevice() {
@@ -2791,19 +2782,19 @@ void pulllnCurrentSpikesFromDevice() {
 }
 
 void pullVlnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(Vln, d_Vln, 15 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(Vln, d_Vln, 4000 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullCurrentVlnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(Vln, d_Vln, 15 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(Vln, d_Vln, 4000 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullalnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(aln, d_aln, 15 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(aln, d_aln, 4000 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullCurrentalnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(aln, d_aln, 15 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(aln, d_aln, 4000 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pulllnStateFromDevice() {
@@ -4806,7 +4797,7 @@ void pullorStateFromDevice() {
 
 void pullornSpikesFromDevice() {
     CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkCntorn, d_glbSpkCntorn, 1 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
-    CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkorn, d_glbSpkorn, 20 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkorn, d_glbSpkorn, 9600 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
 }
 
 void pullornCurrentSpikesFromDevice() {
@@ -4815,19 +4806,19 @@ void pullornCurrentSpikesFromDevice() {
 }
 
 void pullVornFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(Vorn, d_Vorn, 20 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(Vorn, d_Vorn, 9600 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullCurrentVornFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(Vorn, d_Vorn, 20 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(Vorn, d_Vorn, 9600 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullaornFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(aorn, d_aorn, 20 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(aorn, d_aorn, 9600 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullCurrentaornFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(aorn, d_aorn, 20 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(aorn, d_aorn, 9600 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullornStateFromDevice() {
@@ -4837,7 +4828,7 @@ void pullornStateFromDevice() {
 
 void pullpnSpikesFromDevice() {
     CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkCntpn, d_glbSpkCntpn, 1 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
-    CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkpn, d_glbSpkpn, 21 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(glbSpkpn, d_glbSpkpn, 800 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
 }
 
 void pullpnCurrentSpikesFromDevice() {
@@ -4846,19 +4837,19 @@ void pullpnCurrentSpikesFromDevice() {
 }
 
 void pullVpnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(Vpn, d_Vpn, 21 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(Vpn, d_Vpn, 800 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullCurrentVpnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(Vpn, d_Vpn, 21 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(Vpn, d_Vpn, 800 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullapnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(apn, d_apn, 21 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(apn, d_apn, 800 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullCurrentapnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(apn, d_apn, 21 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(apn, d_apn, 800 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullpnStateFromDevice() {
@@ -4866,32 +4857,32 @@ void pullpnStateFromDevice() {
     pullapnFromDevice();
 }
 
-void pullor_lnConnectivityFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(rowLengthor_ln, d_rowLengthor_ln, 160 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
-    CHECK_CUDA_ERRORS(cudaMemcpy(indor_ln, d_indor_ln, 2400 * sizeof(uint32_t), cudaMemcpyDeviceToHost));
-}
-
 void pullor_ornConnectivityFromDevice() {
     CHECK_CUDA_ERRORS(cudaMemcpy(rowLengthor_orn, d_rowLengthor_orn, 160 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
-    CHECK_CUDA_ERRORS(cudaMemcpy(indor_orn, d_indor_orn, 3200 * sizeof(uint32_t), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(indor_orn, d_indor_orn, 9600 * sizeof(uint32_t), cudaMemcpyDeviceToHost));
 }
 
-void pullor_pnConnectivityFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(rowLengthor_pn, d_rowLengthor_pn, 160 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
-    CHECK_CUDA_ERRORS(cudaMemcpy(indor_pn, d_indor_pn, 3360 * sizeof(uint32_t), cudaMemcpyDeviceToHost));
+void pullorn_lnConnectivityFromDevice() {
+    CHECK_CUDA_ERRORS(cudaMemcpy(rowLengthorn_ln, d_rowLengthorn_ln, 9600 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(indorn_ln, d_indorn_ln, 7680000 * sizeof(uint32_t), cudaMemcpyDeviceToHost));
+}
+
+void pullorn_pnConnectivityFromDevice() {
+    CHECK_CUDA_ERRORS(cudaMemcpy(rowLengthorn_pn, d_rowLengthorn_pn, 9600 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(indorn_pn, d_indorn_pn, 7680000 * sizeof(uint32_t), cudaMemcpyDeviceToHost));
 }
 
 void pullpn_lnConnectivityFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(rowLengthpn_ln, d_rowLengthpn_ln, 21 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
-    CHECK_CUDA_ERRORS(cudaMemcpy(indpn_ln, d_indpn_ln, 315 * sizeof(uint32_t), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(rowLengthpn_ln, d_rowLengthpn_ln, 800 * sizeof(unsigned int), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(indpn_ln, d_indpn_ln, 20000 * sizeof(uint32_t), cudaMemcpyDeviceToHost));
 }
 
 void pullgln_lnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(gln_ln, d_gln_ln, 225 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(gln_ln, d_gln_ln, 16000000 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullinSynln_lnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(inSynln_ln, d_inSynln_ln, 15 * sizeof(double), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(inSynln_ln, d_inSynln_ln, 4000 * sizeof(double), cudaMemcpyDeviceToHost));
 }
 
 void pullln_lnStateFromDevice() {
@@ -4900,11 +4891,11 @@ void pullln_lnStateFromDevice() {
 }
 
 void pullgln_pnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(gln_pn, d_gln_pn, 315 * sizeof(scalar), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(gln_pn, d_gln_pn, 3200000 * sizeof(scalar), cudaMemcpyDeviceToHost));
 }
 
 void pullinSynln_pnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(inSynln_pn, d_inSynln_pn, 21 * sizeof(double), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(inSynln_pn, d_inSynln_pn, 800 * sizeof(double), cudaMemcpyDeviceToHost));
 }
 
 void pullln_pnStateFromDevice() {
@@ -4912,40 +4903,35 @@ void pullln_pnStateFromDevice() {
     pullinSynln_pnFromDevice();
 }
 
-void pullinSynor_lnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(inSynor_ln, d_inSynor_ln, 15 * sizeof(double), cudaMemcpyDeviceToHost));
-}
-
-void pullor_lnStateFromDevice() {
-    pullinSynor_lnFromDevice();
-}
-
 void pullinSynor_ornFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(inSynor_orn, d_inSynor_orn, 20 * sizeof(double), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(inSynor_orn, d_inSynor_orn, 9600 * sizeof(double), cudaMemcpyDeviceToHost));
 }
 
 void pullor_ornStateFromDevice() {
     pullinSynor_ornFromDevice();
 }
 
-void pullinSynor_pnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(inSynor_pn, d_inSynor_pn, 21 * sizeof(double), cudaMemcpyDeviceToHost));
+void pullinSynorn_lnFromDevice() {
+    CHECK_CUDA_ERRORS(cudaMemcpy(inSynorn_ln, d_inSynorn_ln, 800 * sizeof(double), cudaMemcpyDeviceToHost));
 }
 
-void pullor_pnStateFromDevice() {
-    pullinSynor_pnFromDevice();
+void pullorn_lnStateFromDevice() {
+    pullinSynorn_lnFromDevice();
 }
 
-void pullgpn_lnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(gpn_ln, d_gpn_ln, 315 * sizeof(scalar), cudaMemcpyDeviceToHost));
+void pullinSynorn_pnFromDevice() {
+    CHECK_CUDA_ERRORS(cudaMemcpy(inSynorn_pn, d_inSynorn_pn, 800 * sizeof(double), cudaMemcpyDeviceToHost));
+}
+
+void pullorn_pnStateFromDevice() {
+    pullinSynorn_pnFromDevice();
 }
 
 void pullinSynpn_lnFromDevice() {
-    CHECK_CUDA_ERRORS(cudaMemcpy(inSynpn_ln, d_inSynpn_ln, 15 * sizeof(double), cudaMemcpyDeviceToHost));
+    CHECK_CUDA_ERRORS(cudaMemcpy(inSynpn_ln, d_inSynpn_ln, 4000 * sizeof(double), cudaMemcpyDeviceToHost));
 }
 
 void pullpn_lnStateFromDevice() {
-    pullgpn_lnFromDevice();
     pullinSynpn_lnFromDevice();
 }
 
@@ -5897,16 +5883,16 @@ void copyStateToDevice(bool uninitialisedOnly) {
     pushpnStateToDevice(uninitialisedOnly);
     pushln_lnStateToDevice(uninitialisedOnly);
     pushln_pnStateToDevice(uninitialisedOnly);
-    pushor_lnStateToDevice(uninitialisedOnly);
     pushor_ornStateToDevice(uninitialisedOnly);
-    pushor_pnStateToDevice(uninitialisedOnly);
+    pushorn_lnStateToDevice(uninitialisedOnly);
+    pushorn_pnStateToDevice(uninitialisedOnly);
     pushpn_lnStateToDevice(uninitialisedOnly);
 }
 
 void copyConnectivityToDevice(bool uninitialisedOnly) {
-    pushor_lnConnectivityToDevice(uninitialisedOnly);
     pushor_ornConnectivityToDevice(uninitialisedOnly);
-    pushor_pnConnectivityToDevice(uninitialisedOnly);
+    pushorn_lnConnectivityToDevice(uninitialisedOnly);
+    pushorn_pnConnectivityToDevice(uninitialisedOnly);
     pushpn_lnConnectivityToDevice(uninitialisedOnly);
 }
 
@@ -5917,9 +5903,9 @@ void copyStateFromDevice() {
     pullpnStateFromDevice();
     pullln_lnStateFromDevice();
     pullln_pnStateFromDevice();
-    pullor_lnStateFromDevice();
     pullor_ornStateFromDevice();
-    pullor_pnStateFromDevice();
+    pullorn_lnStateFromDevice();
+    pullorn_pnStateFromDevice();
     pullpn_lnStateFromDevice();
 }
 
@@ -5950,13 +5936,13 @@ void allocateMem() {
     // ------------------------------------------------------------------------
     CHECK_CUDA_ERRORS(cudaHostAlloc(&glbSpkCntln, 1 * sizeof(unsigned int), cudaHostAllocPortable));
     CHECK_CUDA_ERRORS(cudaMalloc(&d_glbSpkCntln, 1 * sizeof(unsigned int)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&glbSpkln, 15 * sizeof(unsigned int), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_glbSpkln, 15 * sizeof(unsigned int)));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_rngln, 15 * sizeof(curandState)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&Vln, 15 * sizeof(scalar), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_Vln, 15 * sizeof(scalar)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&aln, 15 * sizeof(scalar), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_aln, 15 * sizeof(scalar)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&glbSpkln, 4000 * sizeof(unsigned int), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_glbSpkln, 4000 * sizeof(unsigned int)));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_rngln, 4000 * sizeof(curandState)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&Vln, 4000 * sizeof(scalar), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_Vln, 4000 * sizeof(scalar)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&aln, 4000 * sizeof(scalar), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_aln, 4000 * sizeof(scalar)));
     CHECK_CUDA_ERRORS(cudaHostAlloc(&glbSpkCntor, 1 * sizeof(unsigned int), cudaHostAllocPortable));
     CHECK_CUDA_ERRORS(cudaMalloc(&d_glbSpkCntor, 1 * sizeof(unsigned int)));
     CHECK_CUDA_ERRORS(cudaHostAlloc(&glbSpkor, 160 * sizeof(unsigned int), cudaHostAllocPortable));
@@ -6403,22 +6389,22 @@ void allocateMem() {
     CHECK_CUDA_ERRORS(cudaMalloc(&d_kp2_0_99or, 160 * sizeof(scalar)));
     CHECK_CUDA_ERRORS(cudaHostAlloc(&glbSpkCntorn, 1 * sizeof(unsigned int), cudaHostAllocPortable));
     CHECK_CUDA_ERRORS(cudaMalloc(&d_glbSpkCntorn, 1 * sizeof(unsigned int)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&glbSpkorn, 20 * sizeof(unsigned int), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_glbSpkorn, 20 * sizeof(unsigned int)));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_rngorn, 20 * sizeof(curandState)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&Vorn, 20 * sizeof(scalar), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_Vorn, 20 * sizeof(scalar)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&aorn, 20 * sizeof(scalar), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_aorn, 20 * sizeof(scalar)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&glbSpkorn, 9600 * sizeof(unsigned int), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_glbSpkorn, 9600 * sizeof(unsigned int)));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_rngorn, 9600 * sizeof(curandState)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&Vorn, 9600 * sizeof(scalar), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_Vorn, 9600 * sizeof(scalar)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&aorn, 9600 * sizeof(scalar), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_aorn, 9600 * sizeof(scalar)));
     CHECK_CUDA_ERRORS(cudaHostAlloc(&glbSpkCntpn, 1 * sizeof(unsigned int), cudaHostAllocPortable));
     CHECK_CUDA_ERRORS(cudaMalloc(&d_glbSpkCntpn, 1 * sizeof(unsigned int)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&glbSpkpn, 21 * sizeof(unsigned int), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_glbSpkpn, 21 * sizeof(unsigned int)));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_rngpn, 21 * sizeof(curandState)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&Vpn, 21 * sizeof(scalar), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_Vpn, 21 * sizeof(scalar)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&apn, 21 * sizeof(scalar), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_apn, 21 * sizeof(scalar)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&glbSpkpn, 800 * sizeof(unsigned int), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_glbSpkpn, 800 * sizeof(unsigned int)));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_rngpn, 800 * sizeof(curandState)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&Vpn, 800 * sizeof(scalar), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_Vpn, 800 * sizeof(scalar)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&apn, 800 * sizeof(scalar), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_apn, 800 * sizeof(scalar)));
     
     // ------------------------------------------------------------------------
     // custom update variables
@@ -6427,73 +6413,70 @@ void allocateMem() {
     // ------------------------------------------------------------------------
     // pre and postsynaptic variables
     // ------------------------------------------------------------------------
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&inSynpn_ln, 15 * sizeof(double), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_inSynpn_ln, 15 * sizeof(double)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&inSynln_ln, 15 * sizeof(double), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_inSynln_ln, 15 * sizeof(double)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&inSynor_ln, 15 * sizeof(double), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_inSynor_ln, 15 * sizeof(double)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&inSynor_orn, 20 * sizeof(double), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_inSynor_orn, 20 * sizeof(double)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&inSynln_pn, 21 * sizeof(double), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_inSynln_pn, 21 * sizeof(double)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&inSynor_pn, 21 * sizeof(double), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_inSynor_pn, 21 * sizeof(double)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&inSynpn_ln, 4000 * sizeof(double), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_inSynpn_ln, 4000 * sizeof(double)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&inSynln_ln, 4000 * sizeof(double), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_inSynln_ln, 4000 * sizeof(double)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&inSynor_orn, 9600 * sizeof(double), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_inSynor_orn, 9600 * sizeof(double)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&inSynorn_ln, 800 * sizeof(double), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_inSynorn_ln, 800 * sizeof(double)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&inSynln_pn, 800 * sizeof(double), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_inSynln_pn, 800 * sizeof(double)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&inSynorn_pn, 800 * sizeof(double), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_inSynorn_pn, 800 * sizeof(double)));
     
     // ------------------------------------------------------------------------
     // synapse connectivity
     // ------------------------------------------------------------------------
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&rowLengthor_ln, 160 * sizeof(unsigned int), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_rowLengthor_ln, 160 * sizeof(unsigned int)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&indor_ln, 2400 * sizeof(uint32_t), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_indor_ln, 2400 * sizeof(uint32_t)));
     CHECK_CUDA_ERRORS(cudaHostAlloc(&rowLengthor_orn, 160 * sizeof(unsigned int), cudaHostAllocPortable));
     CHECK_CUDA_ERRORS(cudaMalloc(&d_rowLengthor_orn, 160 * sizeof(unsigned int)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&indor_orn, 3200 * sizeof(uint32_t), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_indor_orn, 3200 * sizeof(uint32_t)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&rowLengthor_pn, 160 * sizeof(unsigned int), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_rowLengthor_pn, 160 * sizeof(unsigned int)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&indor_pn, 3360 * sizeof(uint32_t), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_indor_pn, 3360 * sizeof(uint32_t)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&rowLengthpn_ln, 21 * sizeof(unsigned int), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_rowLengthpn_ln, 21 * sizeof(unsigned int)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&indpn_ln, 315 * sizeof(uint32_t), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_indpn_ln, 315 * sizeof(uint32_t)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&indor_orn, 9600 * sizeof(uint32_t), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_indor_orn, 9600 * sizeof(uint32_t)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&rowLengthorn_ln, 9600 * sizeof(unsigned int), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_rowLengthorn_ln, 9600 * sizeof(unsigned int)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&indorn_ln, 7680000 * sizeof(uint32_t), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_indorn_ln, 7680000 * sizeof(uint32_t)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&rowLengthorn_pn, 9600 * sizeof(unsigned int), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_rowLengthorn_pn, 9600 * sizeof(unsigned int)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&indorn_pn, 7680000 * sizeof(uint32_t), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_indorn_pn, 7680000 * sizeof(uint32_t)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&rowLengthpn_ln, 800 * sizeof(unsigned int), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_rowLengthpn_ln, 800 * sizeof(unsigned int)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&indpn_ln, 20000 * sizeof(uint32_t), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_indpn_ln, 20000 * sizeof(uint32_t)));
     
     // ------------------------------------------------------------------------
     // synapse variables
     // ------------------------------------------------------------------------
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&gln_ln, 225 * sizeof(scalar), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_gln_ln, 225 * sizeof(scalar)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&gln_pn, 315 * sizeof(scalar), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_gln_pn, 315 * sizeof(scalar)));
-    CHECK_CUDA_ERRORS(cudaHostAlloc(&gpn_ln, 315 * sizeof(scalar), cudaHostAllocPortable));
-    CHECK_CUDA_ERRORS(cudaMalloc(&d_gpn_ln, 315 * sizeof(scalar)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&gln_ln, 16000000 * sizeof(scalar), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_gln_ln, 16000000 * sizeof(scalar)));
+    CHECK_CUDA_ERRORS(cudaHostAlloc(&gln_pn, 3200000 * sizeof(scalar), cudaHostAllocPortable));
+    CHECK_CUDA_ERRORS(cudaMalloc(&d_gln_pn, 3200000 * sizeof(scalar)));
     
-    pushMergedNeuronInitGroup0ToDevice(0, d_glbSpkCntpn, d_glbSpkpn, d_rngpn, d_inSynln_pn, d_inSynor_pn, 21);
-    pushMergedNeuronInitGroup1ToDevice(0, d_glbSpkCntorn, d_glbSpkorn, d_rngorn, d_inSynor_orn, 20);
+    pushMergedNeuronInitGroup0ToDevice(0, d_glbSpkCntpn, d_glbSpkpn, d_rngpn, d_inSynorn_ln, d_inSynln_pn, d_inSynorn_pn, 800);
+    pushMergedNeuronInitGroup1ToDevice(0, d_glbSpkCntorn, d_glbSpkorn, d_rngorn, d_inSynor_orn, 9600);
     pushMergedNeuronInitGroup2ToDevice(0, d_glbSpkCntor, d_glbSpkor, 160);
-    pushMergedNeuronInitGroup3ToDevice(0, d_glbSpkCntln, d_glbSpkln, d_rngln, d_inSynpn_ln, d_inSynln_ln, d_inSynor_ln, 15);
-    pushMergedSynapseDenseInitGroup0ToDevice(0, d_gln_pn, 21, 15, 21);
-    pushMergedSynapseDenseInitGroup1ToDevice(0, d_gln_ln, 15, 15, 15);
-    pushMergedSynapseConnectivityInitGroup0ToDevice(0, d_rowLengthpn_ln, d_indpn_ln, 15, 21, 15);
-    pushMergedSynapseConnectivityInitGroup1ToDevice(0, d_rowLengthor_orn, d_indor_orn, 20, 160, 20);
-    pushMergedSynapseConnectivityInitGroup2ToDevice(0, d_rowLengthor_ln, d_indor_ln, 2.00000000000000000e+01, 1.50000000000000000e+01, 15, 160, 15);
-    pushMergedSynapseConnectivityInitGroup2ToDevice(1, d_rowLengthor_pn, d_indor_pn, 1.60000000000000000e+02, 2.10000000000000000e+01, 21, 160, 21);
-    pushMergedSynapseSparseInitGroup0ToDevice(0, d_rowLengthpn_ln, d_indpn_ln, d_gpn_ln, 15, 21, 15, 21);
-    pushMergedNeuronUpdateGroup0ToDevice(0, d_glbSpkCntpn, d_glbSpkpn, d_rngpn, d_Vpn, d_apn, d_inSynor_pn, d_inSynln_pn, 21);
+    pushMergedNeuronInitGroup3ToDevice(0, d_glbSpkCntln, d_glbSpkln, d_rngln, d_inSynpn_ln, d_inSynln_ln, 4000);
+    pushMergedSynapseDenseInitGroup0ToDevice(0, d_gln_ln, 4000, 4000, 4000);
+    pushMergedSynapseDenseInitGroup0ToDevice(1, d_gln_pn, 800, 4000, 800);
+    pushMergedSynapseConnectivityInitGroup0ToDevice(0, d_rowLengthpn_ln, d_indpn_ln, 25, 800, 4000);
+    pushMergedSynapseConnectivityInitGroup1ToDevice(0, d_rowLengthorn_ln, d_indorn_ln, 2.50000000000000000e+01, 800, 9600, 800);
+    pushMergedSynapseConnectivityInitGroup1ToDevice(1, d_rowLengthorn_pn, d_indorn_pn, 5.00000000000000000e+00, 800, 9600, 800);
+    pushMergedSynapseConnectivityInitGroup2ToDevice(0, d_rowLengthor_orn, d_indor_orn, 60, 160, 9600);
+    pushMergedNeuronUpdateGroup0ToDevice(0, d_glbSpkCntorn, d_glbSpkorn, d_rngorn, d_Vorn, d_aorn, d_inSynor_orn, 9600);
     pushMergedNeuronUpdateGroup1ToDevice(0, d_kp1cn_0_65or, d_kp2_0_58or, d_kp1cn_0_59or, d_kp2_0_59or, d_kp1cn_0_60or, d_kp2_0_60or, d_kp1cn_0_61or, d_kp2_0_61or, d_kp1cn_0_62or, d_kp2_0_62or, d_kp1cn_0_63or, d_kp2_0_63or, d_kp1cn_0_64or, d_kp2_0_64or, d_kp1cn_0_58or, d_kp2_0_65or, d_kp1cn_0_66or, d_kp2_0_66or, d_kp1cn_0_67or, d_kp2_0_67or, d_kp1cn_0_68or, d_kp2_0_68or, d_kp1cn_0_69or, d_kp2_0_69or, d_kp1cn_0_70or, d_kp2_0_70or, d_kp1cn_0_71or, d_kp2_0_71or, d_kp1cn_0_51or, d_kp2_0_44or, d_kp1cn_0_45or, d_kp2_0_45or, d_kp1cn_0_46or, d_kp2_0_46or, d_kp1cn_0_47or, d_kp2_0_47or, d_kp1cn_0_48or, d_kp2_0_48or, d_kp1cn_0_49or, d_kp2_0_49or, d_kp1cn_0_50or, d_kp2_0_50or, d_kp1cn_0_72or, d_kp2_0_51or, d_kp1cn_0_52or, d_kp2_0_52or, d_kp1cn_0_53or, d_kp2_0_53or, d_kp1cn_0_54or, d_kp2_0_54or, d_kp1cn_0_55or, d_kp2_0_55or, d_kp1cn_0_56or, d_kp2_0_56or, d_kp1cn_0_57or, d_kp2_0_57or, d_kp1cn_0_93or, d_kp2_0_86or, d_kp1cn_0_87or, d_kp2_0_87or, d_kp1cn_0_88or, d_kp2_0_88or, d_kp1cn_0_89or, d_kp2_0_89or, d_kp1cn_0_90or, d_kp2_0_90or, d_kp1cn_0_91or, d_kp2_0_91or, d_kp1cn_0_92or, d_kp2_0_92or, d_kp1cn_0_86or, d_kp2_0_93or, d_kp1cn_0_94or, d_kp2_0_94or, d_kp1cn_0_95or, d_kp2_0_95or, d_kp1cn_0_96or, d_kp2_0_96or, d_kp1cn_0_97or, d_kp2_0_97or, d_kp1cn_0_98or, d_kp2_0_98or, d_kp1cn_0_99or, d_kp2_0_99or, d_kp1cn_0_79or, d_kp2_0_72or, d_kp1cn_0_73or, d_kp2_0_73or, d_kp1cn_0_74or, d_kp2_0_74or, d_kp1cn_0_75or, d_kp2_0_75or, d_kp1cn_0_76or, d_kp2_0_76or, d_kp1cn_0_77or, d_kp2_0_77or, d_kp1cn_0_78or, d_kp2_0_78or, d_kp1cn_0_44or, d_kp2_0_79or, d_kp1cn_0_80or, d_kp2_0_80or, d_kp1cn_0_81or, d_kp2_0_81or, d_kp1cn_0_82or, d_kp2_0_82or, d_kp1cn_0_83or, d_kp2_0_83or, d_kp1cn_0_84or, d_kp2_0_84or, d_kp1cn_0_85or, d_kp2_0_85or, d_kp2_0_9or, d_kp1cn_0_3or, d_kp2_0_3or, d_kp1cn_0_4or, d_kp2_0_4or, d_kp1cn_0_5or, d_kp2_0_5or, d_kp1cn_0_6or, d_kp2_0_6or, d_kp1cn_0_7or, d_kp2_0_7or, d_kp1cn_0_8or, d_kp2_0_8or, d_kp1cn_0_9or, d_kp2_0_2or, d_kp1cn_0_10or, d_kp2_0_10or, d_kp1cn_0_11or, d_kp2_0_11or, d_kp1cn_0_12or, d_kp2_0_12or, d_kp1cn_0_13or, d_kp2_0_13or, d_kp1cn_0_14or, d_kp2_0_14or, d_kp1cn_0_15or, d_kp2_0_15or, d_kp1cn_0_16or, d_km2_0or, d_glbSpkCntor, d_glbSpkor, d_r0or, d_rb_0or, d_ra_0or, d_rb_1or, d_ra_1or, d_rb_2or, d_ra_2or, d_raor, d_kp1cn_0or, d_km1_0or, d_kp2_0or, d_kp2_0_16or, d_kp1cn_1or, d_km1_1or, d_kp2_1or, d_km2_1or, d_kp1cn_2or, d_km1_2or, d_kp2_2or, d_km2_2or, d_kp1cn_0_0or, d_kp2_0_0or, d_kp1cn_0_1or, d_kp2_0_1or, d_kp1cn_0_2or, d_kp1cn_0_37or, d_kp2_0_30or, d_kp1cn_0_31or, d_kp2_0_31or, d_kp1cn_0_32or, d_kp2_0_32or, d_kp1cn_0_33or, d_kp2_0_33or, d_kp1cn_0_34or, d_kp2_0_34or, d_kp1cn_0_35or, d_kp2_0_35or, d_kp1cn_0_36or, d_kp2_0_36or, d_kp1cn_0_30or, d_kp2_0_37or, d_kp1cn_0_38or, d_kp2_0_38or, d_kp1cn_0_39or, d_kp2_0_39or, d_kp1cn_0_40or, d_kp2_0_40or, d_kp1cn_0_41or, d_kp2_0_41or, d_kp1cn_0_42or, d_kp2_0_42or, d_kp1cn_0_43or, d_kp2_0_43or, d_kp2_0_23or, d_kp1cn_0_17or, d_kp2_0_17or, d_kp1cn_0_18or, d_kp2_0_18or, d_kp1cn_0_19or, d_kp2_0_19or, d_kp1cn_0_20or, d_kp2_0_20or, d_kp1cn_0_21or, d_kp2_0_21or, d_kp1cn_0_22or, d_kp2_0_22or, d_kp1cn_0_23or, d_kp1cn_0_24or, d_kp2_0_24or, d_kp1cn_0_25or, d_kp2_0_25or, d_kp1cn_0_26or, d_kp2_0_26or, d_kp1cn_0_27or, d_kp2_0_27or, d_kp1cn_0_28or, d_kp2_0_28or, d_kp1cn_0_29or, d_kp2_0_29or, 160);
-    pushMergedNeuronUpdateGroup2ToDevice(0, d_glbSpkCntorn, d_glbSpkorn, d_rngorn, d_Vorn, d_aorn, d_inSynor_orn, 20);
-    pushMergedNeuronUpdateGroup3ToDevice(0, d_glbSpkCntln, d_glbSpkln, d_rngln, d_Vln, d_aln, d_inSynor_ln, d_inSynpn_ln, d_inSynln_ln, 15);
-    pushMergedPresynapticUpdateGroup0ToDevice(0, d_inSynor_ln, d_glbSpkCntor, d_glbSpkor, d_rowLengthor_ln, d_indor_ln, 15, 160, 15);
-    pushMergedPresynapticUpdateGroup0ToDevice(1, d_inSynor_pn, d_glbSpkCntor, d_glbSpkor, d_rowLengthor_pn, d_indor_pn, 21, 160, 21);
-    pushMergedPresynapticUpdateGroup1ToDevice(0, d_inSynpn_ln, d_glbSpkCntpn, d_glbSpkpn, d_rowLengthpn_ln, d_indpn_ln, d_gpn_ln, 15, 21, 15);
-    pushMergedPresynapticUpdateGroup2ToDevice(0, d_inSynln_ln, d_glbSpkCntln, d_glbSpkln, d_gln_ln, 15, 15, 15);
-    pushMergedPresynapticUpdateGroup2ToDevice(1, d_inSynln_pn, d_glbSpkCntln, d_glbSpkln, d_gln_pn, 21, 15, 21);
-    pushMergedSynapseDynamicsGroup0ToDevice(0, d_inSynor_orn, d_raor, d_rowLengthor_orn, d_indor_orn, 20, 160, 20);
-    pushMergedNeuronSpikeQueueUpdateGroup0ToDevice(0, d_glbSpkCntorn);
+    pushMergedNeuronUpdateGroup2ToDevice(0, d_glbSpkCntpn, d_glbSpkpn, d_rngpn, d_Vpn, d_apn, d_inSynorn_ln, d_inSynorn_pn, d_inSynln_pn, 800);
+    pushMergedNeuronUpdateGroup3ToDevice(0, d_glbSpkCntln, d_glbSpkln, d_rngln, d_Vln, d_aln, d_inSynpn_ln, d_inSynln_ln, 4000);
+    pushMergedPresynapticUpdateGroup0ToDevice(0, d_inSynorn_ln, d_glbSpkCntorn, d_glbSpkorn, d_rowLengthorn_ln, d_indorn_ln, 8.00000000000000017e-03, 800, 9600, 800);
+    pushMergedPresynapticUpdateGroup0ToDevice(1, d_inSynorn_pn, d_glbSpkCntorn, d_glbSpkorn, d_rowLengthorn_pn, d_indorn_pn, 8.00000000000000017e-03, 800, 9600, 800);
+    pushMergedPresynapticUpdateGroup0ToDevice(2, d_inSynpn_ln, d_glbSpkCntpn, d_glbSpkpn, d_rowLengthpn_ln, d_indpn_ln, 1.00000000000000002e-03, 25, 800, 4000);
+    pushMergedPresynapticUpdateGroup1ToDevice(0, d_inSynln_ln, d_glbSpkCntln, d_glbSpkln, d_gln_ln, 4000, 4000, 4000);
+    pushMergedPresynapticUpdateGroup1ToDevice(1, d_inSynln_pn, d_glbSpkCntln, d_glbSpkln, d_gln_pn, 800, 4000, 800);
+    pushMergedSynapseDynamicsGroup0ToDevice(0, d_inSynor_orn, d_raor, d_rowLengthor_orn, d_indor_orn, 60, 160, 9600);
+    pushMergedNeuronSpikeQueueUpdateGroup0ToDevice(0, d_glbSpkCntor);
     pushMergedNeuronSpikeQueueUpdateGroup1ToDevice(0, d_glbSpkCntln);
-    pushMergedNeuronSpikeQueueUpdateGroup1ToDevice(1, d_glbSpkCntor);
+    pushMergedNeuronSpikeQueueUpdateGroup1ToDevice(1, d_glbSpkCntorn);
     pushMergedNeuronSpikeQueueUpdateGroup1ToDevice(2, d_glbSpkCntpn);
 }
 
@@ -6991,30 +6974,30 @@ void freeMem() {
     CHECK_CUDA_ERRORS(cudaFree(d_inSynpn_ln));
     CHECK_CUDA_ERRORS(cudaFreeHost(inSynln_ln));
     CHECK_CUDA_ERRORS(cudaFree(d_inSynln_ln));
-    CHECK_CUDA_ERRORS(cudaFreeHost(inSynor_ln));
-    CHECK_CUDA_ERRORS(cudaFree(d_inSynor_ln));
     CHECK_CUDA_ERRORS(cudaFreeHost(inSynor_orn));
     CHECK_CUDA_ERRORS(cudaFree(d_inSynor_orn));
+    CHECK_CUDA_ERRORS(cudaFreeHost(inSynorn_ln));
+    CHECK_CUDA_ERRORS(cudaFree(d_inSynorn_ln));
     CHECK_CUDA_ERRORS(cudaFreeHost(inSynln_pn));
     CHECK_CUDA_ERRORS(cudaFree(d_inSynln_pn));
-    CHECK_CUDA_ERRORS(cudaFreeHost(inSynor_pn));
-    CHECK_CUDA_ERRORS(cudaFree(d_inSynor_pn));
+    CHECK_CUDA_ERRORS(cudaFreeHost(inSynorn_pn));
+    CHECK_CUDA_ERRORS(cudaFree(d_inSynorn_pn));
     
     // ------------------------------------------------------------------------
     // synapse connectivity
     // ------------------------------------------------------------------------
-    CHECK_CUDA_ERRORS(cudaFreeHost(rowLengthor_ln));
-    CHECK_CUDA_ERRORS(cudaFree(d_rowLengthor_ln));
-    CHECK_CUDA_ERRORS(cudaFreeHost(indor_ln));
-    CHECK_CUDA_ERRORS(cudaFree(d_indor_ln));
     CHECK_CUDA_ERRORS(cudaFreeHost(rowLengthor_orn));
     CHECK_CUDA_ERRORS(cudaFree(d_rowLengthor_orn));
     CHECK_CUDA_ERRORS(cudaFreeHost(indor_orn));
     CHECK_CUDA_ERRORS(cudaFree(d_indor_orn));
-    CHECK_CUDA_ERRORS(cudaFreeHost(rowLengthor_pn));
-    CHECK_CUDA_ERRORS(cudaFree(d_rowLengthor_pn));
-    CHECK_CUDA_ERRORS(cudaFreeHost(indor_pn));
-    CHECK_CUDA_ERRORS(cudaFree(d_indor_pn));
+    CHECK_CUDA_ERRORS(cudaFreeHost(rowLengthorn_ln));
+    CHECK_CUDA_ERRORS(cudaFree(d_rowLengthorn_ln));
+    CHECK_CUDA_ERRORS(cudaFreeHost(indorn_ln));
+    CHECK_CUDA_ERRORS(cudaFree(d_indorn_ln));
+    CHECK_CUDA_ERRORS(cudaFreeHost(rowLengthorn_pn));
+    CHECK_CUDA_ERRORS(cudaFree(d_rowLengthorn_pn));
+    CHECK_CUDA_ERRORS(cudaFreeHost(indorn_pn));
+    CHECK_CUDA_ERRORS(cudaFree(d_indorn_pn));
     CHECK_CUDA_ERRORS(cudaFreeHost(rowLengthpn_ln));
     CHECK_CUDA_ERRORS(cudaFree(d_rowLengthpn_ln));
     CHECK_CUDA_ERRORS(cudaFreeHost(indpn_ln));
@@ -7027,8 +7010,6 @@ void freeMem() {
     CHECK_CUDA_ERRORS(cudaFree(d_gln_ln));
     CHECK_CUDA_ERRORS(cudaFreeHost(gln_pn));
     CHECK_CUDA_ERRORS(cudaFree(d_gln_pn));
-    CHECK_CUDA_ERRORS(cudaFreeHost(gpn_ln));
-    CHECK_CUDA_ERRORS(cudaFree(d_gpn_ln));
     
 }
 

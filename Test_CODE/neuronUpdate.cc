@@ -9,7 +9,6 @@ struct MergedNeuronUpdateGroup0
     scalar* V;
     scalar* a;
     double* inSynInSyn0;
-    double* inSynInSyn1;
     unsigned int numNeurons;
     
 }
@@ -250,6 +249,8 @@ struct MergedNeuronUpdateGroup2
     scalar* V;
     scalar* a;
     double* inSynInSyn0;
+    double* inSynInSyn1;
+    double* inSynInSyn2;
     unsigned int numNeurons;
     
 }
@@ -263,7 +264,6 @@ struct MergedNeuronUpdateGroup3
     scalar* a;
     double* inSynInSyn0;
     double* inSynInSyn1;
-    double* inSynInSyn2;
     unsigned int numNeurons;
     
 }
@@ -291,8 +291,8 @@ void pushMergedNeuronSpikeQueueUpdateGroup1ToDevice(unsigned int idx, unsigned i
     CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronSpikeQueueUpdateGroup1, &group, sizeof(MergedNeuronSpikeQueueUpdateGroup1), idx * sizeof(MergedNeuronSpikeQueueUpdateGroup1)));
 }
 __device__ __constant__ MergedNeuronUpdateGroup0 d_mergedNeuronUpdateGroup0[1];
-void pushMergedNeuronUpdateGroup0ToDevice(unsigned int idx, unsigned int* spkCnt, unsigned int* spk, curandState* rng, scalar* V, scalar* a, double* inSynInSyn0, double* inSynInSyn1, unsigned int numNeurons) {
-    MergedNeuronUpdateGroup0 group = {spkCnt, spk, rng, V, a, inSynInSyn0, inSynInSyn1, numNeurons, };
+void pushMergedNeuronUpdateGroup0ToDevice(unsigned int idx, unsigned int* spkCnt, unsigned int* spk, curandState* rng, scalar* V, scalar* a, double* inSynInSyn0, unsigned int numNeurons) {
+    MergedNeuronUpdateGroup0 group = {spkCnt, spk, rng, V, a, inSynInSyn0, numNeurons, };
     CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronUpdateGroup0, &group, sizeof(MergedNeuronUpdateGroup0), idx * sizeof(MergedNeuronUpdateGroup0)));
 }
 __device__ __constant__ MergedNeuronUpdateGroup1 d_mergedNeuronUpdateGroup1[1];
@@ -301,13 +301,13 @@ void pushMergedNeuronUpdateGroup1ToDevice(unsigned int idx, scalar* kp1cn_0_65, 
     CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronUpdateGroup1, &group, sizeof(MergedNeuronUpdateGroup1), idx * sizeof(MergedNeuronUpdateGroup1)));
 }
 __device__ __constant__ MergedNeuronUpdateGroup2 d_mergedNeuronUpdateGroup2[1];
-void pushMergedNeuronUpdateGroup2ToDevice(unsigned int idx, unsigned int* spkCnt, unsigned int* spk, curandState* rng, scalar* V, scalar* a, double* inSynInSyn0, unsigned int numNeurons) {
-    MergedNeuronUpdateGroup2 group = {spkCnt, spk, rng, V, a, inSynInSyn0, numNeurons, };
+void pushMergedNeuronUpdateGroup2ToDevice(unsigned int idx, unsigned int* spkCnt, unsigned int* spk, curandState* rng, scalar* V, scalar* a, double* inSynInSyn0, double* inSynInSyn1, double* inSynInSyn2, unsigned int numNeurons) {
+    MergedNeuronUpdateGroup2 group = {spkCnt, spk, rng, V, a, inSynInSyn0, inSynInSyn1, inSynInSyn2, numNeurons, };
     CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronUpdateGroup2, &group, sizeof(MergedNeuronUpdateGroup2), idx * sizeof(MergedNeuronUpdateGroup2)));
 }
 __device__ __constant__ MergedNeuronUpdateGroup3 d_mergedNeuronUpdateGroup3[1];
-void pushMergedNeuronUpdateGroup3ToDevice(unsigned int idx, unsigned int* spkCnt, unsigned int* spk, curandState* rng, scalar* V, scalar* a, double* inSynInSyn0, double* inSynInSyn1, double* inSynInSyn2, unsigned int numNeurons) {
-    MergedNeuronUpdateGroup3 group = {spkCnt, spk, rng, V, a, inSynInSyn0, inSynInSyn1, inSynInSyn2, numNeurons, };
+void pushMergedNeuronUpdateGroup3ToDevice(unsigned int idx, unsigned int* spkCnt, unsigned int* spk, curandState* rng, scalar* V, scalar* a, double* inSynInSyn0, double* inSynInSyn1, unsigned int numNeurons) {
+    MergedNeuronUpdateGroup3 group = {spkCnt, spk, rng, V, a, inSynInSyn0, inSynInSyn1, numNeurons, };
     CHECK_CUDA_ERRORS(cudaMemcpyToSymbolAsync(d_mergedNeuronUpdateGroup3, &group, sizeof(MergedNeuronUpdateGroup3), idx * sizeof(MergedNeuronUpdateGroup3)));
 }
 // ------------------------------------------------------------------------
@@ -317,9 +317,9 @@ void pushMergedNeuronUpdateGroup3ToDevice(unsigned int idx, unsigned int* spkCnt
 // merged extra global parameter functions
 // ------------------------------------------------------------------------
 __device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID0[] = {0, };
-__device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID1[] = {32, };
-__device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID2[] = {192, };
-__device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID3[] = {224, };
+__device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID1[] = {9600, };
+__device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID2[] = {9760, };
+__device__ __constant__ unsigned int d_mergedNeuronUpdateGroupStartID3[] = {10560, };
 
 extern "C" __global__ void neuronSpikeQueueUpdateKernel() {
     const unsigned int id = 32 * blockIdx.x + threadIdx.x;
@@ -345,7 +345,7 @@ extern "C" __global__ void updateNeuronsKernel(double t)
     
     __syncthreads();
     // merged0
-    if(id < 32) {
+    if(id < 9600) {
         struct MergedNeuronUpdateGroup0 *group = &d_mergedNeuronUpdateGroup0[0]; 
         const unsigned int lid = id - 0;
         
@@ -357,21 +357,15 @@ extern "C" __global__ void updateNeuronsKernel(double t)
              {
                 // pull inSyn values in a coalesced access
                 double linSyn = group->inSynInSyn0[lid];
-                Isyn += linSyn * ((0.00000000000000000e+00) - lV);
-                linSyn*=(9.90049833749168107e-01);
+                Isyn+= linSyn;
+                linSyn= 0.0;
+                
                 group->inSynInSyn0[lid] = linSyn;
-            }
-             {
-                // pull inSyn values in a coalesced access
-                double linSyn = group->inSynInSyn1[lid];
-                Isyn += linSyn * ((0.00000000000000000e+00) - lV);
-                linSyn*=(9.90049833749168107e-01);
-                group->inSynInSyn1[lid] = linSyn;
             }
             // test whether spike condition was fulfilled previously
             const bool oldSpike = (lV >= (-4.00000000000000000e+01));
             // calculate membrane potential
-            lV+= (-(1.00000000000000002e-02)*(lV-(-6.00000000000000000e+01)) - (0.00000000000000000e+00)*la*(lV-(-7.00000000000000000e+01)) + (1.00000000000000000e+00)*Isyn+(3.13049516849970555e+00)*curand_normal_double(&group->rng[lid]))*DT/(1.00000000000000000e+00);
+            lV+= (-(1.00000000000000002e-02)*(lV-(-6.00000000000000000e+01)) - (1.50000000000000003e-03)*la*(lV-(-7.00000000000000000e+01)) + (1.00000000000000000e+01)*Isyn+(3.13049516849970555e+00)*curand_normal_double(&group->rng[lid]))*DT/(1.00000000000000000e+00);
             la+= -la*DT/(1.00000000000000000e+03);
             // test for and register a true spike
             if ((lV >= (-4.00000000000000000e+01)) && !(oldSpike)) {
@@ -397,9 +391,9 @@ extern "C" __global__ void updateNeuronsKernel(double t)
         }
     }
     // merged1
-    if(id >= 32 && id < 192) {
+    if(id >= 9600 && id < 9760) {
         struct MergedNeuronUpdateGroup1 *group = &d_mergedNeuronUpdateGroup1[0]; 
-        const unsigned int lid = id - 32;
+        const unsigned int lid = id - 9600;
         
         if(lid < group->numNeurons) {
             scalar lr0 = group->r0[lid];
@@ -870,55 +864,9 @@ extern "C" __global__ void updateNeuronsKernel(double t)
         __syncthreads();
     }
     // merged2
-    if(id >= 192 && id < 224) {
+    if(id >= 9760 && id < 10560) {
         struct MergedNeuronUpdateGroup2 *group = &d_mergedNeuronUpdateGroup2[0]; 
-        const unsigned int lid = id - 192;
-        
-        if(lid < group->numNeurons) {
-            scalar lV = group->V[lid];
-            scalar la = group->a[lid];
-            
-            double Isyn = 0;
-             {
-                // pull inSyn values in a coalesced access
-                double linSyn = group->inSynInSyn0[lid];
-                Isyn+= linSyn;
-                linSyn= 0.0;
-                
-                group->inSynInSyn0[lid] = linSyn;
-            }
-            // test whether spike condition was fulfilled previously
-            const bool oldSpike = (lV >= (-4.00000000000000000e+01));
-            // calculate membrane potential
-            lV+= (-(1.00000000000000002e-02)*(lV-(-6.00000000000000000e+01)) - (1.50000000000000003e-03)*la*(lV-(-7.00000000000000000e+01)) + (1.00000000000000000e+01)*Isyn+(3.13049516849970555e+00)*curand_normal_double(&group->rng[lid]))*DT/(1.00000000000000000e+00);
-            la+= -la*DT/(1.00000000000000000e+03);
-            // test for and register a true spike
-            if ((lV >= (-4.00000000000000000e+01)) && !(oldSpike)) {
-                const unsigned int spkIdx = atomicAdd(&shSpkCount, 1);
-                shSpk[spkIdx] = lid;
-                // spike reset code
-                lV= (-7.00000000000000000e+01);
-                la+= 0.5;
-            }
-            group->V[lid] = lV;
-            group->a[lid] = la;
-        }
-        __syncthreads();
-        if(threadIdx.x == 0) {
-            if (shSpkCount > 0) {
-                shPosSpk = atomicAdd(&group->spkCnt[0], shSpkCount);
-            }
-        }
-        __syncthreads();
-        if(threadIdx.x < shSpkCount) {
-            const unsigned int n = shSpk[threadIdx.x];
-            group->spk[shPosSpk + threadIdx.x] = n;
-        }
-    }
-    // merged3
-    if(id >= 224 && id < 256) {
-        struct MergedNeuronUpdateGroup3 *group = &d_mergedNeuronUpdateGroup3[0]; 
-        const unsigned int lid = id - 224;
+        const unsigned int lid = id - 9760;
         
         if(lid < group->numNeurons) {
             scalar lV = group->V[lid];
@@ -945,6 +893,58 @@ extern "C" __global__ void updateNeuronsKernel(double t)
                 Isyn += linSyn * ((-8.00000000000000000e+01) - lV);
                 linSyn*=(9.95012479192682320e-01);
                 group->inSynInSyn2[lid] = linSyn;
+            }
+            // test whether spike condition was fulfilled previously
+            const bool oldSpike = (lV >= (-4.00000000000000000e+01));
+            // calculate membrane potential
+            lV+= (-(1.00000000000000002e-02)*(lV-(-6.00000000000000000e+01)) - (0.00000000000000000e+00)*la*(lV-(-7.00000000000000000e+01)) + (1.00000000000000000e+00)*Isyn+(3.13049516849970555e+00)*curand_normal_double(&group->rng[lid]))*DT/(1.00000000000000000e+00);
+            la+= -la*DT/(1.00000000000000000e+03);
+            // test for and register a true spike
+            if ((lV >= (-4.00000000000000000e+01)) && !(oldSpike)) {
+                const unsigned int spkIdx = atomicAdd(&shSpkCount, 1);
+                shSpk[spkIdx] = lid;
+                // spike reset code
+                lV= (-7.00000000000000000e+01);
+                la+= 0.5;
+            }
+            group->V[lid] = lV;
+            group->a[lid] = la;
+        }
+        __syncthreads();
+        if(threadIdx.x == 0) {
+            if (shSpkCount > 0) {
+                shPosSpk = atomicAdd(&group->spkCnt[0], shSpkCount);
+            }
+        }
+        __syncthreads();
+        if(threadIdx.x < shSpkCount) {
+            const unsigned int n = shSpk[threadIdx.x];
+            group->spk[shPosSpk + threadIdx.x] = n;
+        }
+    }
+    // merged3
+    if(id >= 10560 && id < 14560) {
+        struct MergedNeuronUpdateGroup3 *group = &d_mergedNeuronUpdateGroup3[0]; 
+        const unsigned int lid = id - 10560;
+        
+        if(lid < group->numNeurons) {
+            scalar lV = group->V[lid];
+            scalar la = group->a[lid];
+            
+            double Isyn = 0;
+             {
+                // pull inSyn values in a coalesced access
+                double linSyn = group->inSynInSyn0[lid];
+                Isyn += linSyn * ((0.00000000000000000e+00) - lV);
+                linSyn*=(9.90049833749168107e-01);
+                group->inSynInSyn0[lid] = linSyn;
+            }
+             {
+                // pull inSyn values in a coalesced access
+                double linSyn = group->inSynInSyn1[lid];
+                Isyn += linSyn * ((-8.00000000000000000e+01) - lV);
+                linSyn*=(9.95012479192682320e-01);
+                group->inSynInSyn1[lid] = linSyn;
             }
             // test whether spike condition was fulfilled previously
             const bool oldSpike = (lV >= (-4.00000000000000000e+01));
@@ -984,7 +984,7 @@ void updateNeurons(double t) {
     }
      {
         const dim3 threads(32, 1);
-        const dim3 grid(8, 1);
+        const dim3 grid(455, 1);
         updateNeuronsKernel<<<grid, threads>>>(t);
         CHECK_CUDA_ERRORS(cudaPeekAtLastError());
     }

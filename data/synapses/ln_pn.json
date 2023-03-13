@@ -1,31 +1,21 @@
 {
-    "param_space": {
-        "n_ln": "eval 1: params['neuron_populations']['ln']['n']",
-        "n_pn": "eval 1: params['neuron_populations']['pn']['n']",
-        "g": 2e-05
-    },
-    "ini": {
-        "g": 5.5e-05,
-        "requires_initing": true,
-        "connectivity": {
-            "name": "lns_pns_conn_init",
-            "type": "CustomInit",
-            "param_names": [
-                "n_ln",
-                "n_pn",
-                "g"
-            ],
-            "var_init_code": [
-                "const unsigned int npn= (unsigned int) $(n_pn);",
-                "const unsigned int nln= (unsigned int) $(n_ln);",
-                "$(value)=($(id_pre)/nln == $(id_post)/npn) ? 0.0 : $(g);"
-            ]
-        }
-    },
-    "ps_param_space": {
-        "tau": 10.0,
-        "E": 0.0
-    },
-    "matrix_type": "DENSE_INDIVIDUALG",
-    "w_update_model": "StaticPulse"
+	"name" : "ln_pn",
+	"matrix_type" : "DENSE_INDIVIDUALG",
+	"delay_steps" : "eval 1: genn_wrapper.NO_DELAY",
+	"source" : "ln",
+	"target" : "pn",
+	"w_update_model" : "StaticPulse",
+	"wu_param_space" : {},
+	"wu_var_space" : {
+	"g" : 0.0
+	},
+	"wu_pre_var_space" : {},
+	"wu_post_var_space" : {},
+	"postsyn_model" : "ExpCond",
+	"ps_param_space" : {
+    "tau": 20.0,
+    "E": -80.0
+	},
+	"ps_var_space" : {},
+	"connectivity_initialiser": "eval 1: None"
 }

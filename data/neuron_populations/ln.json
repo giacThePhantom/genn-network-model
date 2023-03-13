@@ -1,6 +1,6 @@
 {
 	"name" : "LN",
-	"n" : 15,
+	"n" : "eval 1: params['neuron_populations']['or']['n'] * 25",
 	"spike_rec" : false,
 	"sim_code" : [
     "$(V)+= (-$(g_leak)*($(V)-$(V_leak)) - $(g_adapt)*$(a)*($(V)-$(V_adapt)) + $(r_scale)*$(Isyn)+$(noise_A)*$(gennrand_normal))*DT/$(C_mem);",

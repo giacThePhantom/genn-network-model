@@ -1,0 +1,54 @@
+{
+	"name" : "orn_ln",
+	"matrix_type" : "SPARSE_GLOBALG",
+	"delay_steps" : "eval 1: genn_wrapper.NO_DELAY",
+	"source" : "orn",
+	"target" : "pn",
+	"w_update_model" : "StaticPulse",
+	"wu_param_space" : {},
+	"wu_var_space" : {
+	"g" : 0.008
+	},
+	"wu_pre_var_space" : {},
+	"wu_post_var_space" : {},
+	"postsyn_model" : "ExpCond",
+	"ps_param_space" : {
+    "tau": 10.0,
+    "E": 0.0
+	},
+	"ps_var_space" : {},
+	"connectivity_initialiser": {
+		"name" : "orn_al_type_specific",
+		"derived_params" : "eval 1: None",
+		"row_build_code" : "eval 1: None",
+		"row_build_state_vars" : "eval 1: None",
+    "col_build_code" : [
+        "if (c == 0) {",
+        "$(endCol);",
+        "}",
+        "const unsigned int glo= $(id_post)/((unsigned int) $(n_trg));",
+        "const unsigned int offset= $(n_orn)*glo;",
+        "const unsigned int tid= $(gennrand_uniform)*$(n_orn);",
+        "$(addSynapse, offset+tid+$(id_pre_begin));",
+        "c--;"
+		],
+    "col_build_state_vars" : [
+			[
+				"c",
+				"unsigned int",
+				"$(n_pre)"
+			]
+		],
+		"calc_max_row_len_func" : "eval 1: None",
+		"calc_max_col_len_func" : "eval 1: lambda num_pre, num_post, pars : int(pars[2])",
+		"calc_kernel_size_func" : "eval 1: None",
+		"extra_global_params" : "eval 1: None",
+		"custom_body" : "eval 1: None",
+		"param_space" : {
+			"n_orn" : "eval 2: int(params['neuron_populations']['orn']['n'])/params['neuron_populations']['or']['n']",
+			"n_trg" : "eval 2: int(params['neuron_populations']['ln']['n'])/params['neuron_populations']['or']['n']",
+			"n_pre" : 12
+
+		}
+	}
+}

@@ -33,7 +33,7 @@
 		{
 			"name" : "r0",
 			"type" : "scalar",
-			"value" : 1.0,
+			"value" : "eval 1: [i for i in range(160)]",
 			"_comment_" : "unbound receptor fraction"
 		},
 		{
@@ -57,7 +57,7 @@
 		{
 			"name" : "ra_1",
 			"type" : "scalar",
-			"value" : 25.0,
+			"value" : 0.0,
 			"_comment_" : "activated receptor fraction to odor channel 1"
 		},
     {

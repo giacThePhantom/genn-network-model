@@ -73,13 +73,13 @@ if __name__ == "__main__":
     import sys
     from reading_parameters import get_parameters
     params = get_parameters(sys.argv[1])
-    first_protocol = FirstProtocol(params['protocols']['experiment1'])
-    first_protocol.events_generation(1)
+    first_protocol = FirstProtocol(params['protocols']['experiment1'], 1)
     first_protocol.generate_or_param(params['neuron_populations']['or'])
     model = NeuronalNetwork(
-        "Test", params['neuron_populations'], params['synapses'])
+        "Test", params['neuron_populations'], params['synapses'],
+        dt = 0.1,
+
+    )
 
     sim = Simulator(model)
-    sim.run(100000.0)
-
-    # model.build_and_load() # no longer necessary
+    sim.run(30003000.0)

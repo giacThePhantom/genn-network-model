@@ -108,6 +108,33 @@ class Protocol(ABC):
         else:
             or_params['sim_code'].insert(0, sim_code_to_be_added)
 
+    def generate_inhibitory_connectivity(self, n_source, n_target, connectivity_type, self_inhibition):
+        binding_rates_matrix = np.array([i.get_binding_rates() for i in self.odors])
+        if connectivity_type == 'correlation':
+            connectivity_matrix = np.corrcoef(binding_rates_matrix,rowvar=False)
+            connectivity_matrix = (connectivity_matrix + 1.0)/20.0
+            pass
+        elif connectivity_type == 'covariance':
+            connectivity_matrix= np.cov(binding_rates_matrix,rowvar=False)
+            connectivity_matrix= np.maximum(0.0, connectivity_matrix)
+            pass
+        elif connectivity_type == 'homogeneous':
+            connectivity_matrix = np.ones((binding_rates_matrix.shape[1],
+                                            binding_rates_matrix.shape[1]))
+            pass
+
+        if not self_inhibition:
+            np.fill_diagonal(connectivity_matrix, 0)
+
+        connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_source / binding_rates_matrix.shape[1], axis = 0)
+        connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_target / binding_rates_matrix.shape[1], axis = 1)
+        self.connectivity_matrix = connectivity_matrix.flatten()
+
+    def generate_ln_pn_connectivity_parameters(self, ln_pn_param):
+        pass
+
+
+
 
     @abstractmethod
     def _event_generation(self):

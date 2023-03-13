@@ -1,27 +1,50 @@
 {
-    "matrix_type": "SPARSE_GLOBALG",
-    "w_update_model": {
-        "name": "pass_or",
-        "param_names": [],
-        "var_name_types": [],
-        "sim_code": "",
-        "synapse_dynamics_code": "$(addToInSyn, $(ra_pre));"
-    },
-    "postsyn_model": {
-        "name": "pass_postsyn",
-        "apply_input_code": "$(Isyn)+= $(inSyn);\n$(inSyn)= 0.0;"
-    },
-    "connectivity": {
-        "name": "or_type_specific",
-        "type": "CustomSparse",
-        "row_build_code": [
-            "const unsigned int row_length= $(num_post)/$(num_pre);",
-            "const unsigned int offset= $(id_pre)*row_length;",
-            "for (unsigned int k= 0; k < row_length; k++) {",
-            "    $(addSynapse, (offset + k));",
-            "}",
-            "$(endRow);"
-        ],
-        "calc_max_row_len_func": "eval 1: create_cmlf_class(lambda num_pre, num_post, pars: int(num_post/num_pre))()"
-    }
+	"name" : "or_orn",
+	"matrix_type" : "SPARSE_GLOBALG",
+	"delay_steps" : "eval 1: genn_wrapper.NO_DELAY",
+	"source" : "or",
+	"target" : "orn",
+	"w_update_model" : {
+		"name" : "pass_or",
+		"param_names" : [],
+		"var_name_types" : [],
+		"sim_code" : [],
+		"synapses_dynamics_code" : [
+			"$(addToInSyn, $(ra_pre));"
+		]
+	},
+	"wu_param_space" : {},
+	"wu_var_space" : {},
+	"wu_pre_var_space" : {},
+	"wu_post_var_space" : {},
+	"postsyn_model" : {
+		"name" : "pass_postsyn",
+		"apply_input_code" : [
+    	"$(Isyn)+= $(inSyn);",
+    	"$(inSyn)= 0.0;"
+		]
+	},
+	"ps_param_space" : {},
+	"ps_var_space" : {},
+	"connectivity_initialiser": {
+		"name" : "or_type_specific",
+		"derived_params" : "eval 1: None",
+		"row_build_code" : [
+			"const unsigned int row_length= $(num_post)/$(num_pre);",
+			"const unsigned int offset= $(id_pre)*row_length;",
+			"for (unsigned int k= 0; k < row_length; k++) {",
+			"    $(addSynapse, (offset + k));",
+			"}",
+			"$(endRow);"
+		],
+		"row_build_state_vars" : "eval 1: None",
+		"col_build_code" : "eval 1: None",
+		"col_build_state_vars" : "eval 1: None",
+		"calc_max_row_len_func" : "eval 1: lambda num_pre, num_post, pars : int(num_post/num_pre)",
+		"calc_max_col_len_func" : "eval 1: None",
+		"calc_kernel_size_func" : "eval 1: None",
+		"extra_global_params" : "eval 1: None",
+		"custom_body" : "eval 1: None",
+		"param_space" : {}
+	}
 }

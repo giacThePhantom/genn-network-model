@@ -51,10 +51,10 @@ class NeuronalNetwork:
     def _add_synapses(self, synapses):
         for i in synapses:
             source, target = i.split("_")
-            self.synapses[i] = synapse.Synapse(i,
-                                               self.connected_neurons[source],
-                                               self.connected_neurons[target],
-                                               synapses[i]
+            self.synapses[i] = synapse.Synapse(synapses[i],
+                                               synapses[i]['name'],
+                                               self.connected_neurons[synapses[i]['source']],
+                                               self.connected_neurons[synapses[i]['target']],
                                                )
 
     def _connect(self):
@@ -62,7 +62,7 @@ class NeuronalNetwork:
             self.connected_synapses[i] = self.synapses[i].add_to_network(self.network)
 
 
-    def __init__(self, name, neuron_populations, synapses, cuda_capable = True):
+    def __init__(self, name, neuron_populations, synapses, dt, cuda_capable = True):
         """Builds a NeuronalNetwork object starting from a dictionary of
            neurons and one of synapses
         Parameters
@@ -82,6 +82,7 @@ class NeuronalNetwork:
         else:
             self.network = GeNNModel("double", name, backend = "SingleThreadedCPU")
 
+        self.network.dT = dt
         self._add_neuron_population(neuron_populations)
         self._add_neurons_to_network()
 
@@ -98,7 +99,8 @@ if __name__ == '__main__':
     import sys
     from reading_parameters import get_parameters
     params = get_parameters(sys.argv[1])
-    model = NeuronalNetwork("Test", params['neuron_populations'], params['synapses'])
+    model = NeuronalNetwork("Test", params['neuron_populations'], params['synapses'], 0.1)
+    print("HERE")
     model.build_and_load()
     print(model.connected_neurons['or'].vars['ra_1'].view[:])
     model.network.step_time()
