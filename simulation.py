@@ -71,7 +71,7 @@ class Simulator:
         """
         for var in variables:
             self._track_var(*var)
-        
+
 
 
     def _clear(self):
@@ -129,12 +129,12 @@ class Simulator:
             self.model.build_and_load(int(batch / model.dT))
         else:
             self.model.reinitialise()
-        
+
         # FIXME
         while model.t < howlong:
             logging.debug(f"Time: {model.t}")
             model.step_time()
-        
+
             if model.t > 0 and np.isclose(np.fmod(model.t, batch), 0.0):
                 print(f"Time: {model.t}")
                 for pop_name, pop_vars in self.recorded_vars.items():
@@ -156,12 +156,12 @@ class Simulator:
                                     spike_id = genn_pop.spikes[0][0][:spike_count]
                                 else:
                                     spike_t = []
-                                
+
                             if len(spike_t) == 0:
                                 continue
 
                             self._add_to_var(pop, var, spike_t, spike_id)
-                            
+
                             logging.debug(f"pop: {pop_name}, spike_t: {spike_t}, spike_id: {spike_id}")
                         else:
                             genn_pop.pull_var_from_device(var)
@@ -171,20 +171,20 @@ class Simulator:
                             times = model.t * np.ones_like(series)
 
                             self._add_to_var(pop, var, times, series)
-        
+
 if __name__ == "__main__":
     import sys
     from reading_parameters import get_parameters
     params = get_parameters(sys.argv[1])
-    first_protocol = SecondProtocol(params['protocols']['experiment1'])
-    first_protocol.events_generation(25)
-    first_protocol.generate_or_param(params['neuron_populations']['or'])
+    second_protocol = SecondProtocol(params['protocols']['experiment1'])
+    second_protocol.events_generation(25)
+    second_protocol.generate_or_param(params['neuron_populations']['or'])
     model = NeuronalNetwork(
-        "Test", params['neuron_populations'], params['synapses'], optimizeCode=True, generateEmptyStatePush=False)
+        "Test", params['neuron_populations'], params['synapses'], dt=0.1, optimizeCode=True, generateEmptyStatePush=False)
 
     # to change the verbosity
     # logging.setLevel(logging.DEBUG)
-    sim = Simulator("test_sim", model, first_protocol)
+    sim = Simulator("prot2_sim", model, second_protocol)
     sim.track_vars([
         ("or", ["ra"]),
         ("orn", ["V", "a"]),
@@ -193,4 +193,3 @@ if __name__ == "__main__":
     ])
     sim.run(10000.0, batch=1000.0, poll_spike_readings=False)
     sim.save_output()
-

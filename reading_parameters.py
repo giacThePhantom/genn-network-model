@@ -149,7 +149,7 @@ def sort_params(param):
     try:
         int(res)
     except:
-        raise Exception("Could not read order of evaluation, string should be in the form eval n: expression, beware of whitespaces")
+        raise Exception(f"Could not read order of evaluation, string should be in the form eval n: expression, beware of whitespaces, in dictionary {param}")
     return(int(res))
 
 def evaluate_param(to_be_eval, params):
