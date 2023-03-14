@@ -63,7 +63,7 @@ class NeuronalNetwork:
             self.connected_synapses[i] = self.synapses[i].add_to_network(self.network)
 
 
-    def __init__(self, name, neuron_populations, synapses, dt, cuda_capable = True):
+    def __init__(self, name, neuron_populations, synapses, dt, cuda_capable = True, **backend_kwargs):
         """Builds a NeuronalNetwork object starting from a dictionary of
            neurons and one of synapses
         Parameters
@@ -77,11 +77,13 @@ class NeuronalNetwork:
         cuda_capable : bool
             Whether the model has to be uploaded to a cuda device or it has to
             remain into a single threaded cpu process
+        backend_kwargs: pass backend options. Refer to PreferenceBase
+        ( https://genn-team.github.io/genn/documentation/4/html/d1/d7a/structCodeGenerator_1_1PreferencesBase.html ) for details
         """
         if cuda_capable:
-            self.network = GeNNModel("double", name)
+            self.network = GeNNModel("double", name, **backend_kwargs)
         else:
-            self.network = GeNNModel("double", name, backend = "SingleThreadedCPU")
+            self.network = GeNNModel("double", name, backend = "SingleThreadedCPU", **backend_kwargs)
 
         self.network.dT = dt
         self._add_neuron_population(neuron_populations)
@@ -102,7 +104,7 @@ class NeuronalNetwork:
         """
         self.network.build()
         self.network.load(num_recording_timesteps=num_recording_steps)
-    
+
     def reinitialize(self):
         """
         Reset the internal model variables and clear all currents logs

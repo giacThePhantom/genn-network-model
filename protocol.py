@@ -125,13 +125,15 @@ class Protocol(ABC):
 
         if not self_inhibition:
             np.fill_diagonal(connectivity_matrix, 0)
-        return connectivity_matrix.flatten()
+        return connectivity_matrix
 
-    def generate_inhibitory_conductance(self, ln_pn_param):
-        connectivity_matrix = self.connectivity_matrix * ln_pm_param['wu_var_space']['g']
-        ln_pm_param['wu_var_space']['g'] = connectivity_matrix
-        connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_source / binding_rates_matrix.shape[1], axis = 0)
-        connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_target / binding_rates_matrix.shape[1], axis = 1)
+    def add_inhibitory_conductance(self, param, n_source, n_target):
+        connectivity_matrix = self.connectivity_matrix * param['wu_var_space']['g']
+        n_glomeruli = connectivity_matrix.shape[1]
+        connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_source / n_glomeruli, axis = 0)
+        connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_target / n_glomeruli, axis = 1)
+        connectivity_matrix.flatten()
+        param['wu_var_space']['g'] = connectivity_matrix
 
     @abstractmethod
     def _event_generation(self):
