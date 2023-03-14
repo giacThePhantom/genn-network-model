@@ -98,9 +98,14 @@ class Simulator:
             for var, values in var_dict.items():
                 logpath = dirpath / f"{pop}_{var}.csv"
                 with logpath.open("a") as f:
-                    np.savetxt(f, np.column_stack(values), delimiter=",")
+                    np.savetxt(f, np.column_stack(values), delimiter=",", fmt='%.4e')
 
         self._reset_population()
+    
+    def _flush_output(self):
+        dirpath = Path("outputs") / self.sim_name
+        for file in dirpath.rglob("*"):
+            file.unlink()
     
     def _add_to_var(self, pop, var, times, series):
         # We're saving a snapshot. On that case, squeeze the output into a single row
@@ -144,6 +149,7 @@ class Simulator:
         """
         model = self.model.network
         logging.info(f"Starting a simulation for the model {model.model_name} that will run for {self.protocol.simulation_time} ms")
+        self._flush_output()
 
         if not model._built:
             logging.info("Build and load")
