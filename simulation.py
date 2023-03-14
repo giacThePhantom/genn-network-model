@@ -36,12 +36,15 @@ class Simulator:
         self,
         sim_name: str,
         model: NeuronalNetwork,
-        protocol: Protocol
+        protocol: Protocol,
+        param : dict
     ) -> None:
         self.sim_name = sim_name
         self.model = model
         self.recorded_vars = {}
         self.protocol = protocol
+        self.param = param
+        self.track_vars()
 
     def _track_var(self, population: str, var_names: List[str]):
         for name in var_names:
@@ -58,7 +61,7 @@ class Simulator:
 
             pop.recorded_outputs[name] = np.array([])
 
-    def track_vars(self, variables: List[Tuple[str, List[str]]]):
+    def track_vars(self):
         """
         Track a list of variables per population
 
@@ -70,6 +73,8 @@ class Simulator:
             var1, ... are variables defined in the specific neuron code used by that population.
             An extra variable, "spikes", enables spike counting (ie. when V >= some threshold)
         """
+
+        variables = [(key, self.param['tracked_variables'][key]) for key in self.param['tracked_variables']]
         for var in variables:
             self._track_var(*var)
 
@@ -104,7 +109,23 @@ class Simulator:
         pop.recorded_outputs[var][0, cur_buf_size:] = times
         pop.recorded_outputs[var][1, cur_buf_size:] = series
 
-    def run(self, howlong: float, batch=1.0, poll_spike_readings=False):
+
+    def update_target_pop(self, target_pop, current_events, events):
+        for (i, event) in enumerate(current_events):
+            if self.model.network.t >= event['t_start'] and not event['happened']:
+                event['happened'] = True
+                target_pop.vars["kp1cn_" + str(event['channel'])].view[:] = event['binding_rates']
+                target_pop.vars["kp2_" + str(event['channel'])].view[:] = event['activation_rates']
+                self.model.network.push_state_to_device("or")
+
+            elif self.model.network.t == event['t_end']:
+                target_pop.vars["kp1cn_" + str(event['channel'])].view[:] =np.zeros(np.shape(event['activation_rates']))
+
+                if events[i]:
+                    current_events[i] = events[i].pop(0)
+
+
+    def run(self, batch=1.0, poll_spike_readings=False):
         """
         Run a simulation. The user is advised to call `track_vars` first
         to register which variables to log during the simulation
@@ -124,20 +145,33 @@ class Simulator:
             readings, however it provides useful "snapshot" views for debugging.
         """
         model = self.model.network
-        logging.info(f"Starting a simulation for the model {model.model_name} that will run for {howlong} ms")
+        logging.info(f"Starting a simulation for the model {model.model_name} that will run for {self.protocol.get_simulation_time()} ms")
 
         if not model._built:
+            logging.info("Build and load")
             self.model.build_and_load(int(batch / model.dT))
+            logging.info("Done")
         else:
+            logging.info("Reinitializing")
             self.model.reinitialise()
 
         # FIXME
-        while model.t < howlong:
+        events = self.protocol.get_events_for_channel()
+        current_events = []
+        for i in events:
+            if i:
+                current_events.append(i.pop(0))
+
+        target_pop = self.model.connected_neurons['or']
+
+        while model.t < self.protocol.get_simulation_time():
             logging.debug(f"Time: {model.t}")
             model.step_time()
+            self.update_target_pop(target_pop, current_events, events)
+
 
             if model.t > 0 and np.isclose(np.fmod(model.t, batch), 0.0):
-                print(f"Time: {model.t}")
+                print(f"Time: {model.t/1000}")
                 for pop_name, pop_vars in self.recorded_vars.items():
                     pop = self.model.neuron_populations[pop_name]
                     genn_pop = self.model.connected_neurons[pop_name]
@@ -177,21 +211,22 @@ if __name__ == "__main__":
     import sys
     from reading_parameters import get_parameters
     params = get_parameters(sys.argv[1])
-    second_protocol = FirstProtocol(params['protocols']['experiment1'], 25)
-    second_protocol.generate_or_param(params['neuron_populations']['or'])
+    second_protocol = FirstProtocol(params['protocols']['experiment1'])
     second_protocol.add_inhibitory_conductance(params['synapses']['ln_pn'], params['neuron_populations']['ln']['n'], params['neuron_populations']['pn']['n'])
     second_protocol.add_inhibitory_conductance(params['synapses']['ln_ln'], params['neuron_populations']['ln']['n'], params['neuron_populations']['ln']['n'])
+
+
     model = NeuronalNetwork(
-        "WithInhibition", params['neuron_populations'], params['synapses'], dt=0.1, optimizeCode=False, generateEmptyStatePush=False)
+        "WithInhibition_test2",
+        params['neuron_populations'],
+        params['synapses'],
+        params['simulation']['simulation']['dt'],
+        # optimizeCode = params['simulation']['simulation']['optimize_code'],
+        # generateEmptyStatePush= params['simulation']['simulation']['generate_empty_state_push']
+    )
 
     # to change the verbosity
-    # logging.setLevel(logging.DEBUG)
-    sim = Simulator("prot2_sim", model, second_protocol)
-    sim.track_vars([
-        ("or", ["ra"]),
-        ("orn", ["V", "a"]),
-        ("ln", ["spikes"]),
-        ("pn", ["spikes"])
-    ])
-    sim.run(33000000.0, batch=1000.0, poll_spike_readings=False)
+    #logging.basicConfig(level=logging.DEBUG)
+    sim = Simulator("prot2_sim", model, second_protocol, params['simulation']['simulation'])
+    sim.run(batch=1000.0, poll_spike_readings=False)
     sim.save_output()

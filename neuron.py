@@ -88,7 +88,10 @@ class NeuronPopulation:
         self.parameters = params['parameters']
 
         for var in params['variables']:
-            self.variables.append((var['name'],  var['type']))
+            if 'access' not in params['variables']:
+                self.variables.append((var['name'],  var['type']))
+            else:
+                self.variables.append((var['name'],  var['type'], var['access']))
             if not isinstance(var['value'], list):
                 var['value'] = [var['value'] for i in range(self.n)]
             self.initial_variables[var['name']] = var['value']

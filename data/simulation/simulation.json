@@ -1,6 +1,25 @@
 {
-  "dt" : 0.2,
+  "dt" : 0.1,
   "experiment_name" : "experiment1",
   "name" : "Test",
-  "max_time" : 1000000.0
+  "batch" : 1000.0,
+  "poll_spike_readings" : false,
+  "optimize_code" : false,
+  "generate_empty_state_push" : false,
+  "tracked_variables": {
+    "or" : [
+      "ra"
+    ],
+    "orn" : [
+      "V",
+      "a"
+    ],
+
+    "ln" : [
+      "spikes"
+    ],
+    "pn" : [
+      "spikes"
+    ]
+  }
 }

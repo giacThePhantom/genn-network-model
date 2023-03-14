@@ -1,6 +1,7 @@
 from odors import Odor
 import numpy as np
 from abc import ABC, abstractmethod
+import pygenn.genn_wrapper.Models as var_access
 
 class Protocol(ABC):
 
@@ -72,41 +73,7 @@ class Protocol(ABC):
                 i['channel'] = channel_index
                 channel_occupancy_state[channel_index].append((i['t_start'], i['t_end']))
             else:
-                raise Exception("The number of channel is not enough to allow for all the events to happen")
-
-
-    def generate_or_param(self, or_params):
-        per_slot_events = [[] for i in range(self.param['num_channels'])]
-
-        for i in self.events:
-            per_slot_events[i['channel']].append(i)
-
-        sim_code_to_be_added = ""
-        for i in per_slot_events:
-            for (j, event) in enumerate(i):
-                var_binding_rate = "kp1cn_" + str(event['channel'])
-                new_binding_var = {
-                    "name" : var_binding_rate + "_" + str(j),
-                    "type" : "scalar",
-                    "value" : list(event['binding_rates'])
-                }
-                or_params['variables'].append(new_binding_var)
-                var_activation_rate = "kp2_" + str(event['channel'])
-                new_activation_var = {
-                    "name" : var_activation_rate + '_' + str(j),
-                    "type" : "scalar",
-                    "value" : list(event['activation_rates'])
-                }
-                or_params['variables'].append(new_activation_var)
-                sim_code_to_be_added += f"if ($(t) >= {event['t_start']} && $(t) <= {event['t_end']}) {{$({var_binding_rate}) = $({new_binding_var['name']}); $({var_activation_rate}) = $({new_activation_var['name']}); }} else "
-
-            if len(i) > 0:
-                sim_code_to_be_added += f"{{$({var_binding_rate}) = 0;}}"
-
-        if isinstance(or_params['sim_code'], str):
-            or_params['sim_code'] = sim_code_to_be_added + '\n' + or_params['sim_code']
-        else:
-            or_params['sim_code'].insert(0, sim_code_to_be_added)
+                raise Exception("The number of channels is not enough to allow for all the events to happen")
 
     def _generate_inhibitory_connectivity(self, connectivity_type, self_inhibition):
         binding_rates_matrix = np.array([i.get_binding_rates() for i in self.odors])
@@ -132,8 +99,12 @@ class Protocol(ABC):
         n_glomeruli = connectivity_matrix.shape[1]
         connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_source / n_glomeruli, axis = 0)
         connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_target / n_glomeruli, axis = 1)
-        connectivity_matrix.flatten()
-        param['wu_var_space']['g'] = connectivity_matrix
+        param['wu_var_space']['g'] = connectivity_matrix.flatten()
+
+    def get_simulation_time(self):
+        max_time = max(self.events, key = lambda x : x['t_end'])['t_end']
+        return max_time + self.param['resting_duration']
+
 
     @abstractmethod
     def _event_generation(self):
@@ -142,6 +113,17 @@ class Protocol(ABC):
     @abstractmethod
     def events_generation(self):
         pass
+
+    def get_events_for_channel(self):
+        res = [[] for i in range(self.param['num_channels'])]
+
+        for i in self.events:
+            res[i['channel']].append(i)
+
+        for i in res:
+            i.sort(key = lambda x : x['t_start'])
+
+        return res
 
 
     def __init__(self, param):
