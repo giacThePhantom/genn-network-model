@@ -1,4 +1,4 @@
-from collections import deque
+from collections import defaultdict, deque
 from pathlib import Path
 import pickle
 from typing import List, Tuple
@@ -6,9 +6,9 @@ import logging
 
 from network import NeuronalNetwork
 from neuron import NeuronPopulation
+from reading_parameters import parse_cli
 from odors import Odor
 from protocol import Protocol
-from second_protocol import SecondProtocol
 from first_protocol import FirstProtocol
 
 import numpy as np
@@ -42,13 +42,16 @@ class Simulator:
         self.sim_name = sim_name
         self.model = model
         self.recorded_vars = {}
+        # data -> population -> var name -> array.
+        # For each layer automatically create a default dict
+        self._data = defaultdict(lambda: defaultdict(lambda: np.array([])))
         self.protocol = protocol
         self.param = param
         self.track_vars()
 
     def _track_var(self, population: str, var_names: List[str]):
         for name in var_names:
-            pop = self.model.neuron_populations[population]
+            #pop = self.model.neuron_populations[population]
             genn_pop = self.model.connected_neurons[population]
             if name == "spikes":
                 print("recording...")
@@ -56,10 +59,10 @@ class Simulator:
             else:
                 # TODO: implement CUDA event buffers for those variables.
                 # For now all we can do is pulling them manually every n steps
-                pass
+                
+                # Format: (v_1, v_2, ..., v_k, t) with k being the number of neurons.
+                self._data[population][name] = np.empty(genn_pop.size + 1)
             self.recorded_vars.setdefault(population, []).append(name)
-
-            pop.recorded_outputs[name] = np.array([])
 
     def track_vars(self):
         """
@@ -78,37 +81,34 @@ class Simulator:
         for var in variables:
             self._track_var(*var)
 
+    def _reset_population(self):
+        self.model.clear_logs()
 
-
-    def _clear(self):
-        for i in range(3):
-            self._reset_population(i)
-        self.model.network.push_state_to_device("or")
-
-    def save_output(self):
-        dirpath = Path(self.sim_name)
+    def _stream_output(self):
+        dirpath = Path("outputs") / self.sim_name
         logging.info(f"Saving to {dirpath}")
         dirpath.mkdir(exist_ok=True)
-        tracked_path = dirpath / "tracked_data.pickle"
+
         protocol_path = dirpath / "protocol.pickle"
-        to_log = {}
-        for pop_name, pop in self.model.neuron_populations.items():
-            to_log[pop_name] = pop.recorded_outputs
+        if not protocol_path.exists():
+            with protocol_path.open("wb") as f:
+                pickle.dump(self.protocol, f)
 
-        with tracked_path.open("wb") as f:
-            pickle.dump(to_log, f)
-        with protocol_path.open("wb") as f:
-            pickle.dump(self.protocol, f)
+        for pop, var_dict in self._data.items():
+            for var, values in var_dict.items():
+                logpath = dirpath / f"{pop}_{var}.csv"
+                with logpath.open("a") as f:
+                    np.savetxt(f, np.column_stack(values), delimiter=",")
 
+        self._reset_population()
+    
     def _add_to_var(self, pop, var, times, series):
-        if len(pop.recorded_outputs[var]) > 0:
-            cur_buf_size = pop.recorded_outputs[var].shape[1]
+        # We're saving a snapshot. On that case, squeeze the output into a single row
+        if len(times) == 1:
+            series = series.squeeze()
+            self._data[pop][var] = np.concatenate([times, series])
         else:
-            cur_buf_size = 0
-        pop.recorded_outputs[var].resize(2, cur_buf_size + len(times))
-        pop.recorded_outputs[var][0, cur_buf_size:] = times
-        pop.recorded_outputs[var][1, cur_buf_size:] = series
-
+            self._data[pop][var] = np.vstack([times, series])
 
     def update_target_pop(self, target_pop, current_events, events):
         for (i, event) in enumerate(current_events):
@@ -125,7 +125,7 @@ class Simulator:
                     current_events[i] = events[i].pop(0)
 
 
-    def run(self, batch=1.0, poll_spike_readings=False):
+    def run(self, batch=1.0, poll_spike_readings=False, save=True):
         """
         Run a simulation. The user is advised to call `track_vars` first
         to register which variables to log during the simulation
@@ -133,8 +133,6 @@ class Simulator:
         Parameters
         ----------
 
-        howlong: float
-            for how long we want the simulation to run.
         batch: float
             how often (in ms) to pull data from the GPU. Must be a multiple of dt.
             We recommend not keeping this value too low or the GPU may stall.
@@ -145,7 +143,7 @@ class Simulator:
             readings, however it provides useful "snapshot" views for debugging.
         """
         model = self.model.network
-        logging.info(f"Starting a simulation for the model {model.model_name} that will run for {self.protocol.get_simulation_time()} ms")
+        logging.info(f"Starting a simulation for the model {model.model_name} that will run for {self.protocol.simulation_time} ms")
 
         if not model._built:
             logging.info("Build and load")
@@ -164,11 +162,10 @@ class Simulator:
 
         target_pop = self.model.connected_neurons['or']
 
-        while model.t < self.protocol.get_simulation_time():
+        while model.t < self.protocol.simulation_time:
             logging.debug(f"Time: {model.t}")
             model.step_time()
             self.update_target_pop(target_pop, current_events, events)
-
 
             if model.t > 0 and np.isclose(np.fmod(model.t, batch), 0.0):
                 print(f"Time: {model.t/1000}")
@@ -195,38 +192,44 @@ class Simulator:
                             if len(spike_t) == 0:
                                 continue
 
-                            self._add_to_var(pop, var, spike_t, spike_id)
+                            self._add_to_var(pop_name, var, spike_t, spike_id)
 
                             logging.debug(f"pop: {pop_name}, spike_t: {spike_t}, spike_id: {spike_id}")
                         else:
                             genn_pop.pull_var_from_device(var)
                             logging.debug(f"{pop_name} -> {var}")
                             logging.debug(genn_pop.vars[var].view)
-                            series = genn_pop.vars[var].view
-                            times = model.t * np.ones_like(series)
+                            series = genn_pop.vars[var].view.T
+                            times = np.array([model.t])
 
-                            self._add_to_var(pop, var, times, series)
+                            self._add_to_var(pop_name, var, times, series)
+
+                if save:
+                    self._stream_output()
+
+# TODO yeet out
+class TestFirstProtocol(FirstProtocol):
+    def __init__(self, param):
+        param['concentration_increases'] = 3
+        super().__init__(param)
+    
 
 if __name__ == "__main__":
-    import sys
-    from reading_parameters import get_parameters
-    params = get_parameters(sys.argv[1])
-    second_protocol = FirstProtocol(params['protocols']['experiment1'])
-    second_protocol.add_inhibitory_conductance(params['synapses']['ln_pn'], params['neuron_populations']['ln']['n'], params['neuron_populations']['pn']['n'])
-    second_protocol.add_inhibitory_conductance(params['synapses']['ln_ln'], params['neuron_populations']['ln']['n'], params['neuron_populations']['ln']['n'])
+    params = parse_cli()
+    protocol = TestFirstProtocol(params['protocols']['experiment1'])
+    protocol.add_inhibitory_conductance(params['synapses']['ln_pn'], params['neuron_populations']['ln']['n'], params['neuron_populations']['pn']['n'])
+    protocol.add_inhibitory_conductance(params['synapses']['ln_ln'], params['neuron_populations']['ln']['n'], params['neuron_populations']['ln']['n'])
 
 
     model = NeuronalNetwork(
-        "WithInhibition_test2",
+        params['simulation']['name'],
         params['neuron_populations'],
         params['synapses'],
         params['simulation']['simulation']['dt'],
-        # optimizeCode = params['simulation']['simulation']['optimize_code'],
-        # generateEmptyStatePush= params['simulation']['simulation']['generate_empty_state_push']
+        optimizeCode = params['simulation']['simulation']['optimize_code'],
+        generateEmptyStatePush = params['simulation']['simulation']['generate_empty_state_push']
     )
 
-    # to change the verbosity
-    #logging.basicConfig(level=logging.DEBUG)
-    sim = Simulator("prot2_sim", model, second_protocol, params['simulation']['simulation'])
-    sim.run(batch=1000.0, poll_spike_readings=False)
-    sim.save_output()
+    sim = Simulator("prot2_sim", model, protocol,
+                    params['simulation']['simulation'])
+    sim.run(batch=1000.0, poll_spike_readings=False, save=True)

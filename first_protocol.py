@@ -44,14 +44,14 @@ class FirstProtocol(Protocol):
         """
 
         t_start = t
-        t_end = t + self.get_event_duration()
-        concentration = self.get_starting_concentration()*np.power(self.get_dilution_factor(), c_exp) #Concentration is increased by increasing it by a dilution factor
+        t_end = t + self.event_duration
+        concentration = self.starting_concentration*np.power(self.dilution_factor, c_exp) #Concentration is increased by increasing it by a dilution factor
         event = {
             "t_start" : t_start,
             "t_end" : t_end,
             "concentration" : concentration,
             "odor_name" : odor.get_name(),
-            "binding_rates" : np.power(odor.get_binding_rates()*concentration, self.get_hill_exponential()), #Binding rates are updated so to include inforamtion about concentration
+            "binding_rates" : np.power(odor.get_binding_rates()*concentration, self.hill_exponential), #Binding rates are updated so to include inforamtion about concentration
             "activation_rates" : odor.get_activation_rates() ,
             "happened" : False,
         }
@@ -65,11 +65,11 @@ class FirstProtocol(Protocol):
             The number of times the concentration is increased by a dilution factor
         """
         res = []
-        t = self.get_resting_duration()
-        for (i, odor) in enumerate(self.get_odors()):
+        t = self.resting_duration
+        for (i, odor) in enumerate(self.odors):
             for c_exp in range(num_concentration_increases):
                 res.append(self._event_generation(t, odor, c_exp))
-                t = res[-1]['t_end'] + self.get_resting_duration()
+                t = res[-1]['t_end'] + self.resting_duration
         self.events = res
 
 if __name__ == "__main__":
