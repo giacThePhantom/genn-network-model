@@ -19,9 +19,9 @@ class FirstProtocol(Protocol):
         and creates the corresponding events.
     """
 
-    def __init__(self, param, concentration_steps):
+    def __init__(self, param):
         super().__init__(param)
-        self.events_generation(concentration_steps)
+        self.events_generation(param['concentration_increases'])
         self.assign_channel_to_events() #Assign an odor to a channel in the OR population
 
 

@@ -1,6 +1,7 @@
 from odors import Odor
 import numpy as np
 from abc import ABC, abstractmethod
+import pygenn.genn_wrapper.Models as var_access
 
 class Protocol(ABC):
 
@@ -72,7 +73,7 @@ class Protocol(ABC):
                 i['channel'] = channel_index
                 channel_occupancy_state[channel_index].append((i['t_start'], i['t_end']))
             else:
-                raise Exception("The number of channel is not enough to allow for all the events to happen")
+                raise Exception("The number of channels is not enough to allow for all the events to happen")
 
 
     def generate_or_param(self, or_params):
@@ -88,18 +89,22 @@ class Protocol(ABC):
                 new_binding_var = {
                     "name" : var_binding_rate + "_" + str(j),
                     "type" : "scalar",
-                    "value" : list(event['binding_rates'])
+                    "value" : list(event['binding_rates']),
+                    "access" : var_access.VarAccess_READ_ONLY
                 }
-                or_params['variables'].append(new_binding_var)
+                #or_params['variables'].append(new_binding_var)
                 var_activation_rate = "kp2_" + str(event['channel'])
                 new_activation_var = {
                     "name" : var_activation_rate + '_' + str(j),
                     "type" : "scalar",
-                    "value" : list(event['activation_rates'])
+                    "value" : list(event['activation_rates']),
+                    "access" : var_access.VarAccess_READ_ONLY
                 }
-                or_params['variables'].append(new_activation_var)
-                sim_code_to_be_added += f"if ($(t) >= {event['t_start']} && $(t) <= {event['t_end']}) {{$({var_binding_rate}) = $({new_binding_var['name']}); $({var_activation_rate}) = $({new_activation_var['name']}); }} else "
-
+                #or_params['variables'].append(new_activation_var)
+                sim_code_to_be_added += f"if ($(t) >= {event['t_start']} && $(t) <= {event['t_end']}) {{"
+                for (j, (binding_rate, activation_rate)) in enumerate(zip(new_binding_var['value'], new_activation_var['value'])):
+                    sim_code_to_be_added += f" if ($(id) == {j}) {{$({var_binding_rate}) = {binding_rate}; $({var_activation_rate}) = {activation_rate}; }} else "
+                sim_code_to_be_added = sim_code_to_be_added[:-5] + f"}}"
             if len(i) > 0:
                 sim_code_to_be_added += f"{{$({var_binding_rate}) = 0;}}"
 
@@ -132,8 +137,12 @@ class Protocol(ABC):
         n_glomeruli = connectivity_matrix.shape[1]
         connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_source / n_glomeruli, axis = 0)
         connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_target / n_glomeruli, axis = 1)
-        connectivity_matrix.flatten()
-        param['wu_var_space']['g'] = connectivity_matrix
+        param['wu_var_space']['g'] = connectivity_matrix.flatten()
+
+    def get_simulation_time(self):
+        max_time = max(self.events, key = lambda x : x['t_end'])['t_end']
+        return max_time + self.param['resting_duration']
+
 
     @abstractmethod
     def _event_generation(self):
