@@ -6,8 +6,9 @@ import logging
 
 from network import NeuronalNetwork
 from neuron import NeuronPopulation
-from protocols import Protocol, ProtocolStep, exp1_protocol
 from odors import Odor
+from protocol import Protocol
+from second_protocol import SecondProtocol
 from first_protocol import FirstProtocol
 
 import numpy as np
@@ -23,8 +24,8 @@ class Simulator:
         The name of the simulation
     model: NeuronalNetwork
         a neuronal network to simulate and track
-
-    protocol: a protocol to simulate
+    protocol: Protocol
+        the protocol for the simulation. This will be dumped.
     """
 
     def _reset(self):
@@ -35,10 +36,12 @@ class Simulator:
         self,
         sim_name: str,
         model: NeuronalNetwork,
+        protocol: Protocol
     ) -> None:
         self.sim_name = sim_name
         self.model = model
         self.recorded_vars = {}
+        self.protocol = protocol
 
     def _track_var(self, population: str, var_names: List[str]):
         for name in var_names:
@@ -78,14 +81,19 @@ class Simulator:
         self.model.network.push_state_to_device("or")
 
     def save_output(self):
-        path = Path(self.sim_name + ".pickle")
-        logging.info(f"Saving to {path}")
+        dirpath = Path(self.sim_name)
+        logging.info(f"Saving to {dirpath}")
+        dirpath.mkdir(exist_ok=True)
+        tracked_path = dirpath / "tracked_data.pickle"
+        protocol_path = dirpath / "protocol.pickle"
         to_log = {}
         for pop_name, pop in self.model.neuron_populations.items():
             to_log[pop_name] = pop.recorded_outputs
 
-        with path.open("wb") as f:
+        with tracked_path.open("wb") as f:
             pickle.dump(to_log, f)
+        with protocol_path.open("wb") as f:
+            pickle.dump(self.protocol, f)
 
     def _add_to_var(self, pop, var, times, series):
         if len(pop.recorded_outputs[var]) > 0:
@@ -169,17 +177,21 @@ if __name__ == "__main__":
     import sys
     from reading_parameters import get_parameters
     params = get_parameters(sys.argv[1])
-    first_protocol = FirstProtocol(params['protocols']['experiment1'], 1)
-    first_protocol.generate_or_param(params['neuron_populations']['or'])
+    second_protocol = FirstProtocol(params['protocols']['experiment1'], 25)
+    second_protocol.generate_or_param(params['neuron_populations']['or'])
+    second_protocol.add_inhibitory_conductance(params['synapses']['ln_pn'], params['neuron_populations']['ln']['n'], params['neuron_populations']['pn']['n'])
+    second_protocol.add_inhibitory_conductance(params['synapses']['ln_ln'], params['neuron_populations']['ln']['n'], params['neuron_populations']['ln']['n'])
     model = NeuronalNetwork(
-        "Test", params['neuron_populations'], params['synapses'],
-        dt = 0.1,
-
-    )
+        "WithInhibition", params['neuron_populations'], params['synapses'], dt=0.1, optimizeCode=False, generateEmptyStatePush=False)
 
     # to change the verbosity
     # logging.setLevel(logging.DEBUG)
-    sim = Simulator("test_sim", model)
-    sim.track_vars([("or", ["kp1cn_0"]), ("ln", ["spikes"]), ("pn", ["spikes"])])
-    sim.run(100000.0, batch=1000.0, poll_spike_readings=False)
+    sim = Simulator("prot2_sim", model, second_protocol)
+    sim.track_vars([
+        ("or", ["ra"]),
+        ("orn", ["V", "a"]),
+        ("ln", ["spikes"]),
+        ("pn", ["spikes"])
+    ])
+    sim.run(33000000.0, batch=1000.0, poll_spike_readings=False)
     sim.save_output()
