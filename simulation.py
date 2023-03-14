@@ -109,6 +109,22 @@ class Simulator:
         pop.recorded_outputs[var][0, cur_buf_size:] = times
         pop.recorded_outputs[var][1, cur_buf_size:] = series
 
+
+    def update_target_pop(self, target_pop, current_events, events):
+        for (i, event) in enumerate(current_events):
+            if self.model.network.t >= event['t_start'] and not event['happened']:
+                event['happened'] = True
+                target_pop.vars["kp1cn_" + str(event['channel'])].view[:] = event['binding_rates']
+                target_pop.vars["kp2_" + str(event['channel'])].view[:] = event['activation_rates']
+                self.model.network.push_state_to_device("or")
+
+            elif self.model.network.t == event['t_end']:
+                target_pop.vars["kp1cn_" + str(event['channel'])].view[:] =np.zeros(np.shape(event['activation_rates']))
+
+                if events[i]:
+                    current_events[i] = events[i].pop(0)
+
+
     def run(self, batch=1.0, poll_spike_readings=False):
         """
         Run a simulation. The user is advised to call `track_vars` first
@@ -140,12 +156,22 @@ class Simulator:
             self.model.reinitialise()
 
         # FIXME
+        events = self.protocol.get_events_for_channel()
+        current_events = []
+        for i in events:
+            if i:
+                current_events.append(i.pop(0))
+
+        target_pop = self.model.connected_neurons['or']
+
         while model.t < self.protocol.get_simulation_time():
             logging.debug(f"Time: {model.t}")
             model.step_time()
+            self.update_target_pop(target_pop, current_events, events)
+
 
             if model.t > 0 and np.isclose(np.fmod(model.t, batch), 0.0):
-                print(f"Time: {model.t}")
+                print(f"Time: {model.t/1000}")
                 for pop_name, pop_vars in self.recorded_vars.items():
                     pop = self.model.neuron_populations[pop_name]
                     genn_pop = self.model.connected_neurons[pop_name]
@@ -186,9 +212,10 @@ if __name__ == "__main__":
     from reading_parameters import get_parameters
     params = get_parameters(sys.argv[1])
     second_protocol = FirstProtocol(params['protocols']['experiment1'])
-    second_protocol.generate_or_param(params['neuron_populations']['or'])
     second_protocol.add_inhibitory_conductance(params['synapses']['ln_pn'], params['neuron_populations']['ln']['n'], params['neuron_populations']['pn']['n'])
     second_protocol.add_inhibitory_conductance(params['synapses']['ln_ln'], params['neuron_populations']['ln']['n'], params['neuron_populations']['ln']['n'])
+
+
     model = NeuronalNetwork(
         "WithInhibition_test2",
         params['neuron_populations'],

@@ -75,44 +75,6 @@ class Protocol(ABC):
             else:
                 raise Exception("The number of channels is not enough to allow for all the events to happen")
 
-
-    def generate_or_param(self, or_params):
-        per_slot_events = [[] for i in range(self.param['num_channels'])]
-
-        for i in self.events:
-            per_slot_events[i['channel']].append(i)
-
-        sim_code_to_be_added = ""
-        for i in per_slot_events:
-            for (j, event) in enumerate(i):
-                var_binding_rate = "kp1cn_" + str(event['channel'])
-                new_binding_var = {
-                    "name" : var_binding_rate + "_" + str(j),
-                    "type" : "scalar",
-                    "value" : list(event['binding_rates']),
-                    "access" : var_access.VarAccess_READ_ONLY
-                }
-                #or_params['variables'].append(new_binding_var)
-                var_activation_rate = "kp2_" + str(event['channel'])
-                new_activation_var = {
-                    "name" : var_activation_rate + '_' + str(j),
-                    "type" : "scalar",
-                    "value" : list(event['activation_rates']),
-                    "access" : var_access.VarAccess_READ_ONLY
-                }
-                #or_params['variables'].append(new_activation_var)
-                sim_code_to_be_added += f"if ($(t) >= {event['t_start']} && $(t) <= {event['t_end']}) {{"
-                for (j, (binding_rate, activation_rate)) in enumerate(zip(new_binding_var['value'], new_activation_var['value'])):
-                    sim_code_to_be_added += f" if ($(id) == {j}) {{$({var_binding_rate}) = {binding_rate}; $({var_activation_rate}) = {activation_rate}; }} else "
-                sim_code_to_be_added = sim_code_to_be_added[:-5] + f"}}"
-            if len(i) > 0:
-                sim_code_to_be_added += f"{{$({var_binding_rate}) = 0;}}"
-
-        if isinstance(or_params['sim_code'], str):
-            or_params['sim_code'] = sim_code_to_be_added + '\n' + or_params['sim_code']
-        else:
-            or_params['sim_code'].insert(0, sim_code_to_be_added)
-
     def _generate_inhibitory_connectivity(self, connectivity_type, self_inhibition):
         binding_rates_matrix = np.array([i.get_binding_rates() for i in self.odors])
         if connectivity_type == 'correlation':
@@ -151,6 +113,17 @@ class Protocol(ABC):
     @abstractmethod
     def events_generation(self):
         pass
+
+    def get_events_for_channel(self):
+        res = [[] for i in range(self.param['num_channels'])]
+
+        for i in self.events:
+            res[i['channel']].append(i)
+
+        for i in res:
+            i.sort(key = lambda x : x['t_start'])
+
+        return res
 
 
     def __init__(self, param):
