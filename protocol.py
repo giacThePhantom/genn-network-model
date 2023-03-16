@@ -19,7 +19,7 @@ class Protocol(ABC):
     def _odor_binding_rate_permutation(self):
         not_default_shuffle = np.arange(self.param['num_glomeruli'])
         for i in self._odors:
-            if i.get_name() != 'default':
+            if i.name != 'default':
                 i.shuffle_binding_rates(not_default_shuffle)
             else:
                 i.shuffle_binding_rates()
@@ -76,7 +76,7 @@ class Protocol(ABC):
                 raise Exception("The number of channels is not enough to allow for all the events to happen")
 
     def _generate_inhibitory_connectivity(self, connectivity_type, self_inhibition):
-        binding_rates_matrix = np.array([i.get_binding_rates() for i in self._odors])
+        binding_rates_matrix = np.array([i.binding_rates for i in self._odors])
         if connectivity_type == 'correlation':
             connectivity_matrix = np.corrcoef(binding_rates_matrix,rowvar=False)
             connectivity_matrix = (connectivity_matrix + 1.0)/20.0

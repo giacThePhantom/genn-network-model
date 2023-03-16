@@ -5,9 +5,14 @@ Make plots. TODO cleanup
 import math
 from pathlib import Path
 import pickle
-import numpy as np
+from typing import Dict, List, Tuple
 
-from second_protocol import SecondProtocol
+from matplotlib.patches import Rectangle
+import numpy as np
+import tables
+
+from simulation import TestFirstProtocol
+from protocol import Protocol
 from matplotlib import pyplot as plt
 
 def make_sdf(spike_times: np.ndarray, spike_ids, n_all_ids, dt, sigma):
@@ -35,7 +40,7 @@ def make_sdf(spike_times: np.ndarray, spike_ids, n_all_ids, dt, sigma):
     The second element is the list of timesteps.
     """
 
-    to = spike_times[0]
+    t0 = spike_times[0]
     tmax = spike_times[-1]
     tleft = t0-3*sigma
     tright = tmax+3*sigma
@@ -67,43 +72,89 @@ def glo_avg(sdf: np.ndarray, n):
         gsdf[:,i]= np.mean(sdf[:,n*i:n*(i+1)],axis=1)
     return gsdf
 
-
-if __name__ == "__main__":
-    dirpath = Path("test_sim")
-    with (dirpath / "tracked_data.pickle").open("rb") as f:
-        data = pickle.load(f)
+def parse_data(exp_name, vars_to_read: Dict[str, List[str]]) -> Tuple[Dict[str, np.ndarray], Protocol]:
+    dirpath = Path("outputs") / exp_name
+    data = tables.open_file(str(dirpath / "tracked_vars.h5"))
     with (dirpath / "protocol.pickle").open("rb") as f:
-        protocol: SecondProtocol = pickle.load(f)
-
-    pn_spikes = data["pn"]["spikes"]
-    pn_spikes_t = pn_spikes[0]
-    pn_spikes_ids = pn_spikes[1]
-    print(pn_spikes_t)
-
-    # for now, let us look at IAA and Geosmin
-    selected_odors = [0, 1]
-
-
-    # FIXME all of this is a horrible mess.
-    trial_time = 6000.0
-    #concentrations = 25 # TODO
-    #batch_t = concentrations * trial_time
-    concentrations = 1
-    batch_t = trial_time * 1 # TODO take concentrations from the protocol once we fix it
-    #total_time = pn_spikes_t[-1]
-    last_useful_idx = np.searchsorted(pn_spikes_t, batch_t)
-    #print(last_useful_idx, pn_spikes_t[last_useful_idx])
-    total_time = pn_spikes_t[last_useful_idx]
-
-    odors_in_experiment = total_time // batch_t
+        protocol: TestFirstProtocol = pickle.load(f)
     
-    # Batch spikes by their belonging batch.
-    # technically this is O(NlogN) but I don't care
+    # TODO: one could actually just return the table and access everything
+    # via absolute paths like /orn/ra
+    to_return = {}
+    for pop_name, vars in vars_to_read.items():
+        for var in vars:
+            to_return[f"{pop_name}_{var}"] = data.root[pop_name][var]
 
+    return to_return, protocol
+    
+
+def plot_spikes(exp_name):
+    data, protocol = parse_data(exp_name, {"or": ["ra"], "or": ["V"], "pn": ["V"], "ln": ["spikes"]})
+    
+    pn_spikes = data["pn"]["spikes"]
+    pn_spikes_t = pn_spikes[:, 0]
+    pn_spikes_ids = pn_spikes[:, 1]
+
+    ra = data["or"]["ra"]
+
+    # select a timestep
+    trial_time = 12000.0 # FIXME
+    offset = 2900.0
+    dt = protocol.param["simulation"]["dt"]
+    t = np.arange(0, 3500, dt)
+    ra_times = ra[:, 0]
+    n_points = len(t)
+    for i in range(4):
+        i_off = int((i * trial_time + offset)/dt)
+        t_off = i_off*dt
+        figure, ax = plt.subplots(4, sharex=True)
+        # Pick the strongest glomerulus at the current experiment
+
+        # First, pick the right time
+        start_ra = np.searchsorted(ra_times, t_off)
+        ra_vals = ra[start_ra:start_ra+n_points, 1:]
+        # Then, sum the overall activation per neuron
+        ra_sum = np.sum(ra_vals, axis=0)
+        ra_most_active = np.argmax(ra_sum)
+
+        # plot the most active neuron over time
+        ax[0].spines['right'].set_visible(False)
+        ax[0].spines['top'].set_visible(False)
+        ax[0].plot(t, ra_vals[:,ra_most_active], 'k', linewidth=0.5)
+        ax[0].set_xlim([0, t[-1]])        
+        ax[0].set_ylim([-0.025, 1.5*np.amax(ra[:, ra_most_active])])
+
+        ax[0].add_patch(
+            Rectangle((100, -0.025), 3000, 0.2*np.amax(ra_vals[:, ra_most_active]),
+                      edgecolor='grey',
+                      facecolor='grey',
+                      fill=True)
+        )
+
+        # same, with ORN voltage based on ra output
+        vorn = data["orn"]["V"][start_ra:start_ra+n_points, 1:]
+        ax[1].spines['right'].set_visible(False)
+        ax[1].spines['top'].set_visible(False)
+        ax[1].plot(t, vorn[:,ra_most_active], 'k', linewidth=0.5)
+        ax[1].set_ylim([-90, 40]) # wait what?
+        
+        # TODO
+
+
+
+
+def plot_heatmap(exp_name):
+    pn_spikes, protocol = parse_data(exp_name)
+    pn_spikes_t = pn_spikes[:, 0]
+    pn_spikes_ids = pn_spikes[:, 1]
     sdfs = []
     glo_avg_sdfs = []
 
-    N = 800 # TODO: why???
+    N = 800
+
+    # select some interesting experiments
+    # in the first experiment, for example, consider
+    # 
 
     for i in range(0, len(protocol.events), 4):
         od_active = protocol.events[i]
@@ -134,15 +185,18 @@ if __name__ == "__main__":
 
         sigma_sdf = 100.0
         dt_sdf = 1.0
-        left = spikes_t[0]# - 3*sigma_sdf
-        right = spikes_t[-1]# + 3*sigma_sdf
-        
+
+        print(spikes_ids)
+
         sdfs.append(make_sdf(spikes_t,
-                    spikes_ids, N, left, right, dt_sdf, sigma_sdf))
+                    spikes_ids, N, dt_sdf, sigma_sdf))
         
         # Assume each glomerulus is made of 5 neurons (?)
         glo_avg_sdfs.append(glo_avg(sdfs[-1], 5))
 
-        #plt.imshow(sdfs[0].T)
-        plt.imshow(glo_avg_sdfs[0].T, cmap='hot')
-        plt.show()
+        # TODO
+
+
+if __name__ == "__main__":
+    import sys
+    plot_heatmap(sys.argv[1])

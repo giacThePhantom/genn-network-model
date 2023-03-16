@@ -50,9 +50,9 @@ class FirstProtocol(Protocol):
             "t_start" : t_start,
             "t_end" : t_end,
             "concentration" : concentration,
-            "odor_name" : odor.get_name(),
-            "binding_rates" : np.power(odor.get_binding_rates()*concentration, self.hill_exponential), #Binding rates are updated so to include inforamtion about concentration
-            "activation_rates" : odor.get_activation_rates() ,
+            "odor_name" : odor.name,
+            "binding_rates" : np.power(odor.binding_rates*concentration, self.hill_exponential), #Binding rates are updated so to include inforamtion about concentration
+            "activation_rates" : odor.activation_rates ,
             "happened" : False,
         }
         return event
