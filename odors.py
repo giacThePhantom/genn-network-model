@@ -4,12 +4,12 @@ import random
 class Odor:
 
     def __init__(self, param, name, num_glomeruli, homogeneous):
-        self. name = name
+        self._name = name
         self.param = param
         self.num_glomeruli = num_glomeruli
         self.homogeneous = homogeneous
-        self.binding_rates = self._build_binding_rates()
-        self.activation_rates = self._build_activation_rates()
+        self._binding_rates = self._build_binding_rates()
+        self._activation_rates = self._build_activation_rates()
 
     def _compute_random_variable(self, var):
         if isinstance(var, dict):
@@ -54,22 +54,25 @@ class Odor:
 
     def shuffle_binding_rates(self, shuffle = None):
         if not shuffle is None:
-            self.binding_rates = self.binding_rates[shuffle]
+            self._binding_rates = self._binding_rates[shuffle]
         else:
-            random.shuffle(self.binding_rates)
+            random.shuffle(self._binding_rates)
 
-    def get_name(self):
-        return self.name
+    @property
+    def name(self):
+        return self._name
 
     def get_cuda_rates(self):
         """Get a cuda-friendly representation of these odors"""
-        return np.vstack([self.binding_rates, self.activation_rates]).T
+        return np.vstack([self._binding_rates, self._activation_rates]).T
 
-    def get_binding_rates(self):
-        return self.binding_rates
+    @property
+    def binding_rates(self):
+        return self._binding_rates
 
-    def get_activation_rates(self):
-        return self.activation_rates
+    @property
+    def activation_rates(self):
+        return self._activation_rates
 
 
 
