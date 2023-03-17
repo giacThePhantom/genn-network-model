@@ -3,7 +3,7 @@
 	"matrix_type" : "SPARSE_GLOBALG",
 	"delay_steps" : "eval 1: genn_wrapper.NO_DELAY",
 	"source" : "orn",
-	"target" : "pn",
+	"target" : "ln",
 	"w_update_model" : "StaticPulse",
 	"wu_param_space" : {},
 	"wu_var_space" : {

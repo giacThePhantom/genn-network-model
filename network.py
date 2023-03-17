@@ -2,8 +2,8 @@ from typing import Dict
 import numpy as np
 import neuron
 import synapse
-from pygenn.genn_model import GeNNModel, GeNNType, NeuronGroup
-import draw_connectivity
+from pygenn.genn_model import GeNNModel, NeuronGroup
+from draw_connectivity import create_glomerulus_graph, create_network_graph
 
 class NeuronalNetwork:
     """
@@ -14,7 +14,7 @@ class NeuronalNetwork:
     Attributes
     ----------
     network : pygenn.genn_model.GeNNModel
-        The genn object containing the network model
+        The gen object containing the network model
     neuron_populations : dict
         A dictionary containing all the different population of neurons
     synapses : dict
@@ -52,7 +52,6 @@ class NeuronalNetwork:
 
     def _add_synapses(self, synapses):
         for i in synapses:
-            source, target = i.split("_")
             self.synapses[i] = synapse.Synapse(synapses[i],
                                                synapses[i]['name'],
                                                self.connected_neurons[synapses[i]['source']],
@@ -112,28 +111,41 @@ class NeuronalNetwork:
         """
         self.network.reinitialise()
         self.clear_logs()
-    
+
     def clear_logs(self):
         # Clear the internal logs.
         for pop in self.neuron_populations.values():
             pop.recorded_outputs.clear()
-    
+
     def preallocate_logs(self, pop, var):
         # Wrapper around NeuronPopulation.preallocate_logs
         self.neuron_populations[pop].preallocate_logs(var)
-
 
     def get_connectivity(self):
         res = []
         for i in self.connected_synapses:
             if self.connected_synapses[i].is_ragged:
+                print(i)
+                self.connected_synapses[i].pull_connectivity_from_device()
+                if i == 'orn_ln':
+                    print(len(self.connected_synapses[i].get_sparse_pre_inds()))
+                    print(len(self.connected_synapses[i].get_sparse_post_inds()))
                 for (j, z) in zip(self.connected_synapses[i].get_sparse_pre_inds(), self.connected_synapses[i].get_sparse_post_inds()):
+                    if i == 'orn_ln':
+                        print(f"Adding {j}, {z}")
+                        print(res[-1])
                     res.append({
                         "pre_population" : self.connected_synapses[i].src.name,
                         "post_population" : self.connected_synapses[i].trg.name,
                         "pre_id" : j,
                         "post_id" : z,
                     })
+
+
+                    if res[-1]['pre_population'] == 'orn' and res[-1]['post_population'] == 'ln':
+                        print(self.connected_synapses[i].src.name)
+
+                        print(self.connected_synapses[i].trg.name)
             else:
                 source_size = self.connected_synapses[i].src.size
                 target_size = self.connected_synapses[i].trg.size
@@ -151,9 +163,6 @@ class NeuronalNetwork:
         return res
 
 
-
-
-
 if __name__ == '__main__':
     import sys
     from reading_parameters import get_parameters
@@ -161,4 +170,8 @@ if __name__ == '__main__':
     model = NeuronalNetwork("Test", params['neuron_populations'], params['synapses'], 0.1)
     model.build_and_load()
     model.network.step_time()
-    draw_connectivity.get_glomerulus(model, 0)
+    model.network.step_time()
+    model.network.step_time()
+    model.network.step_time()
+    model.network.step_time()
+    create_glomerulus_graph(model, int(sys.argv[2]), sys.argv[3])

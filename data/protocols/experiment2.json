@@ -1,8 +1,5 @@
 {
 	"num_odors" : 100,
-	"concentration_increases" : 25,
-	"connectivity_type" : "correlation",
-	"self_inhibition" : false,
 	"num_glomeruli" : "eval 2: params['neuron_populations']['or']['n']",
 	"num_channels" : "eval 2: params['neuron_populations']['or']['num_channels']",
 	"homogeneous" : false,
