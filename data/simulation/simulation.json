@@ -1,8 +1,7 @@
 {
-  "dt" : 0.1,
-  "experiment_name" : "experiment1",
-  "name" : "Test",
-  "batch" : 1000.0,
+  "dt" : 0.2,
+  "experiment_name" : "testexperiment",
+  "batch" : 0.2,
   "poll_spike_readings" : false,
   "optimize_code" : false,
   "generate_empty_state_push" : false,
@@ -12,14 +11,17 @@
     ],
     "orn" : [
       "V",
-      "a"
+      "a",
+      "spikes"
     ],
 
     "ln" : [
-      "spikes"
+      "spikes",
+      "V"
     ],
     "pn" : [
-      "spikes"
+      "spikes",
+      "V"
     ]
   }
 }

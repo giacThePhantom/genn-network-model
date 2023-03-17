@@ -10,6 +10,7 @@ from reading_parameters import parse_cli
 from odors import Odor
 from protocol import Protocol
 from first_protocol import FirstProtocol
+from second_protocol import SecondProtocol
 
 import numpy as np
 import tables
@@ -32,6 +33,8 @@ class Simulator:
         the protocol for the simulation. This will be dumped.
     recorded_vars: dict
         a dictionary of variables that will be recorded
+    param: dict
+        configuration root
     """
 
     def _reset(self):
@@ -41,18 +44,26 @@ class Simulator:
     def __init__(
         self,
         sim_name: str,
-        model: NeuronalNetwork,
         protocol: Protocol,
         param: dict
     ) -> None:
         self.sim_name = sim_name
-        self.model = model
+
+        self.model = NeuronalNetwork(
+            param['simulation']['name'],
+            param['neuron_populations'],
+            param['synapses'],
+            param['simulation']['simulation']['dt'],
+            optimizeCode=params['simulation']['simulation']['optimize_code'],
+            generateEmptyStatePush=params['simulation']['simulation']['generate_empty_state_push']
+        )
+
         self.recorded_vars = {}
         # data -> population -> var name -> array.
         # For each layer automatically create a default dict
         self._data = defaultdict(lambda: defaultdict(lambda: np.array([])))
         self.protocol = protocol
-        self.param = param
+        self.param = param['simulation']['simulation']
         self._output_table = None
         self.track_vars()
 
@@ -100,7 +111,9 @@ class Simulator:
 
         variables = [(key, self.param['tracked_variables'][key])
                      for key in self.param['tracked_variables']]
-        with tables.open_file(self.logging_path, 'w') as f:
+
+        self.filters = tables.Filters(complib='zlib', complevel=5)
+        with tables.open_file(self.logging_path, 'w', filters=self.filters) as f:
             for var in variables:
                 self._track_var(*var, f=f)
 
@@ -112,7 +125,7 @@ class Simulator:
 
         # This makes sure the table is locked until the simulation ends (graciously or not).
         if self._output_table is None:
-            self._output_table = tables.open_file(self.logging_path, 'a')
+            self._output_table = tables.open_file(self.logging_path, 'a', self.filters)
 
         for pop, var_dict in self._data.items():
             for var, values in var_dict.items():
@@ -128,9 +141,7 @@ class Simulator:
         self._output_table = None
 
     def _add_to_var(self, pop, var, times, series):
-        # We're saving a snapshot. On that case, squeeze the output into a single row
         if len(times) == 1:
-            series = series.squeeze()
             self._data[pop][var] = np.concatenate([times, series])
         else:
             self._data[pop][var] = np.column_stack([times, series])
@@ -189,6 +200,7 @@ class Simulator:
                     times = np.array([genn_model.t])
 
                     self._add_to_var(pop_name, var, times, series)
+        
 
     def run(self, batch=1.0, poll_spike_readings=False, save=True):
         """
@@ -228,49 +240,70 @@ class Simulator:
         target_pop = self.model.connected_neurons['or']
 
         # Kickstart the simulation
+        batch_timesteps = round(batch / genn_model.dT)
+        total_timesteps = round(self.protocol.simulation_time / genn_model.dT)
+
         with logging_redirect_tqdm():
-            with tqdm(total=self.protocol.simulation_time) as pbar:
+            with tqdm(total=total_timesteps) as pbar:
                 while genn_model.t < self.protocol.simulation_time:
                     logging.debug(f"Time: {genn_model.t}")
                     genn_model.step_time()
                     self.update_target_pop(target_pop, current_events, events)
 
-                    if genn_model.t > 0 and np.isclose(np.fmod(genn_model.t, batch), 0.0):
+                    if genn_model.timestep > 0 and genn_model.timestep % batch_timesteps == 0:
                         self._collect(poll_spike_readings)
                         if save:
                             self._stream_output()
-                    pbar.update(genn_model.dT)
-
+                        pbar.update()
         self._flush()
 
 # TODO yeet out
-
-
 class TestFirstProtocol(FirstProtocol):
-    def __init__(self, param):
-        param['concentration_increases'] = 3
-        param['num_odors'] = 3
-        super().__init__(param)
+    def events_generation(self, _):
+        """Creates the event for the protocol and saves them in a private field
+        Parameters
+        ----------
+        num_concentration_increases : int
+            The number of times the concentration is increased by a dilution factor
+        """
+        res = []
+        t = self.resting_duration
+        for (i, odor) in enumerate(self.odors):
+            if i >= 3:
+                break
+            for c_exp in range(15, 18):
+                res.append(self._event_generation(t, odor, c_exp))
+                t = res[-1]['t_end'] + self.resting_duration
+        self.events = res
 
+def pick_protocol(params):
+    # Pick the correct protocol for the experiment
+    protocol_data = params["protocols"]
+    match params["simulation"]["simulation"]["experiment_name"]:
+        case "experiment1":
+            protocol = FirstProtocol(protocol_data["experiment1"])
+        case "experiment2":
+            protocol = SecondProtocol(protocol_data["experiment2"])
+        case "testexperiment":
+            protocol = TestFirstProtocol(protocol_data["experiment1"])
 
-if __name__ == "__main__":
-    params = parse_cli()
-    protocol = TestFirstProtocol(params['protocols']['experiment1'])
     protocol.add_inhibitory_conductance(
         params['synapses']['ln_pn'], params['neuron_populations']['ln']['n'], params['neuron_populations']['pn']['n'])
     protocol.add_inhibitory_conductance(
         params['synapses']['ln_ln'], params['neuron_populations']['ln']['n'], params['neuron_populations']['ln']['n'])
 
-    # TODO: put neuronalnetwork inside simulator?
-    model = NeuronalNetwork(
-        params['simulation']['name'],
-        params['neuron_populations'],
-        params['synapses'],
-        params['simulation']['simulation']['dt'],
-        optimizeCode=params['simulation']['simulation']['optimize_code'],
-        generateEmptyStatePush=params['simulation']['simulation']['generate_empty_state_push']
-    )
+    return protocol
 
-    sim = Simulator(params['simulation']['simulation']['experiment_name'], model, protocol,
-                    params['simulation']['simulation'])
-    sim.run(batch=1000.0, poll_spike_readings=False, save=True)
+
+if __name__ == "__main__":
+    params = parse_cli()
+    protocol = pick_protocol(params)
+    sim_params = params['simulation']
+    sim = Simulator(sim_params['name'], protocol,
+                    params)
+
+    sim.run(
+        batch=sim_params['simulation']['batch'],
+        poll_spike_readings=sim_params['simulation']['poll_spike_readings'],
+        save=True
+    )
