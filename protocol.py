@@ -18,8 +18,8 @@ class Protocol(ABC):
 
     def _odor_binding_rate_permutation(self):
         not_default_shuffle = np.arange(self.param['num_glomeruli'])
-        for i in self.odors:
-            if i.get_name() != 'default':
+        for i in self._odors:
+            if i.name != 'default':
                 i.shuffle_binding_rates(not_default_shuffle)
             else:
                 i.shuffle_binding_rates()
@@ -31,29 +31,29 @@ class Protocol(ABC):
             res = param
         return res
 
-    def set_events(self, events):
-        self.events = events
+    @property
+    def odors(self):
+        return self._odors
 
-    def get_odors(self):
-        return self.odors
-
-    def get_starting_concentration(self):
+    @property
+    def starting_concentration(self):
         return self.param['concentration']['start']
 
-    def get_dilution_factor(self):
+    @property
+    def dilution_factor(self):
         return np.power(self.param['concentration']['dilution_factor']['base'], self.param['concentration']['dilution_factor']['exponent'])
 
-    def get_event_duration(self):
+    @property
+    def event_duration(self):
         return self.param['event_duration']
 
-    def get_resting_duration(self):
+    @property
+    def resting_duration(self):
         return self.param['resting_duration']
 
-    def get_hill_exponential(self):
+    @property
+    def hill_exponential(self):
         return self.param['hill_exponential']
-
-    def get_events(self):
-        return self.events
 
     def assign_channel_to_events(self):
         channel_occupancy_state = [[] for i in range(self.param['num_channels'])]
@@ -76,7 +76,7 @@ class Protocol(ABC):
                 raise Exception("The number of channels is not enough to allow for all the events to happen")
 
     def _generate_inhibitory_connectivity(self, connectivity_type, self_inhibition):
-        binding_rates_matrix = np.array([i.get_binding_rates() for i in self.odors])
+        binding_rates_matrix = np.array([i.binding_rates for i in self._odors])
         if connectivity_type == 'correlation':
             connectivity_matrix = np.corrcoef(binding_rates_matrix,rowvar=False)
             connectivity_matrix = (connectivity_matrix + 1.0)/20.0
@@ -101,7 +101,8 @@ class Protocol(ABC):
         connectivity_matrix = np.repeat(connectivity_matrix, repeats = n_target / n_glomeruli, axis = 1)
         param['wu_var_space']['g'] = connectivity_matrix.flatten()
 
-    def get_simulation_time(self):
+    @property
+    def simulation_time(self):
         max_time = max(self.events, key = lambda x : x['t_end'])['t_end']
         return max_time + self.param['resting_duration']
 
@@ -128,7 +129,7 @@ class Protocol(ABC):
 
     def __init__(self, param):
         self.param = param
-        self.odors = self._create_odors(self.param['odors'])
+        self._odors = self._create_odors(self.param['odors'])
         self._odor_binding_rate_permutation()
         self.param['hill_exponential'] = self._compute_hill_exponential(self.param['hill_exponential'])
         self.events = []

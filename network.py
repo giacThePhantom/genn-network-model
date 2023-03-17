@@ -111,8 +111,17 @@ class NeuronalNetwork:
         Reset the internal model variables and clear all currents logs
         """
         self.network.reinitialise()
+        self.clear_logs()
+    
+    def clear_logs(self):
+        # Clear the internal logs.
         for pop in self.neuron_populations.values():
             pop.recorded_outputs.clear()
+    
+    def preallocate_logs(self, pop, var):
+        # Wrapper around NeuronPopulation.preallocate_logs
+        self.neuron_populations[pop].preallocate_logs(var)
+
 
     def get_connectivity(self):
         res = []

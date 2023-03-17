@@ -1,3 +1,5 @@
+import argparse
+import logging
 from pathlib import Path
 import json
 import numpy as np
@@ -186,6 +188,32 @@ def get_parameters(dir_name):
     evaluate_param(to_be_eval, params)
     return params
 
+def parse_cli():
+    parser = argparse.ArgumentParser(prog="BeeGenn", description="A comfy wrapper for GeNN")
+    parser.add_argument("data", help="The location of the data folder")
+    parser.add_argument("sim_name", help="The location of the data folder")
+    parser.add_argument("-v", "--verbose", action="count", help="logger verbosity level (max: -vvv)")
+
+    # TODO: add support for custom groups
+
+    args = parser.parse_args()
+    level = logging.ERROR
+    if args.verbose == 1:
+        level = logging.WARNING
+    elif args.verbose == 2:
+        level = logging.INFO
+    elif args.verbose == 3:
+        level = logging.DEBUG
+    
+    out_path = Path("outputs") / (args.sim_name + ".log")
+    out_path.parent.mkdir(exist_ok=True)
+    logging.basicConfig(filename=str(out_path), level=level)
+
+    params = get_parameters(str(Path(args.data)))
+    params["simulation"]["name"] = args.sim_name
+    params["simulation"]["out_path"] = out_path
+    
+    return params
+
 if __name__ == "__main__":
-    import sys
-    print(get_parameters(sys.argv[1]))
+    print(parse_cli())

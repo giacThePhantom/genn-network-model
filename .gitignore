@@ -177,3 +177,4 @@ pyrightconfig.json
 
 *_CODE/*
 *.pickle
+outputs/

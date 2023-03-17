@@ -67,11 +67,6 @@ class NeuronPopulation:
         self.reset_code = ""
         self.threshold_condition_code = ""
 
-        # each of these should be a 2xE matrix with E being the total number of events.
-        # Because the semantics of event changes depending on the variable,
-        # not all tensors may coincide in size.
-        self.recorded_outputs = {}
-
     def __init__(self, params, name):
         """Builds a neuron object from a dictionary containing all its parameters
         Parameters
@@ -186,7 +181,6 @@ class NeuronPopulation:
             The number of neurons in the population
         """
         return self.n
-
 
 if __name__ == '__main__':
     import sys
