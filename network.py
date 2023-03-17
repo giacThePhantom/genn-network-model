@@ -112,12 +112,12 @@ class NeuronalNetwork:
         """
         self.network.reinitialise()
         self.clear_logs()
-    
+
     def clear_logs(self):
         # Clear the internal logs.
         for pop in self.neuron_populations.values():
             pop.recorded_outputs.clear()
-    
+
     def preallocate_logs(self, pop, var):
         # Wrapper around NeuronPopulation.preallocate_logs
         self.neuron_populations[pop].preallocate_logs(var)
@@ -127,6 +127,7 @@ class NeuronalNetwork:
         res = []
         for i in self.connected_synapses:
             if self.connected_synapses[i].is_ragged:
+                self.connected_synapses[i].pull_connectivity_from_device()
                 for (j, z) in zip(self.connected_synapses[i].get_sparse_pre_inds(), self.connected_synapses[i].get_sparse_post_inds()):
                     res.append({
                         "pre_population" : self.connected_synapses[i].src.name,
@@ -161,4 +162,4 @@ if __name__ == '__main__':
     model = NeuronalNetwork("Test", params['neuron_populations'], params['synapses'], 0.1)
     model.build_and_load()
     model.network.step_time()
-    draw_connectivity.get_glomerulus(model, 0)
+    draw_connectivity.create_graph(model, 0, sys.argv[2])
