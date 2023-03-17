@@ -137,7 +137,7 @@ class Synapse:
             whether the population has to be recorded
         """
 
-        model.add_synapse_population(
+        res = model.add_synapse_population(
             pop_name = self.param['name'],
             matrix_type = self.param['matrix_type'],
             delay_steps = self.param['delay_steps'],
@@ -153,3 +153,4 @@ class Synapse:
             ps_var_space = self.param['ps_var_space'],
             connectivity_initialiser = self.param['connectivity_initialiser']
           )
+        return res

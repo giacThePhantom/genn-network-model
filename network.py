@@ -3,6 +3,7 @@ import numpy as np
 import neuron
 import synapse
 from pygenn.genn_model import GeNNModel, GeNNType, NeuronGroup
+import draw_connectivity
 
 class NeuronalNetwork:
     """
@@ -113,15 +114,42 @@ class NeuronalNetwork:
         for pop in self.neuron_populations.values():
             pop.recorded_outputs.clear()
 
+    def get_connectivity(self):
+        res = []
+        for i in self.connected_synapses:
+            if self.connected_synapses[i].is_ragged:
+                for (j, z) in zip(self.connected_synapses[i].get_sparse_pre_inds(), self.connected_synapses[i].get_sparse_post_inds()):
+                    res.append({
+                        "pre_population" : self.connected_synapses[i].src.name,
+                        "post_population" : self.connected_synapses[i].trg.name,
+                        "pre_id" : j,
+                        "post_id" : z,
+                    })
+            else:
+                source_size = self.connected_synapses[i].src.size
+                target_size = self.connected_synapses[i].trg.size
+                connections = self.connected_synapses[i].get_var_values('g').reshape(source_size, target_size)
+                for (j, row) in enumerate(connections):
+                    for(z, element) in enumerate(row):
+                        if z != 0:
+                            res.append({
+                                "pre_population" : self.connected_synapses[i].src.name,
+                                "post_population" : self.connected_synapses[i].trg.name,
+                                "pre_id" : j,
+                                "post_id" : z,
+                            })
+
+        return res
+
+
+
+
+
 if __name__ == '__main__':
     import sys
     from reading_parameters import get_parameters
     params = get_parameters(sys.argv[1])
     model = NeuronalNetwork("Test", params['neuron_populations'], params['synapses'], 0.1)
-    print("HERE")
     model.build_and_load()
-    print(model.connected_neurons['or'].vars['ra_1'].view[:])
     model.network.step_time()
-    print(model.connected_neurons['or'].vars['ra_1'].view[:])
-    model.connected_neurons['or'].vars['ra_1'].view = np.arange(160)
-    print(model.connected_neurons['or'].vars['ra_1'].view[:])
+    draw_connectivity.get_glomerulus(model, 0)

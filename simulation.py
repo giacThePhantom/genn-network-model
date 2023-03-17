@@ -115,6 +115,7 @@ class Simulator:
             if self.model.network.t >= event['t_start'] and not event['happened']:
                 event['happened'] = True
                 target_pop.vars["kp1cn_" + str(event['channel'])].view[:] = event['binding_rates']
+                print(event['activation_rates'])
                 target_pop.vars["kp2_" + str(event['channel'])].view[:] = event['activation_rates']
                 self.model.network.push_state_to_device("or")
 
@@ -227,6 +228,8 @@ if __name__ == "__main__":
 
     # to change the verbosity
     #logging.basicConfig(level=logging.DEBUG)
-    sim = Simulator("prot2_sim", model, second_protocol, params['simulation']['simulation'])
-    sim.run(batch=1000.0, poll_spike_readings=False)
-    sim.save_output()
+    #sim = Simulator("prot2_sim", model, second_protocol, params['simulation']['simulation'])
+    model.build_and_load()
+    print(model.connected_synapses['ln_ln'].get_var_values('g').reshape(160*25, 160*25))
+    # sim.run(batch=1000.0, poll_spike_readings=False)
+    # sim.save_output()
