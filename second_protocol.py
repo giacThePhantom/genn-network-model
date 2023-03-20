@@ -49,6 +49,7 @@ class SecondProtocol(Protocol):
             "odor_name" : odor.name,
             "binding_rates" : np.power(odor.binding_rates*concentration, self.hill_exponential),
             "activation_rates" : odor.activation_rates ,
+            "happened": False
         }
         return event
 
@@ -67,8 +68,8 @@ class SecondProtocol(Protocol):
         for c1_exp in range(num_concentration_increases):
             for c2_exp in range(num_concentration_increases):
                 # apply two odors at the same time, but with different concentrations.
-                res.append(self._event_generation(t, odors[0], c1_exp))
-                res.append(self._event_generation(t, odors[1], c2_exp))
+                res.append(self._event_generation(t, odors[1], c1_exp))
+                res.append(self._event_generation(t, odors[2], c2_exp))
                 t = res[-1]['t_end'] + self.resting_duration
 
         self.events = res

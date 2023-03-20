@@ -69,7 +69,8 @@ class Simulator:
         batch = self.local_var_batch = self.param['batch']
         dt = self.param['dt']
         self._output_table = None
-        self.batch_size_timesteps = round(batch / dt)
+        self.batch_var_reads = self.param["batch_var_reads"]
+        self.batch_size_timesteps = round(batch / self.batch_var_reads)
         self._reset_population()
         self.track_vars()
 
@@ -90,7 +91,7 @@ class Simulator:
                 self._data[population][name] = np.empty((self.batch_size_timesteps, genn_pop.size + 1))
 
             # For spikes, this is hopefully an upper bound. For vars, this is exact.
-            expected_rows = self.protocol.simulation_time // self.param["dt"]
+            expected_rows = self.protocol.simulation_time // (self.param["batch_var_reads"] / self.param["dt"])
             self.recorded_vars.setdefault(population, []).append(name)
             f.create_earray(group, name, tables.Float64Atom(),
                             (0, target_cols), expectedrows=expected_rows)
@@ -225,7 +226,7 @@ class Simulator:
         self._row_count += 1
 
 
-    def run(self, batch=1.0, poll_spike_readings=False, save=True):
+    def run(self, poll_spike_readings=False, save=True):
         """
         Run a simulation. The user is advised to call `track_vars` first
         to register which variables to log during the simulation
@@ -233,9 +234,6 @@ class Simulator:
         Parameters
         ----------
 
-        batch: float
-            how often (in ms) to pull data from the GPU. Must be a multiple of dt.
-            We recommend not keeping this value too low or the GPU may stall.
         poll_spike_readings: bool
             if False (default), use the internal SpikeRecorder class to record spike events.
             This is much faster than polling the internal state, but is limited to the internal implementation.
@@ -266,6 +264,7 @@ class Simulator:
         # Kickstart the simulation
         batch_timesteps = self.batch_size_timesteps
         total_timesteps = round(self.protocol.simulation_time / genn_model.dT)
+        batch_var_reads = self.batch_var_reads
 
         with logging_redirect_tqdm():
             with tqdm(total=total_timesteps) as pbar:
@@ -273,7 +272,8 @@ class Simulator:
                     logging.debug(f"Time: {genn_model.t}")
                     genn_model.step_time()
                     self.update_target_pop(target_pop, current_events, events)
-                    self._collect_vars()
+                    if genn_model.timestep % batch_var_reads == 0:
+                        self._collect_vars()
 
                     if genn_model.timestep % batch_timesteps == 0:
                         self._collect_spikes(poll_spike_readings)
@@ -312,7 +312,6 @@ if __name__ == "__main__":
                     params)
 
     sim.run(
-        batch=sim_params['simulation']['batch'],
         poll_spike_readings=sim_params['simulation']['poll_spike_readings'],
         save=True
     )

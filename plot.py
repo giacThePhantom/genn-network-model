@@ -100,58 +100,52 @@ def subplot_spike_pane(spike_t, spike_ID, idx, factor, toff, tend, ax):
     st = spike_t[spike_ID == idx * factor]
     st = st[st >= toff]
     st = st[st <= toff+tend]
+    #st = st[::10]
+    st = np.unique(st) # wtf?
+    print(np.min(np.diff(st)))
     st = np.reshape(st, (1, -1))
     x = np.vstack((st, st))
     y = np.ones(x.shape)
     y[0, :] = -70.0
     y[1, :] = 20.0
-    ax.plot(x, y, 'k', lw=0.8)
+    print(st, x)
+    ax.plot(x, y, 'k', lw=0.2)
+
+def subplot_smoothed(t, data, ax, k):
+    kernel = np.ones((k,))/k
+    convolved = np.convolve(data, kernel, mode='same')
+    ax.plot(t, convolved, 'k', linewidth=0.5)
 
 
-def plot_spikes(param, exp_name):
-    data, protocol = parse_data(exp_name, {
+def plot_spikes(param, exp_name, precision):
+    to_read =  {
         "or": ["ra"],
         "orn": ["V", "spikes"],
         "pn": ["V", "spikes"],
         "ln": ["V", "spikes"]
-    })
+    }
 
-    #for event in protocol.events:
-    #    pprint(event)
+    data, protocol = parse_data(exp_name, to_read)
+    print(type(protocol))
 
-    orn_spikes = data["orn_spikes"]
-    orn_spikes_t = orn_spikes[:, 0]
-    orn_spikes_ids = orn_spikes[:, 1]
-
-    pn_spikes = data["pn_spikes"]
-    pn_spikes_t = pn_spikes[:, 0]
-    pn_spikes_ids = pn_spikes[:, 1]
-
-    ln_spikes = data["ln_spikes"]
-    ln_spikes_t = ln_spikes[:, 0]
-    ln_spikes_ids = ln_spikes[:, 1]
-
+    plt.rc('font', size=10)
     ra = data["or_ra"]
 
     # select a timestep
     # dt = protocol.param["simulation"]["dt"]
     dt = 0.2
+    scale_up = int(precision // dt)
     ra_times = ra[:, 0]
+    is_first_protocol = isinstance(protocol, FirstProtocol) 
+    step = 1 if is_first_protocol else 2
 
-    for i in range(3):
-        if isinstance(protocol, FirstProtocol):
-            cur_step = protocol.events[i]
-        else:
-            cur_step = protocol.events[2*i]
-        #trial_time = end_step["t_end"] - cur_step["t_start"]
+    for i in range(0, len(protocol.events), step):
+        cur_step = protocol.events[i]
+
         t_off = cur_step["t_start"]
         t_end = cur_step["t_end"] + protocol.resting_duration
         t = np.arange(t_off, t_end, dt)
         
-        # n_points = len(t)
-
-        #i_off = int((i * trial_time + offset)/dt)
-        #t_off = i_off*dt
         figure, ax = plt.subplots(4, sharex=True)
         figure.title = f"Spike activation at iteration {i}"
         # Pick the strongest glomerulus at the current experiment
@@ -159,9 +153,10 @@ def plot_spikes(param, exp_name):
         # First, pick the right time
         start_ra = np.searchsorted(ra_times, t_off)
         end_ra = np.searchsorted(ra_times, t_end, 'right')
-        ra_my_times = ra_times[start_ra:end_ra]
+        end_ra -= 1 # needed
+        #if end_ra - start_ra > len(t):
+        #    end_ra = start_ra + len(t) # FIXME
         ra_vals = ra[start_ra:end_ra, 1:]
-        print(ra_my_times)
         # Then, sum the overall activation per neuron
         ra_sum = np.sum(ra_vals, axis=0)
         ra_most_active = np.argmax(ra_sum)
@@ -171,56 +166,52 @@ def plot_spikes(param, exp_name):
         ax[0].spines['right'].set_visible(False)
         ax[0].spines['top'].set_visible(False)
         ax[0].plot(t, ra_vals[:,ra_most_active], 'k', linewidth=0.5)
-        print(t[0], t[-1])
         ax[0].set_xlim([t[0], t[-1]])
         ax[0].set_ylim([-0.025, 1.5*np.amax(ra_vals[:, ra_most_active])])
 
         ax[0].add_patch(
-            Rectangle((100, -0.025), 3000, 0.2*np.amax(ra_vals[:, ra_most_active]),
-                      edgecolor='grey',
-                      facecolor='grey',
-                      fill=True)
+            Rectangle((t_off + 100, -0.025), protocol.event_duration, 0.2*np.amax(ra_vals[:, ra_most_active]),
+                    edgecolor='grey',
+                    facecolor='grey',
+                    fill=True)
         )
-        '''
 
-        # same, with ORN voltage based on ra output
-        vorn = data["orn_V"][start_ra:start_ra+n_points, 1:]
         or_n = param["neuron_populations"]["or"]["n"]
-        orn_n = param["neuron_populations"]["orn"]["n"]
-        factor = orn_n // or_n
-        print(ra_most_active)
-        ax[1].set_title(f"ORN V for neuron {ra_most_active*factor}")
-        ax[1].spines['right'].set_visible(False)
-        ax[1].spines['top'].set_visible(False)
-        ax[1].plot(t, vorn[:,ra_most_active*factor], 'k', linewidth=0.5)
-        subplot_spike_pane(orn_spikes_t, orn_spikes_ids, ra_most_active, factor, t_off, t_end, ax[1])
-        ax[1].set_ylim([-90, 40])
-        ax[1].set_ylabel("mV")
-        
-        vpn = data["pn_V"][start_ra:start_ra+n_points, 1:]
-        pn_n = param["neuron_populations"]["pn"]["n"]
-        factor = pn_n // or_n
-        ax[2].set_title(f"PN V for neuron {ra_most_active*factor}")
-        ax[2].spines['right'].set_visible(False)
-        ax[2].spines['top'].set_visible(False)
-        ax[2].plot(t, vpn[:,ra_most_active*factor], 'k', linewidth=0.5)
-        subplot_spike_pane(pn_spikes_t, pn_spikes_ids, ra_most_active, factor, t_off, t_end, ax[2] )
-        ax[2].set_ylim([-90, 40])
-        ax[2].set_ylabel("mV")
+        for j, pop in enumerate(to_read):
+            if j == 0:
+                continue # exclude OR
+            print(pop)
 
-        vln = data["ln_V"][start_ra:start_ra+n_points, 1:]
-        ln_n = param["neuron_populations"]["ln"]["n"]
-        factor = ln_n // or_n
-        ax[3].set_title(f"LN V for neuron {ra_most_active*factor}")
-        ax[3].spines['right'].set_visible(False)
-        ax[3].spines['top'].set_visible(False)
-        ax[3].plot(t, vln[:,ra_most_active*factor], 'k', linewidth=0.5)
-        subplot_spike_pane(ln_spikes_t, ln_spikes_t, ra_most_active, factor, t_off, t_end, ax[2] )
-        ax[3].set_ylim([-90, 40])
-        ax[3].set_ylabel("mV")
+            to_plot = data[f"{pop}_V"][start_ra:end_ra, 1:]
+            pop_n = param["neuron_populations"][pop]["n"]
+            pop_spikes = data[f"{pop}_spikes"]
+            pop_spikes_t = pop_spikes[:, 0]
+            pop_spikes_ids = pop_spikes[:, 1]
 
-        '''
-        plt.show()
+            factor = pop_n // or_n
+            ax[j].set_title(f"{pop.upper()} V for neuron {ra_most_active*factor}")
+            ax[j].spines['right'].set_visible(False)
+            ax[j].spines['top'].set_visible(False)
+            subplot_smoothed(t, to_plot[:, ra_most_active], ax[j], scale_up)
+            subplot_spike_pane(pop_spikes_t, pop_spikes_ids,
+                            ra_most_active, factor, t_off, t_end, ax[j])
+            ax[j].set_ylim([-90, 40])
+            ax[j].set_ylabel("mV")
+
+        if is_first_protocol:
+            odor_name = cur_step["odor_name"]
+            concentration = cur_step["concentration"]
+            name = f"{odor_name}_{concentration:.1g}"
+        else:
+            od1 = f'{cur_step["odor_name"]}_{cur_step["concentration"]:.1g}'
+            step2 = protocol.events[i+1]
+            od2 = f'{step2["odor_name"]}_{step2["concentration"]:.1g}'
+            name = f"{od1}vs{od2}"
+        filename = f"{param['simulation']['simulation']['output_path']}/{exp_name}_raw_spikes_{i}_{name}.png"
+        print(f"saving to {filename}")
+        plt.savefig(filename, dpi=1000)
+        print(f"saved")
+
 
 
 
@@ -239,7 +230,6 @@ def plot_heatmap(param, exp_name):
 
     # select some interesting experiments
     # in the first experiment, for example, consider
-    # 
 
     for i in range(0, len(protocol.events), 4):
         od_active = protocol.events[i]
@@ -249,14 +239,6 @@ def plot_heatmap(param, exp_name):
         print(od_active_tstart, od_inactive_tend)
 
         left_spikes_active_idx = np.searchsorted(pn_spikes_t, od_active_tstart)
-        #right_spikes_active_idx = np.searchsorted(pn_spikes_t, od_active_tend, 'right')
-        #left_spikes_inactive_idx = np.searchsorted(pn_spikes_t, od_active_tstart)
-
-        #active_spikes_t = pn_spikes_t[left_spikes_active_idx:right_spikes_active_idx]
-        #active_spikes_ids = pn_spikes_ids[left_spikes_active_idx:right_spikes_active_idx].astype(np.uint32)
-
-
-        #left_spikes_inactive_idx = np.searchsorted(pn_spikes_t, od_inactive_tstart)
         right_spikes_inactive_idx = np.searchsorted(pn_spikes_t, od_inactive_tend, 'right')
 
         
@@ -266,8 +248,6 @@ def plot_heatmap(param, exp_name):
         if len(spikes_t) == 0:
             break
         
-        #inactive_spikes_t = pn_spikes_t[left_spikes_inactive_idx:right_spikes_inactive_idx]
-        #inactive_spikes_ids = pn_spikes_ids[left_spikes_inactive_idx:right_spikes_inactive_idx].astype(np.uint32)
 
         sigma_sdf = 100.0
         dt_sdf = 1.0
@@ -297,11 +277,14 @@ def plot_heatmap(param, exp_name):
         plt.ylabel("RA activation")
         
         '''
-        plt.show()
-        break
+
+        filename = f"{exp_name}_heatmap_{i}.png"
+        print(f"saving {filename}")
+        plt.savefig(filename, dpi=300)
+        print(f"saved")
 
 
 if __name__ == "__main__":
     import sys
-    plot_spikes(get_parameters(sys.argv[1]), sys.argv[2])
+    plot_spikes(get_parameters(sys.argv[1]), sys.argv[2], precision=10.0)
     #plot_heatmap(get_parameters(sys.argv[1]), sys.argv[2])
