@@ -11,6 +11,8 @@ from odors import Odor
 from protocol import Protocol
 from first_protocol import FirstProtocol
 from second_protocol import SecondProtocol
+from third_protocol import ThirdProtocol
+from test_protocol import TestFirstProtocol
 
 import numpy as np
 import tables
@@ -89,7 +91,6 @@ class Simulator:
 
             # For spikes, this is hopefully an upper bound. For vars, this is exact.
             expected_rows = self.protocol.simulation_time // self.param["dt"]
-            print(expected_rows)
             self.recorded_vars.setdefault(population, []).append(name)
             f.create_earray(group, name, tables.Float64Atom(),
                             (0, target_cols), expectedrows=expected_rows)
@@ -281,25 +282,6 @@ class Simulator:
                     pbar.update()
         self._flush()
 
-# TODO yeet out
-class TestFirstProtocol(FirstProtocol):
-    def events_generation(self, _):
-        """Creates the event for the protocol and saves them in a private field
-        Parameters
-        ----------
-        num_concentration_increases : int
-            The number of times the concentration is increased by a dilution factor
-        """
-        res = []
-        t = self.resting_duration
-        for (i, odor) in enumerate(self.odors):
-            if i >= 3:
-                break
-            for c_exp in range(15, 18):
-                res.append(self._event_generation(t, odor, c_exp))
-                t = res[-1]['t_end'] + self.resting_duration
-        self.events = res
-
 def pick_protocol(params):
     # Pick the correct protocol for the experiment
     protocol_data = params["protocols"]
@@ -308,6 +290,8 @@ def pick_protocol(params):
             protocol = FirstProtocol(protocol_data["experiment1"])
         case "experiment2":
             protocol = SecondProtocol(protocol_data["experiment2"])
+        case "experiment3":
+            protocol = ThirdProtocol(protocol_data["experiment3"])
         case "testexperiment":
             protocol = TestFirstProtocol(protocol_data["experiment1"])
 
@@ -322,7 +306,6 @@ def pick_protocol(params):
 if __name__ == "__main__":
     params = parse_cli()
     protocol = pick_protocol(params)
-    print(protocol.simulation_time)
 
     sim_params = params['simulation']
     sim = Simulator(sim_params['name'], protocol,
