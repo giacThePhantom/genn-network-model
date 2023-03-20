@@ -7,7 +7,6 @@ class FirstProtocol(Protocol):
     Creates the events for the first experiment.
     Namely each odor is presented at a different number of concentration steps
     in a sequential manner.
-    Each odor presentation lasts 3s and they are separated by a 3s resting interval.
 
     ...
 

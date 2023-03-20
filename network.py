@@ -25,7 +25,7 @@ class NeuronalNetwork:
     -------
     """
 
-    network = None
+    # network = None
     neuron_populations = {}
     connected_neurons: Dict[str, NeuronGroup] = {}
     synapses = {}
@@ -132,7 +132,7 @@ class NeuronalNetwork:
                 target_size = self.connected_synapses[i].trg.size
                 connections = self.connected_synapses[i].get_var_values('g').reshape(source_size, target_size)
                 for (j, row) in enumerate(connections):
-                    for(z, element) in enumerate(row):
+                    for z in range(len(row)):
                         if z != 0:
                             res.append({
                                 "pre_population" : self.connected_synapses[i].src.name,

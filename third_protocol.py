@@ -34,10 +34,3 @@ class ThirdProtocol(Protocol):
 
         self.events = res
         self.assign_channel_to_events()
-
-if __name__ == "__main__":
-    from reading_parameters import get_parameters
-    import sys
-    params = get_parameters(sys.argv[1])
-    temp = ThirdProtocol(params['protocols']['experiment3'])
-    print(temp.get_events())
