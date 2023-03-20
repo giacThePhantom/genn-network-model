@@ -169,12 +169,15 @@ def evaluate_param(to_be_eval, params):
         coll[element] = eval(":".join(coll[element].split(":")[1:]))
 
 
-def get_parameters(dir_name):
+def get_parameters(dir_name, sim_name):
     """Return the dictionary containing all the parameters necessary for a simulation.
     Parameters
     ----------
     dir_name : str
         The root directory containing all the parameters' json files.
+    sim_name : str
+        the name of the simulation (this will create a global key called "simulation/simulation"
+        in params that can be referred to in the eval's)
     Return
     ------
     params : dict
@@ -184,6 +187,8 @@ def get_parameters(dir_name):
     """
     params = get_all_params(dir_name)
     to_be_eval = []
+    # set the current simulation
+    params["simulation"]["simulation"] = params["simulation"][sim_name]
     get_evaluable_strings(params, to_be_eval)
     evaluate_param(to_be_eval, params)
     return params
@@ -209,7 +214,7 @@ def parse_cli():
     out_path.parent.mkdir(exist_ok=True)
     logging.basicConfig(filename=str(out_path), level=level)
 
-    params = get_parameters(str(Path(args.data)))
+    params = get_parameters(str(Path(args.data)), args.sim_name)
     params["simulation"]["name"] = args.sim_name
     params["simulation"]["out_path"] = out_path
 

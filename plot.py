@@ -17,7 +17,7 @@ from simulation import TestFirstProtocol, FirstProtocol
 from protocol import Protocol
 from matplotlib import pyplot as plt
 
-from reading_parameters import get_parameters
+from reading_parameters import get_parameters, parse_cli
 
 def make_sdf(spike_times: np.ndarray, spike_ids, n_all_ids, dt, sigma):
     """
@@ -286,5 +286,7 @@ def plot_heatmap(param, exp_name):
 
 if __name__ == "__main__":
     import sys
-    plot_spikes(get_parameters(sys.argv[1]), sys.argv[2], precision=10.0)
+    params = parse_cli()
+    name = params['simulation']['name']
+    plot_spikes(params, name, precision=10.0)
     #plot_heatmap(get_parameters(sys.argv[1]), sys.argv[2])

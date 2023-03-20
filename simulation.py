@@ -142,7 +142,7 @@ class Simulator:
         if self._output_table is None:
             self._output_table = tables.open_file(self.logging_path, 'a', self.filters)
 
-        for pop, var_dict in tqdm(self._data.items()):
+        for pop, var_dict in self._data.items():
             for var, values in var_dict.items():
                 # handle both spiking events and snapshots
                 if len(values.shape) == 1:
@@ -308,10 +308,11 @@ if __name__ == "__main__":
     protocol = pick_protocol(params)
 
     sim_params = params['simulation']
-    sim = Simulator(sim_params['name'], protocol,
+    name = sim_params['name']
+    sim = Simulator(name, protocol,
                     params)
 
     sim.run(
-        poll_spike_readings=sim_params['simulation']['poll_spike_readings'],
+        poll_spike_readings=sim_params[name]['poll_spike_readings'],
         save=True
     )
