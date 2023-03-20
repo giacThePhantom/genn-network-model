@@ -21,37 +21,30 @@ class Synapse:
     ----------
     name : str
         A unique identifier for the synapse object
-    matrix_type : str
-        How the synapse matrix is stored in memory
-    delay_steps : int
-        Delay in number of steps
     source : NeuronPopulation
         The pre-synaptic population
     target : NeuronPopulation
         The post-synaptic population
-    w_update_model : pyGeNN::WeightUpdateModels
-        Weight update model class
-    wu_param_space : {}
-        Parameters for the weight update class
-    wu_var_space : {}
-        Initial value for the weight update class
-    wu_pre_var_space : {}
-        Initial values for the pre synaptic variables
-    wu_post_var_space : {}
-        Initial values for the post-synaptic variables
-    postsyn_model : {}
-        Postsynaptic model
-    ps_param_space : {}
-        Parameters for the postsynaptic model
-    ps_var_space : {}
-        Initial value for the variables in the postsynaptic model
-    connectivity_initialiser: {}
-        Define connectivity
-    external_g: Optional[np.NDArray]
-        In some cases, an external covariance factor may be needed.
+    param : dict
+        All the parameters needed to build the SynapseGroup genn object for
+        which this class is a wrapper
     """
 
     def __init__(self, param, name, source, target):
+        """Builds a Synapse object from a dictionary containing all its parameters
+        Parameters
+        ----------
+        param : dict
+            A dictionary containing all parameters needed for the creation of the
+            genn object
+        name : str
+            The name of the Synapse population
+        source : NeuronPopulation
+            The pre-synaptic population
+        target : NeuronPopulation
+            The post-synaptic population
+        """
+
         self.name = name
         self.param = param
         self.source = source
@@ -59,6 +52,18 @@ class Synapse:
         self._param_transform()
 
     def _complex_parameters(self, param):
+        """Gets a parameter in the form of a list of strings and returns the joined
+        string, assuming each element to be a line in the result
+        Parameters
+        ----------
+        param : list
+            The list of string to be coerced into a string
+        Returns
+        -------
+        res : str
+            The string resulting from joining param
+        """
+
         res = ""
         if isinstance(param, list):
             res = "\n".join(param)
@@ -67,11 +72,22 @@ class Synapse:
         return res
 
     def _param_transform(self):
+        """Performs all the necessary transformations from how they are written in
+        the parameters' file into genn-friendly formats
+        """
+
         self.param['w_update_model'] = self._set_w_update_model(self.param['w_update_model'])
         self.param['postsyn_model'] = self._set_post_synaptic(self.param['postsyn_model'])
         self.param['connectivity_initialiser'] = self._set_connectivity_initialiser(self.param['connectivity_initialiser'])
 
     def _set_w_update_model(self, w_update_model):
+        """Transforms the parameters into the w_update_model for creating a synapse
+        Parameters
+        ----------
+        w_update_model : dict
+            The parameters of the update model to be transformed into genn format
+        """
+
         if not isinstance(w_update_model, str):
             w_update_model['synapses_dynamics_code'] = self._complex_parameters(w_update_model['synapses_dynamics_code'])
             w_update_model['sim_code'] = self._complex_parameters(w_update_model['sim_code'])
@@ -85,6 +101,13 @@ class Synapse:
         return w_update_model
 
     def _set_post_synaptic(self, postsyn_model):
+        """Transforms the parameters into the postsyn_model for creating a synapse
+        Parameters
+        ----------
+        postsyn_model : dict
+            The parameters of the post-synaptic model to be transformed into genn format
+        """
+
         if not isinstance(postsyn_model, str):
             postsyn_model['apply_input_code'] = self._complex_parameters(postsyn_model['apply_input_code'])
             postsyn_model = genn.create_custom_postsynaptic_class(
@@ -94,6 +117,14 @@ class Synapse:
         return postsyn_model
 
     def _len_func(self, len_fun):
+        """Transform the function to compute the maximum length of a column or row into
+        genn format
+        Parameters
+        ----------
+        len_fun : str or fun
+            A function or a string representing the maximum length of a row or column
+        """
+
         if callable(len_fun):
             res = genn.create_cmlf_class(len_fun)()
         else:
@@ -101,9 +132,32 @@ class Synapse:
         return res
 
     def _get_param_names(self, param_dict):
+        """Returns all the parameters name
+        Parameters
+        ----------
+        param_dict : dict
+            The dictionary for which the names of parameters are returned
+        Returns
+        -------
+        res : list
+            A list of the name of parameters
+        """
+
         return list(param_dict.keys())
 
     def _set_connectivity_initialiser(self, connectivity_initialiser):
+        """Creates the connectivity initialiser to create genn's synapses
+        Parameters
+        ----------
+        connectivity_initialiser : dict
+            A dictionary containing all the parameters necessary to create the
+            connectivity initialiser
+        Returns
+        -------
+        res : InitSparseConnectivitySnippet
+            The connectivity snippet for genn synapses
+        """
+
         if not isinstance(connectivity_initialiser, str) and connectivity_initialiser:
             connectivity_initialiser['row_build_code'] = self._complex_parameters(connectivity_initialiser['row_build_code'])
             connectivity_initialiser['col_build_code'] = self._complex_parameters(connectivity_initialiser['col_build_code'])

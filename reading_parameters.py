@@ -204,7 +204,7 @@ def parse_cli():
         level = logging.INFO
     elif args.verbose == 3:
         level = logging.DEBUG
-    
+
     out_path = Path("outputs") / (args.sim_name + ".log")
     out_path.parent.mkdir(exist_ok=True)
     logging.basicConfig(filename=str(out_path), level=level)
@@ -212,7 +212,7 @@ def parse_cli():
     params = get_parameters(str(Path(args.data)))
     params["simulation"]["name"] = args.sim_name
     params["simulation"]["out_path"] = out_path
-    
+
     return params
 
 if __name__ == "__main__":
