@@ -3,7 +3,7 @@ import numpy as np
 import neuron
 import synapse
 from pygenn.genn_model import GeNNModel, NeuronGroup
-from draw_connectivity import create_glomerulus_graph, create_network_graph
+import draw_connectivity
 
 class NeuronalNetwork:
     """
@@ -125,27 +125,14 @@ class NeuronalNetwork:
         res = []
         for i in self.connected_synapses:
             if self.connected_synapses[i].is_ragged:
-                print(i)
                 self.connected_synapses[i].pull_connectivity_from_device()
-                if i == 'orn_ln':
-                    print(len(self.connected_synapses[i].get_sparse_pre_inds()))
-                    print(len(self.connected_synapses[i].get_sparse_post_inds()))
                 for (j, z) in zip(self.connected_synapses[i].get_sparse_pre_inds(), self.connected_synapses[i].get_sparse_post_inds()):
-                    if i == 'orn_ln':
-                        print(f"Adding {j}, {z}")
-                        print(res[-1])
                     res.append({
                         "pre_population" : self.connected_synapses[i].src.name,
                         "post_population" : self.connected_synapses[i].trg.name,
                         "pre_id" : j,
                         "post_id" : z,
                     })
-
-
-                    if res[-1]['pre_population'] == 'orn' and res[-1]['post_population'] == 'ln':
-                        print(self.connected_synapses[i].src.name)
-
-                        print(self.connected_synapses[i].trg.name)
             else:
                 source_size = self.connected_synapses[i].src.size
                 target_size = self.connected_synapses[i].trg.size
@@ -170,8 +157,4 @@ if __name__ == '__main__':
     model = NeuronalNetwork("Test", params['neuron_populations'], params['synapses'], 0.1)
     model.build_and_load()
     model.network.step_time()
-    model.network.step_time()
-    model.network.step_time()
-    model.network.step_time()
-    model.network.step_time()
-    create_glomerulus_graph(model, int(sys.argv[2]), sys.argv[3])
+    draw_connectivity.create_glomerulus_graph(model, int(sys.argv[2]), sys.argv[3])

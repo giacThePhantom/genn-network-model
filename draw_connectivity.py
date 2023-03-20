@@ -1,5 +1,5 @@
-import networkx as nx
 from networkx.drawing.nx_agraph import write_dot
+import networkx as nx
 from graph_tool.all import *
 
 
@@ -44,9 +44,11 @@ def create_network_graph(network, outname):
         last_offset += network.neuron_populations[i].size()
 
     res = Graph()
+    nodes = {}
+
+
     connectivity = network.get_connectivity()
 
-    nodes = {}
 
     order = {'or' : 0, 'orn' : 1, 'ln' : 2, 'pn' : 3 }
 
@@ -57,7 +59,11 @@ def create_network_graph(network, outname):
     for i in offset:
         res.add_vertex_list(nodes[i])
 
-    for i in connectivity:
-        res.add_edge(i['pre_id']+offset[i['pre_population']], i['post_id']+offset[i['post_population']])
 
+
+    for i in connectivity:
+        if i['pre_id'] + offset[i['pre_population']] in res.nodes and i['post_id'] + offset[i['post_population']] in res.nodes:
+            res.add_edge(i['pre_id']+offset[i['pre_population']], i['post_id']+offset[i['post_population']])
+
+    print("Writing")
     write_dot(res, outname)
