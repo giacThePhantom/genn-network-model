@@ -53,7 +53,6 @@ class NeuronPopulation:
     eqs = ""
     reset_code = ""
     threshold_condition_code = ""
-    recorded_outputs = {}
 
     def _reset(self):
         self.name = ""

@@ -64,7 +64,11 @@ class Simulator:
         self._data = defaultdict(lambda: defaultdict(lambda: np.array([])))
         self.protocol = protocol
         self.param = param['simulation']['simulation']
+        batch = self.local_var_batch = self.param['batch']
+        dt = self.param['dt']
         self._output_table = None
+        self.batch_size_timesteps = round(batch / dt)
+        self._reset_population()
         self.track_vars()
 
     def _track_var(self, population: str, var_names: List[str], f: tables.File):
@@ -73,7 +77,6 @@ class Simulator:
             # pop = self.model.neuron_populations[population]
             genn_pop = self.model.connected_neurons[population]
             if name == "spikes":
-                print("recording...")
                 genn_pop.spike_recording_enabled = True
                 target_cols = 2
             else:
@@ -82,11 +85,15 @@ class Simulator:
 
                 # Format: (v_1, v_2, ..., v_k, t) with k being the number of neurons.
                 target_cols = genn_pop.size + 1
-                self._data[population][name] = np.empty(genn_pop.size + 1)
-            self.recorded_vars.setdefault(population, []).append(name)
+                self._data[population][name] = np.empty((self.batch_size_timesteps, genn_pop.size + 1))
 
+            # For spikes, this is hopefully an upper bound. For vars, this is exact.
+            expected_rows = self.protocol.simulation_time // self.param["dt"]
+            print(expected_rows)
+            self.recorded_vars.setdefault(population, []).append(name)
             f.create_earray(group, name, tables.Float64Atom(),
-                            (0, target_cols))
+                            (0, target_cols), expectedrows=expected_rows)
+
 
     def track_vars(self):
         """
@@ -101,10 +108,11 @@ class Simulator:
             An extra variable, "spikes", enables spike counting (ie. when V >= some threshold)
         """
 
-        self.dirpath = Path("/media/data/thesis_output/") / self.sim_name
+        self.dirpath = Path(self.param["output_path"]) / self.sim_name
         self.logging_path = self.dirpath / "tracked_vars.h5"
         self.protocol_path = self.dirpath / "protocol.pickle"
         self.dirpath.mkdir(exist_ok=True)
+        self._row_count = 0
 
         with self.protocol_path.open("wb") as f:
             pickle.dump(self.protocol, f)
@@ -112,13 +120,18 @@ class Simulator:
         variables = [(key, self.param['tracked_variables'][key])
                      for key in self.param['tracked_variables']]
 
-        self.filters = tables.Filters(complib='zlib', complevel=5)
+        self.filters = tables.Filters(complib='blosc:zstd', complevel=5)
         with tables.open_file(self.logging_path, 'w', filters=self.filters) as f:
             for var in variables:
                 self._track_var(*var, f=f)
 
     def _reset_population(self):
-        self.model.clear_logs()
+        self._row_count = 0
+
+        #for pop, var_dict in self._data.items():
+        #    for var, values in var_dict.items():
+        #        self._data[pop][var].fill(0)
+
 
     def _stream_output(self):
         logging.info(f"Saving to {self.dirpath}")
@@ -127,7 +140,7 @@ class Simulator:
         if self._output_table is None:
             self._output_table = tables.open_file(self.logging_path, 'a', self.filters)
 
-        for pop, var_dict in self._data.items():
+        for pop, var_dict in tqdm(self._data.items()):
             for var, values in var_dict.items():
                 # handle both spiking events and snapshots
                 if len(values.shape) == 1:
@@ -139,10 +152,12 @@ class Simulator:
     def _flush(self):
         self._output_table.close()
         self._output_table = None
+        self._reset_population()
 
     def _add_to_var(self, pop, var, times, series):
-        if len(times) == 1:
-            self._data[pop][var] = np.concatenate([times, series])
+        if var != "spikes":
+            #print(pop, var, self._data[pop][var].shape)
+            self._data[pop][var][self._row_count] = np.concatenate([times, series])
         else:
             self._data[pop][var] = np.column_stack([times, series])
 
@@ -163,43 +178,50 @@ class Simulator:
                 if events[i]:
                     current_events[i] = events[i].pop(0)
 
-    def _collect(self, poll_spike_readings):
+    def _collect_spikes(self, poll_spike_readings):
+        genn_model = self.model.network
+        if not poll_spike_readings:
+            genn_model.pull_recording_buffers_from_device()
+        for pop_name in self.recorded_vars:
+            if "spikes" not in self.recorded_vars[pop_name]:
+                continue
+            genn_pop = self.model.connected_neurons[pop_name]
+            if not poll_spike_readings:
+                spike_t = genn_pop.spike_recording_data[0]
+                spike_id = genn_pop.spike_recording_data[1]
+            else:
+                genn_pop.pull_current_spikes_from_device()
+                spike_count = genn_pop.spike_count[0][0]
+                logging.debug(f"Detected {spike_count} spike events")
+                if spike_count > 0:
+                    # realistically, spike_count will hardly be bigger than 1
+                    spike_t = genn_model.t * np.ones(spike_count)
+                    spike_id = genn_pop.spikes[0][0][:spike_count]
+                else:
+                    spike_t = []
+                    spike_id = []
+            self._add_to_var(pop_name, "spikes", spike_t, spike_id)
+    
+
+    def _collect_vars(self):
         # Collect and save the variables during the simulation
+        # TODO: split into _collect_spikes and _collect_vars
+
         genn_model = self.model.network
         for pop_name, pop_vars in self.recorded_vars.items():
             genn_pop = self.model.connected_neurons[pop_name]
             for var in pop_vars:
                 if var == "spikes":
-                    if not poll_spike_readings:
-                        genn_model.pull_recording_buffers_from_device()
-                        spike_t = genn_pop.spike_recording_data[0]
-                        spike_id = genn_pop.spike_recording_data[1]
-                    else:
-                        genn_pop.pull_current_spikes_from_device()
-                        spike_count = genn_pop.spike_count[0][0]
-                        logging.debug(f"Detected {spike_count} spike events")
-                        if spike_count > 0:
-                            # realistically, spike_count will hardly be bigger than 1
-                            spike_t = genn_model.t * np.ones(spike_count)
-                            spike_id = genn_pop.spikes[0][0][:spike_count]
-                        else:
-                            spike_t = []
+                    continue
+                genn_pop.pull_var_from_device(var)
+                logging.debug(f"{pop_name} -> {var}")
+                logging.debug(genn_pop.vars[var].view)
+                series = genn_pop.vars[var].view.T
+                times = np.array([genn_model.t])
 
-                    if len(spike_t) == 0:
-                        continue
+                self._add_to_var(pop_name, var, times, series)
 
-                    self._add_to_var(pop_name, var, spike_t, spike_id)
-
-                    logging.debug(
-                        f"pop: {pop_name}, spike_t: {spike_t}, spike_id: {spike_id}")
-                else:
-                    genn_pop.pull_var_from_device(var)
-                    logging.debug(f"{pop_name} -> {var}")
-                    logging.debug(genn_pop.vars[var].view)
-                    series = genn_pop.vars[var].view.T
-                    times = np.array([genn_model.t])
-
-                    self._add_to_var(pop_name, var, times, series)
+        self._row_count += 1
 
 
     def run(self, batch=1.0, poll_spike_readings=False, save=True):
@@ -225,7 +247,8 @@ class Simulator:
 
         if not genn_model._built:
             logging.info("Build and load")
-            self.model.build_and_load(int(batch / genn_model.dT))
+            self.batch_size_timesteps
+            self.model.build_and_load(self.batch_size_timesteps)
             logging.info("Done")
         else:
             logging.info("Reinitializing")
@@ -240,7 +263,7 @@ class Simulator:
         target_pop = self.model.connected_neurons['or']
 
         # Kickstart the simulation
-        batch_timesteps = round(batch / genn_model.dT)
+        batch_timesteps = self.batch_size_timesteps
         total_timesteps = round(self.protocol.simulation_time / genn_model.dT)
 
         with logging_redirect_tqdm():
@@ -249,12 +272,13 @@ class Simulator:
                     logging.debug(f"Time: {genn_model.t}")
                     genn_model.step_time()
                     self.update_target_pop(target_pop, current_events, events)
+                    self._collect_vars()
 
-                    if genn_model.timestep > 0 and genn_model.timestep % batch_timesteps == 0:
-                        self._collect(poll_spike_readings)
+                    if genn_model.timestep % batch_timesteps == 0:
+                        self._collect_spikes(poll_spike_readings)
                         if save:
                             self._stream_output()
-                        pbar.update()
+                    pbar.update()
         self._flush()
 
 # TODO yeet out
@@ -298,6 +322,8 @@ def pick_protocol(params):
 if __name__ == "__main__":
     params = parse_cli()
     protocol = pick_protocol(params)
+    print(protocol.simulation_time)
+
     sim_params = params['simulation']
     sim = Simulator(sim_params['name'], protocol,
                     params)
