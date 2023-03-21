@@ -2,6 +2,7 @@ import argparse
 import logging
 from pathlib import Path
 import json
+from typing import Optional
 import numpy as np
 from pygenn import genn_wrapper
 # needed for lambda evaluation
@@ -193,13 +194,36 @@ def get_parameters(dir_name, sim_name):
     evaluate_param(to_be_eval, params)
     return params
 
-def parse_cli():
+def get_argparse_template():
+    """
+    Set up a basic argparse template. The user can expand this by adding subgroups.
+    If subgroups are not needed the user can simply call `parse_cli` which is more direct.
+
+    Usage:
+
+    >>> parser = get_argparse_template()
+    >>> my_fitter_group = parser.add_group("myfitter")
+    >>> my_fitter_group.add_argument("--some-option")
+    >>> param = parse_cli(parser)
+    """
     parser = argparse.ArgumentParser(prog="BeeGenn", description="A comfy wrapper for GeNN")
     parser.add_argument("data", help="The location of the data folder")
     parser.add_argument("sim_name", help="The location of the data folder")
     parser.add_argument("-v", "--verbose", action="count", help="logger verbosity level (max: -vvv)")
 
-    # TODO: add support for custom groups
+    return parser
+
+def parse_cli(parser: Optional[argparse.ArgumentParser]=None):
+    """
+    Parse the command line.
+
+    Arguments
+    ---------
+    parser: argparse 
+        If provided, parse from the given parser. See `get_argparse_template` for details.
+    """
+    if parser is None:
+        parser = get_argparse_template()
 
     args = parser.parse_args()
     level = logging.ERROR
@@ -217,6 +241,9 @@ def parse_cli():
     params = get_parameters(str(Path(args.data)), args.sim_name)
     params["simulation"]["name"] = args.sim_name
     params["simulation"]["out_path"] = out_path
+
+    # Expand params with extra params
+    params["cli"] = vars(args)
 
     return params
 
