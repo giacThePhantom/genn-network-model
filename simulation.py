@@ -18,6 +18,7 @@ import numpy as np
 import tables
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
+from recorder import Recorder
 
 
 class Simulator:
@@ -37,6 +38,11 @@ class Simulator:
         a dictionary of variables that will be recorded
     param: dict
         configuration root
+
+    Methods
+    -------
+    track_vars() :
+        Tracks a list of variables for a population
     """
 
     def _reset(self):
@@ -56,112 +62,23 @@ class Simulator:
             param['neuron_populations'],
             param['synapses'],
             param['simulation']['simulation']['dt'],
-            optimizeCode=params['simulation']['simulation']['optimize_code'],
-            generateEmptyStatePush=params['simulation']['simulation']['generate_empty_state_push']
+            optimizeCode=param['simulation']['simulation']['optimize_code'],
+            generateEmptyStatePush=param['simulation']['simulation']['generate_empty_state_push']
         )
-
-        self.recorded_vars = {}
-        # data -> population -> var name -> array.
-        # For each layer automatically create a default dict
-        self._data = defaultdict(lambda: defaultdict(lambda: np.array([])))
         self.protocol = protocol
         self.param = param['simulation']['simulation']
-        batch = self.local_var_batch = self.param['batch']
-        dt = self.param['dt']
-        self._output_table = None
-        self.batch_var_reads = self.param["batch_var_reads"]
-        self.batch_size_timesteps = round(batch / self.batch_var_reads)
-        self._reset_population()
-        self.track_vars()
 
-    def _track_var(self, population: str, var_names: List[str], f: tables.File):
-        group = f.create_group(f.root, population)
-        for name in var_names:
-            # pop = self.model.neuron_populations[population]
-            genn_pop = self.model.connected_neurons[population]
-            if name == "spikes":
-                genn_pop.spike_recording_enabled = True
-                target_cols = 2
-            else:
-                # TODO: implement CUDA event buffers for those variables.
-                # For now all we can do is pulling them manually every n steps
+        self.recorder = Recorder(self.param['output_path'],
+                                 self.sim_name,
+                                 self.param['tracked_variables'],
+                                 self.model.connected_neurons,
+                                 self.param['batch'],
+                                 self.param['batch_var_reads'],
+                                 self.param['dt'],
+                                 protocol.simulation_time)
 
-                # Format: (v_1, v_2, ..., v_k, t) with k being the number of neurons.
-                target_cols = genn_pop.size + 1
-                self._data[population][name] = np.empty((self.batch_size_timesteps, genn_pop.size + 1))
-
-            # For spikes, this is hopefully an upper bound. For vars, this is exact.
-            expected_rows = self.protocol.simulation_time // (self.param["batch_var_reads"] / self.param["dt"])
-            self.recorded_vars.setdefault(population, []).append(name)
-            f.create_earray(group, name, tables.Float64Atom(),
-                            (0, target_cols), expectedrows=expected_rows)
-
-
-    def track_vars(self):
-        """
-        Track a list of variables per population
-
-        Parameters
-        ----------
-        variables: list
-            keeps track of which variables to pull from the neurons.
-            Each element is in the form (pop_name, [var1, var2, ...]) where
-            var1, ... are variables defined in the specific neuron code used by that population.
-            An extra variable, "spikes", enables spike counting (ie. when V >= some threshold)
-        """
-
-        self.dirpath = Path(self.param["output_path"]) / self.sim_name
-        self.logging_path = self.dirpath / "tracked_vars.h5"
-        self.protocol_path = self.dirpath / "protocol.pickle"
-        self.dirpath.mkdir(exist_ok=True)
-        self._row_count = 0
-
-        with self.protocol_path.open("wb") as f:
-            pickle.dump(self.protocol, f)
-
-        variables = [(key, self.param['tracked_variables'][key])
-                     for key in self.param['tracked_variables']]
-
-        self.filters = tables.Filters(complib='blosc:zstd', complevel=5)
-        with tables.open_file(self.logging_path, 'w', filters=self.filters) as f:
-            for var in variables:
-                self._track_var(*var, f=f)
-
-    def _reset_population(self):
-        self._row_count = 0
-
-        #for pop, var_dict in self._data.items():
-        #    for var, values in var_dict.items():
-        #        self._data[pop][var].fill(0)
-
-
-    def _stream_output(self):
-        logging.info(f"Saving to {self.dirpath}")
-
-        # This makes sure the table is locked until the simulation ends (graciously or not).
-        if self._output_table is None:
-            self._output_table = tables.open_file(self.logging_path, 'a', self.filters)
-
-        for pop, var_dict in self._data.items():
-            for var, values in var_dict.items():
-                # handle both spiking events and snapshots
-                if len(values.shape) == 1:
-                    values = values.reshape((1, -1))
-                self._output_table.root[pop][var].append(values)
-
-        self._reset_population()
-
-    def _flush(self):
-        self._output_table.close()
-        self._output_table = None
-        self._reset_population()
-
-    def _add_to_var(self, pop, var, times, series):
-        if var != "spikes":
-            #print(pop, var, self._data[pop][var].shape)
-            self._data[pop][var][self._row_count] = np.concatenate([times, series])
-        else:
-            self._data[pop][var] = np.column_stack([times, series])
+        self.recorder.dump_protocol(self.protocol)
+        self.recorder.enable_spike_recording(self.model)
 
     def update_target_pop(self, target_pop, current_events, events):
         for (i, event) in enumerate(current_events):
@@ -180,50 +97,6 @@ class Simulator:
                 if events[i]:
                     current_events[i] = events[i].pop(0)
 
-    def _collect_spikes(self, poll_spike_readings):
-        genn_model = self.model.network
-        if not poll_spike_readings:
-            genn_model.pull_recording_buffers_from_device()
-        for pop_name in self.recorded_vars:
-            if "spikes" not in self.recorded_vars[pop_name]:
-                continue
-            genn_pop = self.model.connected_neurons[pop_name]
-            if not poll_spike_readings:
-                spike_t = genn_pop.spike_recording_data[0]
-                spike_id = genn_pop.spike_recording_data[1]
-            else:
-                genn_pop.pull_current_spikes_from_device()
-                spike_count = genn_pop.spike_count[0][0]
-                logging.debug(f"Detected {spike_count} spike events")
-                if spike_count > 0:
-                    # realistically, spike_count will hardly be bigger than 1
-                    spike_t = genn_model.t * np.ones(spike_count)
-                    spike_id = genn_pop.spikes[0][0][:spike_count]
-                else:
-                    spike_t = []
-                    spike_id = []
-            self._add_to_var(pop_name, "spikes", spike_t, spike_id)
-    
-
-    def _collect_vars(self):
-        # Collect and save the variables during the simulation
-        # TODO: split into _collect_spikes and _collect_vars
-
-        genn_model = self.model.network
-        for pop_name, pop_vars in self.recorded_vars.items():
-            genn_pop = self.model.connected_neurons[pop_name]
-            for var in pop_vars:
-                if var == "spikes":
-                    continue
-                genn_pop.pull_var_from_device(var)
-                logging.debug(f"{pop_name} -> {var}")
-                logging.debug(genn_pop.vars[var].view)
-                series = genn_pop.vars[var].view.T
-                times = np.array([genn_model.t])
-
-                self._add_to_var(pop_name, var, times, series)
-
-        self._row_count += 1
 
 
     def run(self, poll_spike_readings=False, save=True):
@@ -246,8 +119,7 @@ class Simulator:
 
         if not genn_model._built:
             logging.info("Build and load")
-            self.batch_size_timesteps
-            self.model.build_and_load(self.batch_size_timesteps)
+            self.model.build_and_load(round(self.param['batch'] / self.param['batch_var_reads']))
             logging.info("Done")
         else:
             logging.info("Reinitializing")
@@ -262,9 +134,7 @@ class Simulator:
         target_pop = self.model.connected_neurons['or']
 
         # Kickstart the simulation
-        batch_timesteps = self.batch_size_timesteps
         total_timesteps = round(self.protocol.simulation_time / genn_model.dT)
-        batch_var_reads = self.batch_var_reads
 
         with logging_redirect_tqdm():
             with tqdm(total=total_timesteps) as pbar:
@@ -272,15 +142,9 @@ class Simulator:
                     logging.debug(f"Time: {genn_model.t}")
                     genn_model.step_time()
                     self.update_target_pop(target_pop, current_events, events)
-                    if genn_model.timestep % batch_var_reads == 0:
-                        self._collect_vars()
-
-                    if genn_model.timestep % batch_timesteps == 0:
-                        self._collect_spikes(poll_spike_readings)
-                        if save:
-                            self._stream_output()
+                    self.recorder.record(self.model, save)
                     pbar.update()
-        self._flush()
+        self.recorder.flush()
 
 def pick_protocol(params):
     # Pick the correct protocol for the experiment
@@ -294,6 +158,8 @@ def pick_protocol(params):
             protocol = ThirdProtocol(protocol_data["experiment3"])
         case "testexperiment":
             protocol = TestFirstProtocol(protocol_data["experiment1"])
+        case _:
+            protocol = FirstProtocol(protocol_data["experiment1_test"])
 
     protocol.add_inhibitory_conductance(
         params['synapses']['ln_pn'], params['neuron_populations']['ln']['n'], params['neuron_populations']['pn']['n'])
