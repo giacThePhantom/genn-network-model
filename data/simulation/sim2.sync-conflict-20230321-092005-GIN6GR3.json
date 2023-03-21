@@ -1,12 +1,12 @@
 {
     "dt": 0.2,
-    "experiment_name": "experiment1",
+    "experiment_name": "experiment2",
     "batch": 10000.0,
     "batch_var_reads": 10000.0,
     "poll_spike_readings": false,
     "optimize_code": false,
     "generate_empty_state_push": false,
-    "output_path": "/media/data/thesis_output",
+    "output_path": "/media/data/thesis-output",
     "tracked_variables": {
         "orn": [
             "spikes"

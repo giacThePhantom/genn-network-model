@@ -6,7 +6,7 @@
     "poll_spike_readings": false,
     "optimize_code": false,
     "generate_empty_state_push": false,
-    "output_path": "/media/data/thesis_output",
+    "output_path": "/media/data/thesis-output",
     "tracked_variables": {
         "orn": [
             "spikes"
