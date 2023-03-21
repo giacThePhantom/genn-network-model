@@ -50,34 +50,55 @@ def make_sdf(spike_times: np.ndarray, spike_ids, n_all_ids, dt, sigma):
     tleft = t0-3*sigma
     tright = tmax+3*sigma
     n = int((tright-tleft)/dt)
-    sdfs = np.zeros((n, n_all_ids))
-    kwdt = 3*sigma
-    i = 0
-    x = np.arange(-kwdt, kwdt, dt)
-    x = np.exp(-np.power(x, 2)/(2*sigma*sigma))
-    x = x/(sigma*np.sqrt(2.0*np.pi))*1000.0
+    sdfs_out = np.zeros((n, n_all_ids))
+    kernel_width = 3*sigma
+    kernel = np.arange(-kernel_width, kernel_width, dt)
+    kernel = np.exp(-np.power(kernel, 2)/(2*sigma*sigma))
+    kernel = kernel/(sigma*np.sqrt(2.0*np.pi))*1000.0
     if spike_times is not None:
         for t, sid in zip(spike_times, spike_ids):
             sid = int(sid)
             if (t > t0 and t < tmax):
-                left = int((t-tleft-kwdt)/dt)
-                right = int((t-tleft+kwdt)/dt)
+                left = int((t-tleft-kernel_width)/dt)
+                right = int((t-tleft+kernel_width)/dt)
                 if right <= n:
-                    sdfs[left:right, sid] += x
+                    sdfs_out[left:right, sid] += kernel
 
-    return sdfs
+    return sdfs_out
 
-def glo_avg(sdf: np.ndarray, n):
-    # get the average activation intensity across n-sized groups of glomeruli
-    # for each timestep
-    nglo= sdf.shape[1]//n
-    gsdf= np.zeros((sdf.shape[0],nglo))
-    for i in range(nglo):
-        gsdf[:,i]= np.mean(sdf[:,n*i:n*(i+1)],axis=1)
-    return gsdf
+def glo_avg(sdf: np.ndarray, n_per_glo):
+    """
+    Get the average activation intensity across n-sized groups of glomeruli
+    for each timestep.
 
-def parse_data(exp_name, vars_to_read: Dict[str, List[str]]) -> Tuple[Dict[str, np.ndarray], Protocol]:
-    dirpath = Path("outputs") / exp_name
+    Arguments
+    ---------
+    sdf: np.ndarray
+        an SDF obtained by eg. `make_sdf`
+    n: int
+        How many neurons per glomerulus
+    """
+    n_glo = sdf.shape[1]//n_per_glo
+    glo_sdfs_out= np.zeros((sdf.shape[0],n_glo))
+    for i in range(n_glo):
+        glo_sdfs_out[:,i]= np.mean(sdf[:,n_per_glo*i:n_per_glo*(i+1)],axis=1)
+    return glo_sdfs_out
+
+def parse_data(param, exp_name, vars_to_read: Dict[str, List[str]]) -> Tuple[Dict[str, np.ndarray], Protocol]:
+    """
+    Load a HDFS table with the selected variables into a dictionary.
+
+    Arguments
+    ---------
+    param: dict
+        the parameters
+    exp_name: string
+        the experiment name
+    vars_to_read: dict
+        a dictionary (key -> list of vars) of the variables to extract.
+        Refer to `Simulation` for details
+    """
+    dirpath = Path(param["simulation"]['simulation']['output_path']) / exp_name
     data = tables.open_file(str(dirpath / "tracked_vars.h5"))
     with (dirpath / "protocol.pickle").open("rb") as f:
         protocol: TestFirstProtocol = pickle.load(f)
@@ -92,22 +113,39 @@ def parse_data(exp_name, vars_to_read: Dict[str, List[str]]) -> Tuple[Dict[str, 
     return to_return, protocol
     
 
-def subplot_spike_pane(spike_t, spike_ID, idx, factor, toff, tend, ax):
-    #fil1 = spike_ID >= idx * n
-    #fil2 = spike_ID < (idx+1) * n
-    
-    #st = spike_t[np.logical_and(fil1, fil2)]
-    st = spike_t[spike_ID == idx * factor]
-    st = st[st >= toff]
-    st = st[st <= toff+tend]
-    #st = st[::10]
-    st = np.unique(st) # wtf?
-    st = np.reshape(st, (1, -1))
-    x = np.vstack((st, st))
+def subplot_spike_pane(spike_t: np.ndarray, spike_ids: np.ndarray, idx: int, factor: int, t_start: float, t_end: float, ax):
+    """
+    Superimpose spikes on top of of an axis. A "spike" is a dirac-like impulse going
+    from -70 to 20 mV. This function is necessary as Genn truncates the at the spike event *before* logging.
+
+    Arguments
+    ---------
+    spike_t:
+        The spike event times
+    spike_ids:
+        The spike event units that fired at the corresponding time
+    idx:
+        The OR neuron with the strongest activation that we want to show
+    factor:
+        The ratio `this_pop.size / or_pop.size`.
+    t_start:
+        The starting time in the considered time window (included)
+    t_end:
+        The ending time in the considered time window (included) (why?)
+    ax:
+        a Matplotlib axis
+    """
+    spike_t = spike_t[spike_ids == idx * factor]
+    spike_t = spike_t[spike_t >= t_start]
+    spike_t = spike_t[spike_t <= t_start+t_end]
+    # st = st[::10]
+    spike_t = np.unique(spike_t) # sometimes spikes are duplicated (how come?)
+    spike_t = np.reshape(spike_t, (1, -1))
+    x = np.vstack((spike_t, spike_t))
     y = np.ones(x.shape)
     y[0, :] = -70.0
     y[1, :] = 20.0
-    ax.plot(x, y, 'k', lw=0.2)
+    ax.plot(x, y, 'k', linewidth=0.2)
 
 def subplot_smoothed(t, data, ax, k):
     kernel = np.ones((k,))/k
@@ -125,7 +163,7 @@ def plot_spikes(param, exp_name, **kwargs):
 
     precision = kwargs.get("precision", None)
 
-    data, protocol = parse_data(exp_name, to_read)
+    data, protocol = parse_data(param, exp_name, to_read)
 
     plt.rc('font', size=8)
     ra = data["or_ra"]
@@ -231,6 +269,7 @@ def plot_spikes(param, exp_name, **kwargs):
 
 def plot_heatmap(param, exp_name, **kwargs):
     data, protocol = parse_data(
+        param,
         exp_name, {
             "orn": ["spikes"], "pn": ["spikes"], "ln": ["spikes"]
         }
@@ -330,6 +369,7 @@ def plot_heatmap(param, exp_name, **kwargs):
 
 def plot_sdf_over_c(param, exp_name, **kwargs):
     data, protocol = parse_data(
+        param,
         exp_name, {
             "orn": ["spikes"], "pn": ["spikes"], "ln": ["spikes"]
         }
@@ -341,7 +381,6 @@ def plot_sdf_over_c(param, exp_name, **kwargs):
 
     if not isinstance(protocol, FirstProtocol):
         raise ValueError("This plot requires FirstProtocol")
-    
     
     for pop in ["orn"]:
         concentrations = {"iaa": [0, 1, 2], "geo": [3, 4, 5]}
@@ -383,7 +422,6 @@ def plot_sdf_over_c(param, exp_name, **kwargs):
             plt.plot(max_concentrations, max_sdfs, label=odor)
         plt.legend()
         plt.show()
-            
 
         if len(spikes_t) == 0:
             break
@@ -401,8 +439,6 @@ if __name__ == "__main__":
     plot_group.add_argument("--precision", help="For spikes plotting, set the desired resolution (in ms). Defaults to the simulation dt.")
     params = parse_cli(parser)
     name = params['simulation']['name']
-
-    print(params["cli"])
 
     match params["cli"]["plot"]:
         case "spikes":
