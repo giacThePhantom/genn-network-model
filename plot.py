@@ -15,7 +15,8 @@ import tables
 
 from simulation import TestFirstProtocol, FirstProtocol
 from protocol import Protocol
-from matplotlib import pyplot as plt
+from third_protocol import ThirdProtocol
+from matplotlib import cm, pyplot as plt
 
 from reading_parameters import get_parameters, parse_cli
 
@@ -69,7 +70,6 @@ def make_sdf(spike_times: np.ndarray, spike_ids, n_all_ids, dt, sigma):
 def glo_avg(sdf: np.ndarray, n):
     # get the average activation intensity across n-sized groups of glomeruli
     # for each timestep
-    print(sdf.shape)
     nglo= sdf.shape[1]//n
     gsdf= np.zeros((sdf.shape[0],nglo))
     for i in range(nglo):
@@ -102,13 +102,11 @@ def subplot_spike_pane(spike_t, spike_ID, idx, factor, toff, tend, ax):
     st = st[st <= toff+tend]
     #st = st[::10]
     st = np.unique(st) # wtf?
-    print(np.min(np.diff(st)))
     st = np.reshape(st, (1, -1))
     x = np.vstack((st, st))
     y = np.ones(x.shape)
     y[0, :] = -70.0
     y[1, :] = 20.0
-    print(st, x)
     ax.plot(x, y, 'k', lw=0.2)
 
 def subplot_smoothed(t, data, ax, k):
@@ -126,9 +124,8 @@ def plot_spikes(param, exp_name, precision):
     }
 
     data, protocol = parse_data(exp_name, to_read)
-    print(type(protocol))
 
-    plt.rc('font', size=10)
+    plt.rc('font', size=8)
     ra = data["or_ra"]
 
     # select a timestep
@@ -145,17 +142,31 @@ def plot_spikes(param, exp_name, precision):
         t_off = cur_step["t_start"]
         t_end = cur_step["t_end"] + protocol.resting_duration
         t = np.arange(t_off, t_end, dt)
+
+        if is_first_protocol:
+            odor_name = cur_step["odor_name"]
+            concentration = cur_step["concentration"]
+            name = f"{odor_name}_{concentration:.1g}"
+        else:
+            od1 = f'{cur_step["odor_name"]}_{cur_step["concentration"]:.1g}'
+            step2 = protocol.events[i+1]
+            od2 = f'{step2["odor_name"]}_{step2["concentration"]:.1g}'
+            name = f"{od1}-vs-{od2}"
+
+
         
-        figure, ax = plt.subplots(4, sharex=True)
-        figure.title = f"Spike activation at iteration {i}"
+        figure, ax = plt.subplots(4, sharex=True, layout="constrained")
+        figure.suptitle(name, fontsize=14)
         # Pick the strongest glomerulus at the current experiment
 
         # First, pick the right time
         start_ra = np.searchsorted(ra_times, t_off)
         end_ra = np.searchsorted(ra_times, t_end, 'right')
-        end_ra -= 1 # needed
-        #if end_ra - start_ra > len(t):
-        #    end_ra = start_ra + len(t) # FIXME
+        end_ra -= 1
+        
+        # the last event may have less data
+        if end_ra - start_ra < len(t):
+            t = t[:end_ra - start_ra]
         ra_vals = ra[start_ra:end_ra, 1:]
         # Then, sum the overall activation per neuron
         ra_sum = np.sum(ra_vals, axis=0)
@@ -180,7 +191,6 @@ def plot_spikes(param, exp_name, precision):
         for j, pop in enumerate(to_read):
             if j == 0:
                 continue # exclude OR
-            print(pop)
 
             to_plot = data[f"{pop}_V"][start_ra:end_ra, 1:]
             pop_n = param["neuron_populations"][pop]["n"]
@@ -206,8 +216,8 @@ def plot_spikes(param, exp_name, precision):
             od1 = f'{cur_step["odor_name"]}_{cur_step["concentration"]:.1g}'
             step2 = protocol.events[i+1]
             od2 = f'{step2["odor_name"]}_{step2["concentration"]:.1g}'
-            name = f"{od1}vs{od2}"
-        filename = f"{param['simulation']['simulation']['output_path']}/{exp_name}_raw_spikes_{i}_{name}.png"
+            name = f"{od1}-vs-{od2}"
+        filename = f"{param['simulation']['simulation']['output_path']}/{exp_name}/{exp_name}_raw_spikes_{i}_{name}.png"
         print(f"saving to {filename}")
         plt.savefig(filename, dpi=1000)
         print(f"saved")
@@ -216,77 +226,176 @@ def plot_spikes(param, exp_name, precision):
 
 
 def plot_heatmap(param, exp_name):
-    data, protocol = parse_data(exp_name, {"or": ["ra"], "orn": ["spikes"]})
-    pn_spikes = data["orn_spikes"]
+    data, protocol = parse_data(
+        exp_name, {
+            "orn": ["spikes"], "pn": ["spikes"], "ln": ["spikes"]
+        }
+    )
 
+    plt.rc("font", size=8)
+    plt.rcParams['text.usetex'] = True
     n_or = param["neuron_populations"]["or"]["n"]
-    n_pn = param["neuron_populations"]["orn"]["n"]
-    or_ra = data["or_ra"]
-    pn_spikes_t = pn_spikes[:, 0]
-    pn_spikes_ids = pn_spikes[:, 1]
-    sdfs = []
-    glo_avg_sdfs = []
+
+    if isinstance(protocol, ThirdProtocol):
+        # select:
+        #   pure Geo [1e-6, 1e-5, 1e-4, 1e-3] OR
+        #   pure IAA [1e-3, 1e-1] OR
+        #   mixed IAA [(0.001, 0.001)]
+        iis = [2, 4, 6, 8, 10, 20, 18]
+        titles = []
+        for i in range(-6, -2):
+            titles.append("Geo, $c = 10^{%d}$" % i)
+        for i in [-3, -1]:
+            titles.append("IAA, $c = 10^{%d}$" % i)
+        titles.append("IAA+Geo, $c = 10^{%d}$" % -3)
+
+    else:
+        # TODO
+        iis = list(range(10))
+
+    for pop in ["orn", "pn", "ln"]:
+        sdfs = []
+        glo_avg_sdfs = []
+        for i in iis:
+            od_active = protocol.events[i]
+            # FIXME
+            od_inactive = protocol.events[i]
+            od_active_tstart = od_active["t_start"]
+            od_inactive_tend = od_inactive["t_end"]
+            #print(od_active_tstart, od_inactive_tend)
 
 
-    # select some interesting experiments
-    # in the first experiment, for example, consider
+            pop_spikes = data[f"{pop}_spikes"]
+            pop_spikes_t = pop_spikes[:, 0]
+            pop_spikes_ids = pop_spikes[:, 1]
 
-    for i in range(0, len(protocol.events), 4):
-        od_active = protocol.events[i]
-        od_inactive = protocol.events[i+2]
-        od_active_tstart = od_active["t_start"]
-        od_inactive_tend = od_inactive["t_end"]
-        print(od_active_tstart, od_inactive_tend)
+            left_spikes_active_idx = np.searchsorted(pop_spikes_t, od_active_tstart)
+            right_spikes_inactive_idx = np.searchsorted(pop_spikes_t, od_inactive_tend, 'right')
+            n_pop = param["neuron_populations"][pop]["n"]
+            factor = n_pop // n_or
+            
+            spikes_t = pop_spikes_t[left_spikes_active_idx:right_spikes_inactive_idx]
+            spikes_ids = pop_spikes_ids[left_spikes_active_idx:right_spikes_inactive_idx]
 
-        left_spikes_active_idx = np.searchsorted(pn_spikes_t, od_active_tstart)
-        right_spikes_inactive_idx = np.searchsorted(pn_spikes_t, od_inactive_tend, 'right')
+            if len(spikes_t) == 0:
+                break
 
+            sigma_sdf = 100.0
+            dt_sdf = 1.0
+
+            sdfs.append(make_sdf(spikes_t,
+                        spikes_ids, n_pop, dt_sdf, sigma_sdf))
+            
+            glo_avg_sdfs.append(glo_avg(sdfs[-1], factor))
+
+        min_cbar = -20
+        max_cbar = 100
         
-        spikes_t = pn_spikes_t[left_spikes_active_idx:right_spikes_inactive_idx]
-        spikes_ids = pn_spikes_ids[left_spikes_active_idx:right_spikes_inactive_idx]
+        fig, ax = plt.subplots(1, len(iis), sharey=True, layout="constrained", figsize=(10,4))
+        fig.suptitle(f"{protocol.param['connectivity_type']} configuration in {pop.upper()}")
+        fig.text(0.5, 0.01, "Time ($s$)", ha='center')
+        ax[0].set_ylabel("Neuron group")
+        for i in range(len(iis)):
+            ax[i].set_title(titles[i])
+            last_image = ax[i].imshow(glo_avg_sdfs[i].T, vmin=min_cbar, vmax=max_cbar, cmap="hot")
+            ax[i].set_aspect(60)
+            ax[i].set_xticks(np.linspace(0, od_inactive_tend - od_active_tstart, 3))
+        cbar = fig.colorbar(last_image, ax=ax[i])
+        cbar.ax.set_ylabel("SDF ($Hz$)")
+        filename = f"{exp_name}_heatmap_{pop}.png"
+        plt.savefig(filename, dpi=700, bbox_inches='tight')
+        plt.cla()
+        plt.clf()
+
+        fig, ax = plt.subplots()
+
+        fig.suptitle(f"Mean activation of {pop} glomeruli neurons over time")
+        for idx in range(len(iis)):
+            # take the most active glomerulus and plot its activation over time
+            most_active_glo = np.argmax(np.mean(glo_avg_sdfs[idx], axis=0))
+            ax.plot(glo_avg_sdfs[idx][:, most_active_glo], label=titles[idx])
+            ax.set_ylabel("SDF ($Hz$)")
+            ax.set_xlabel("Time ($s$)")
+        ax.set_xticks(np.linspace(0, od_inactive_tend - od_active_tstart, 3))
+        ax.legend()
+        filename = f"{exp_name}_lines_{pop}.png"
+        plt.savefig(filename, dpi=700, bbox_inches='tight')
+        plt.cla()
+        plt.clf()
+
+
+def plot_sdf_over_c(param, exp_name):
+    data, protocol = parse_data(
+        exp_name, {
+            "orn": ["spikes"], "pn": ["spikes"], "ln": ["spikes"]
+        }
+    )
+
+    plt.rc("font", size=8)
+    plt.rcParams['text.usetex'] = True
+    n_or = param["neuron_populations"]["or"]["n"]
+
+    if not isinstance(protocol, FirstProtocol):
+        raise ValueError("This plot requires FirstProtocol")
+    
+    
+    for pop in ["orn"]:
+        concentrations = {"iaa": [0, 1, 2], "geo": [3, 4, 5]}
+        for odor, ii in concentrations.items():
+            max_sdfs = []
+            max_concentrations = []
+            for i in ii:
+                od_active = protocol.events[i]
+                # FIXME
+                od_inactive = protocol.events[i]
+                od_active_tstart = od_active["t_start"]
+                od_inactive_tend = od_inactive["t_end"]
+
+                pop_spikes = data[f"{pop}_spikes"]
+                pop_spikes_t = pop_spikes[:, 0]
+                pop_spikes_ids = pop_spikes[:, 1]
+
+                left_spikes_active_idx = np.searchsorted(pop_spikes_t, od_active_tstart)
+                right_spikes_inactive_idx = np.searchsorted(pop_spikes_t, od_inactive_tend, 'right')
+                n_pop = param["neuron_populations"][pop]["n"]
+                factor = n_pop // n_or
+                
+                spikes_t = pop_spikes_t[left_spikes_active_idx:right_spikes_inactive_idx]
+                spikes_ids = pop_spikes_ids[left_spikes_active_idx:right_spikes_inactive_idx]
+
+                sigma_sdf = 100.0
+                dt_sdf = 1.0
+                n_pop = param["neuron_populations"][pop]["n"]
+                factor = n_pop // n_or
+
+                sdf = make_sdf(spikes_t, spikes_ids, n_pop, dt_sdf, sigma_sdf)
+                avgd = glo_avg(sdf, factor)
+
+                max_sdfs.append(np.max(avgd))
+                max_concentrations.append(od_active["concentration"])
+
+
+            print(max_concentrations)
+            plt.plot(max_concentrations, max_sdfs, label=odor)
+        plt.legend()
+        plt.show()
+            
 
         if len(spikes_t) == 0:
             break
-        
 
         sigma_sdf = 100.0
         dt_sdf = 1.0
 
-        print(spikes_ids)
-        print(n_pn)
 
-        sdfs.append(make_sdf(spikes_t,
-                    spikes_ids, n_pn, dt_sdf, sigma_sdf))
-        
-        # Assume each glomerulus is made of 5 neurons (?)
-        glo_avg_sdfs.append(glo_avg(sdfs[-1], 5))
 
-        print(sdfs[-1].T)
-
-        plt.imshow(sdfs[-1].T, cmap='hot')
-        plt.title("Glomeruli spike activation in PN")
-        plt.xlabel("Time")
-        plt.ylabel("Neuron group")
-        
-        '''
-        or_ra_selected = or_ra[0:9000*5, 1:]
-        xticks = np.arange(0, 9000, 500)
-        plt.imshow(or_ra_selected.T, cmap='hot')#, extent=[0, 9000, 0, n_or])
-        plt.title("Glomeruli spike activation in PN")
-        plt.xlabel("Time")
-        plt.ylabel("RA activation")
-        
-        '''
-
-        filename = f"{exp_name}_heatmap_{i}.png"
-        print(f"saving {filename}")
-        plt.savefig(filename, dpi=300)
-        print(f"saved")
 
 
 if __name__ == "__main__":
     import sys
     params = parse_cli()
     name = params['simulation']['name']
-    plot_spikes(params, name, precision=10.0)
+    #plot_spikes(params, name, precision=10.0)
+    #plot_heatmap(params, name)
+    plot_sdf_over_c(params, name)
     #plot_heatmap(get_parameters(sys.argv[1]), sys.argv[2])
