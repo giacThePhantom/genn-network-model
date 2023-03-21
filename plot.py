@@ -18,7 +18,7 @@ from protocol import Protocol
 from third_protocol import ThirdProtocol
 from matplotlib import cm, pyplot as plt
 
-from reading_parameters import get_parameters, parse_cli
+from reading_parameters import get_argparse_template, get_parameters, parse_cli
 
 def make_sdf(spike_times: np.ndarray, spike_ids, n_all_ids, dt, sigma):
     """
@@ -115,13 +115,15 @@ def subplot_smoothed(t, data, ax, k):
     ax.plot(t, convolved, 'k', linewidth=0.5)
 
 
-def plot_spikes(param, exp_name, precision):
+def plot_spikes(param, exp_name, **kwargs):
     to_read =  {
         "or": ["ra"],
         "orn": ["V", "spikes"],
         "pn": ["V", "spikes"],
         "ln": ["V", "spikes"]
     }
+
+    precision = kwargs.get("precision", None)
 
     data, protocol = parse_data(exp_name, to_read)
 
@@ -131,6 +133,8 @@ def plot_spikes(param, exp_name, precision):
     # select a timestep
     # dt = protocol.param["simulation"]["dt"]
     dt = 0.2
+    if precision is None:
+        precision = dt
     scale_up = int(precision // dt)
     ra_times = ra[:, 0]
     is_first_protocol = isinstance(protocol, FirstProtocol) 
@@ -225,7 +229,7 @@ def plot_spikes(param, exp_name, precision):
 
 
 
-def plot_heatmap(param, exp_name):
+def plot_heatmap(param, exp_name, **kwargs):
     data, protocol = parse_data(
         exp_name, {
             "orn": ["spikes"], "pn": ["spikes"], "ln": ["spikes"]
@@ -324,7 +328,7 @@ def plot_heatmap(param, exp_name):
         plt.clf()
 
 
-def plot_sdf_over_c(param, exp_name):
+def plot_sdf_over_c(param, exp_name, **kwargs):
     data, protocol = parse_data(
         exp_name, {
             "orn": ["spikes"], "pn": ["spikes"], "ln": ["spikes"]
@@ -387,15 +391,27 @@ def plot_sdf_over_c(param, exp_name):
         sigma_sdf = 100.0
         dt_sdf = 1.0
 
-
-
-
+def plot_mono(params, exp_name, **kwargs):
+    pass
 
 if __name__ == "__main__":
-    import sys
-    params = parse_cli()
+    parser = get_argparse_template()
+    plot_group = parser.add_argument_group("plot")
+    plot_group.add_argument("plot", choices=['spikes', 'heatmap', 'sdf-over-c', 'mono'])
+    plot_group.add_argument("--precision", help="For spikes plotting, set the desired resolution (in ms). Defaults to the simulation dt.")
+    params = parse_cli(parser)
     name = params['simulation']['name']
-    #plot_spikes(params, name, precision=10.0)
-    #plot_heatmap(params, name)
-    plot_sdf_over_c(params, name)
-    #plot_heatmap(get_parameters(sys.argv[1]), sys.argv[2])
+
+    print(params["cli"])
+
+    match params["cli"]["plot"]:
+        case "spikes":
+            f = plot_spikes
+        case "heatmap":
+            f = plot_heatmap
+        case "sdf-over-c":
+            f = plot_sdf_over_c
+        case "mono":
+            f = plot_mono
+    
+    f(params, name, precision=params["cli"]["precision"])
