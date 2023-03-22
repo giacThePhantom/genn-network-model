@@ -52,12 +52,12 @@ class Simulator:
         self.sim_name = sim_name
 
         self.model = NeuronalNetwork(
-            param['simulation']['name'],
+            param['simulations']['name'],
             param['neuron_populations'],
             param['synapses'],
-            param['simulation']['simulation']['dt'],
-            optimizeCode=params['simulation']['simulation']['optimize_code'],
-            generateEmptyStatePush=params['simulation']['simulation']['generate_empty_state_push']
+            param['simulations']['simulation']['dt'],
+            optimizeCode=params['simulations']['simulation']['optimize_code'],
+            generateEmptyStatePush=params['simulations']['simulation']['generate_empty_state_push']
         )
 
         self.recorded_vars = {}
@@ -65,12 +65,16 @@ class Simulator:
         # For each layer automatically create a default dict
         self._data = defaultdict(lambda: defaultdict(lambda: np.array([])))
         self.protocol = protocol
-        self.param = param['simulation']['simulation']
-        batch = self.local_var_batch = self.param['batch']
-        dt = self.param['dt']
+        self.param = param['simulations']['simulation']
+        batch = self.param['batch']
         self._output_table = None
-        self.batch_var_reads = self.param["batch_var_reads"]
-        self.batch_size_timesteps = round(batch / self.batch_var_reads)
+        self.save = self.param["save"]
+
+        # N_timesteps_to_pull_var is the sampling frequency (in timesteps) for normal (non-event) vars.
+        # For example, n_timesteps_to_pull_var=100 means every 100 steps (or 100*dt ms) we pull a variable.
+        # 
+        self.n_timesteps_to_pull_var = self.param["n_timesteps_to_pull_var"]
+        self.batch_size_timesteps = round(batch / self.n_timesteps_to_pull_var)
         self._reset_population()
         self.track_vars()
 
@@ -91,7 +95,7 @@ class Simulator:
                 self._data[population][name] = np.empty((self.batch_size_timesteps, genn_pop.size + 1))
 
             # For spikes, this is hopefully an upper bound. For vars, this is exact.
-            expected_rows = self.protocol.simulation_time // (self.param["batch_var_reads"] / self.param["dt"])
+            expected_rows = self.protocol.simulation_time // (self.n_timesteps_to_pull_var * self.param["dt"])
             self.recorded_vars.setdefault(population, []).append(name)
             f.create_earray(group, name, tables.Float64Atom(),
                             (0, target_cols), expectedrows=expected_rows)
@@ -130,11 +134,6 @@ class Simulator:
     def _reset_population(self):
         self._row_count = 0
 
-        #for pop, var_dict in self._data.items():
-        #    for var, values in var_dict.items():
-        #        self._data[pop][var].fill(0)
-
-
     def _stream_output(self):
         logging.info(f"Saving to {self.dirpath}")
 
@@ -147,7 +146,7 @@ class Simulator:
                 # handle both spiking events and snapshots
                 if len(values.shape) == 1:
                     values = values.reshape((1, -1))
-                self._output_table.root[pop][var].append(values)
+                self._output_table.root[pop][var].append(values[:self._row_count])
 
         self._reset_population()
 
@@ -246,7 +245,6 @@ class Simulator:
 
         if not genn_model._built:
             logging.info("Build and load")
-            self.batch_size_timesteps
             self.model.build_and_load(self.batch_size_timesteps)
             logging.info("Done")
         else:
@@ -264,7 +262,7 @@ class Simulator:
         # Kickstart the simulation
         batch_timesteps = self.batch_size_timesteps
         total_timesteps = round(self.protocol.simulation_time / genn_model.dT)
-        batch_var_reads = self.batch_var_reads
+        n_timesteps_to_pull_var = self.n_timesteps_to_pull_var
 
         with logging_redirect_tqdm():
             with tqdm(total=total_timesteps) as pbar:
@@ -272,7 +270,7 @@ class Simulator:
                     logging.debug(f"Time: {genn_model.t}")
                     genn_model.step_time()
                     self.update_target_pop(target_pop, current_events, events)
-                    if genn_model.timestep % batch_var_reads == 0:
+                    if genn_model.timestep % n_timesteps_to_pull_var == 0:
                         self._collect_vars()
 
                     if genn_model.timestep % batch_timesteps == 0:
@@ -285,7 +283,7 @@ class Simulator:
 def pick_protocol(params):
     # Pick the correct protocol for the experiment
     protocol_data = params["protocols"]
-    match params["simulation"]["simulation"]["experiment_name"]:
+    match params["simulations"]["simulation"]["experiment_name"]:
         case "experiment1":
             protocol = FirstProtocol(protocol_data["experiment1"])
         case "experiment2":
@@ -307,7 +305,7 @@ if __name__ == "__main__":
     params = parse_cli()
     protocol = pick_protocol(params)
 
-    sim_params = params['simulation']
+    sim_params = params['simulations']
     name = sim_params['name']
     sim = Simulator(name, protocol,
                     params)

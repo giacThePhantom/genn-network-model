@@ -4,10 +4,12 @@ Make plots. TODO cleanup
 
 from asyncio import protocols
 import math
+from multiprocessing.sharedctypes import Value
 from pathlib import Path
 import pickle
 from pprint import pprint
-from typing import Dict, List, Tuple
+from turtle import left
+from typing import Dict, List, Tuple, cast
 
 from matplotlib.patches import Rectangle
 import numpy as np
@@ -98,7 +100,7 @@ def parse_data(param, exp_name, vars_to_read: Dict[str, List[str]]) -> Tuple[Dic
         a dictionary (key -> list of vars) of the variables to extract.
         Refer to `Simulation` for details
     """
-    dirpath = Path(param["simulation"]['simulation']['output_path']) / exp_name
+    dirpath = Path(param["simulations"]['simulation']['output_path']) / exp_name
     data = tables.open_file(str(dirpath / "tracked_vars.h5"))
     with (dirpath / "protocol.pickle").open("rb") as f:
         protocol: TestFirstProtocol = pickle.load(f)
@@ -169,8 +171,9 @@ def plot_spikes(param, exp_name, **kwargs):
     ra = data["or_ra"]
 
     # select a timestep
-    # dt = protocol.param["simulation"]["dt"]
-    dt = 0.2
+    print(param.keys())
+
+    dt = param["simulations"]["simulation"]["dt"] * param["simulations"]["simulation"]["n_timesteps_to_pull_var"]
     if precision is None:
         precision = dt
     scale_up = int(precision // dt)
@@ -195,8 +198,6 @@ def plot_spikes(param, exp_name, **kwargs):
             od2 = f'{step2["odor_name"]}_{step2["concentration"]:.1g}'
             name = f"{od1}-vs-{od2}"
 
-
-        
         figure, ax = plt.subplots(4, sharex=True, layout="constrained")
         figure.suptitle(name, fontsize=14)
         # Pick the strongest glomerulus at the current experiment
@@ -259,13 +260,23 @@ def plot_spikes(param, exp_name, **kwargs):
             step2 = protocol.events[i+1]
             od2 = f'{step2["odor_name"]}_{step2["concentration"]:.1g}'
             name = f"{od1}-vs-{od2}"
-        filename = f"{param['simulation']['simulation']['output_path']}/{exp_name}/{exp_name}_raw_spikes_{i}_{name}.png"
+        filename = f"{param['simulations']['simulation']['output_path']}/{exp_name}/{exp_name}_raw_spikes_{i}_{name}.png"
         print(f"saving to {filename}")
         plt.savefig(filename, dpi=1000)
         print(f"saved")
 
 
+def select_window(time_data: np.ndarray, protocol: Protocol, i):
+    # Find a window that is contained by a protocol event in O(log N)
+    t_start = protocol.events[i]["t_start"]
+    t_end_event = protocol.events[i]["t_end"]
+    t_end_rest = protocol.events[i]["t_end"] + protocol.resting_duration
 
+    left = np.searchsorted(time_data, t_start)
+    right_event = np.searchsorted(time_data, t_end_event, 'right')
+    right_rest = np.searchsorted(time_data, t_end_rest, 'right')
+
+    return left, right_event, right_rest
 
 def plot_heatmap(param, exp_name, **kwargs):
     data, protocol = parse_data(
@@ -371,7 +382,7 @@ def plot_sdf_over_c(param, exp_name, **kwargs):
     data, protocol = parse_data(
         param,
         exp_name, {
-            "orn": ["spikes"], "pn": ["spikes"], "ln": ["spikes"]
+            "orn": ["spikes"]#, "pn": ["spikes"], "ln": ["spikes"]
         }
     )
 
@@ -401,7 +412,6 @@ def plot_sdf_over_c(param, exp_name, **kwargs):
                 left_spikes_active_idx = np.searchsorted(pop_spikes_t, od_active_tstart)
                 right_spikes_inactive_idx = np.searchsorted(pop_spikes_t, od_inactive_tend, 'right')
                 n_pop = param["neuron_populations"][pop]["n"]
-                factor = n_pop // n_or
                 
                 spikes_t = pop_spikes_t[left_spikes_active_idx:right_spikes_inactive_idx]
                 spikes_ids = pop_spikes_ids[left_spikes_active_idx:right_spikes_inactive_idx]
@@ -429,8 +439,79 @@ def plot_sdf_over_c(param, exp_name, **kwargs):
         sigma_sdf = 100.0
         dt_sdf = 1.0
 
-def plot_mono(params, exp_name, **kwargs):
-    pass
+def plot_mono(param, exp_name, **kwargs):
+    # Abridged from Prof. Nowotny's notebook:
+    # Monotonicity is the difference between the maximal value of the time-averaged
+    # SDF response and the value at the maximal concentration.
+    # - If mono is high, the meanSDF concentratin curve has a local maximum at a lower concentration.
+    # - If mono is zero, then there is a high correlation between meanSDF and 
+
+    data, protocol = parse_data(
+        param,
+        exp_name, {
+            "orn": ["spikes"], "pn": ["spikes"], "ln": ["spikes"]
+        }
+    )
+
+    if not isinstance(protocol, FirstProtocol):
+        raise ValueError("This plot requires ThirdProtocol")
+    
+    protocol = cast(FirstProtocol, protocol)
+
+    pn_spike_t = data["pn_spikes"][:, 0]
+    pn_spike_ids = data["pn_spikes"][:, 1]
+    n_pop = param["neuron_populations"]["pn"]["n"]
+    n_or = param["neuron_populations"]["or"]["n"]
+
+    sigma_sdf = 100.0
+    dt_sdf = 1.0
+
+
+    # FIXME
+    n_odors = 3
+    n_conc = 3
+
+    max_activation_per_app = np.array((n_odors, n_conc))
+    avg_activation_per_app = np.array((n_odors, n_conc))
+    max_glo_per_odor = np.array((n_odors,))
+
+    for odor in range(n_odors):
+        total_mean_sdf_per_odor = np.zeros(n_or)
+        for conc in range(n_conc):
+            cur_step = protocol.events[odor*3 + conc]
+            #t_start = cur_step["t_start"]
+            #t_end = cur_step["t_end"]
+            left_active_idx, _, right_inactive_idx = select_window(pn_spike_t, protocol, i)
+            spikes_t = pn_spike_t[left_active_idx:right_inactive_idx]
+            spikes_ids = pn_spike_ids[left_active_idx:right_inactive_idx]
+
+            sdf = make_sdf(spikes_t, spikes_ids, n_pop, n_pop, dt_sdf, sigma_sdf)
+            factor = n_pop // n_or
+            avg_glo_sdf = glo_avg(sdf, factor)
+            avg_glo_sdf_onlyactive = avg_glo_sdf[3000:6000, :] # this is nasty
+            mean_sdf_per_odor = np.mean(avg_glo_sdf_onlyactive, axis=0)
+            max_sdf_per_odor = np.amax(avg_glo_sdf, axis=0)
+            total_mean_sdf_per_odor += mean_sdf_per_odor
+        
+        '''
+        max_glo_per_odor[i] = np.argmax(total_mean_sdf_per_odor)
+        for conc in range(n_conc):
+            max_activation_per_app[odor, conc] = max_sdf_per_odor
+            avg_activation_per_app[odor, conc] = mean_sdf_per_odor
+        '''
+        
+        
+    max_mono = np.zeros(n_odors)
+    mean_mono = np.zeros(n_odors)
+    '''
+    for i in range(n_odors):
+        # ("max activation ever recorded for an odor" - "maximum activation at the maximum concentration")
+        # ------------------------------------------------------------------------------------------------
+        #                ("average of [maximum activation of each concentration] ")
+        max_mono[i] = (np.amax(max_activation_per_app[i, :]) - max_activation_per_app[i, -1]) / 
+        mean_mono[i] = (np.amax(avg_activation_per_app[i, :]) - max_activation_per_app[i, -1]) / 
+    '''
+
 
 if __name__ == "__main__":
     parser = get_argparse_template()
@@ -438,7 +519,7 @@ if __name__ == "__main__":
     plot_group.add_argument("plot", choices=['spikes', 'heatmap', 'sdf-over-c', 'mono'])
     plot_group.add_argument("--precision", help="For spikes plotting, set the desired resolution (in ms). Defaults to the simulation dt.")
     params = parse_cli(parser)
-    name = params['simulation']['name']
+    name = params['simulations']['name']
 
     match params["cli"]["plot"]:
         case "spikes":
