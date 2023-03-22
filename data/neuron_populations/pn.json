@@ -23,7 +23,7 @@
     "g_adapt": 0.0,
     "V_adapt": -70.0,
     "tau_adapt": 1000.0,
-		"noise_A": "eval 1: 1.4/np.sqrt(params['simulation']['simulation']['dt'])"
+		"noise_A": "eval 1: 1.4/np.sqrt(params['simulations']['simulation']['dt'])"
 	},
 	"variables" : [
 		{
