@@ -207,6 +207,7 @@ def plot_spikes(param, exp_name, **kwargs):
         end_ra -= 1
 
         # the last event may have less data
+
         if end_ra - start_ra < len(t):
             t = t[:end_ra - start_ra]
         ra_vals = ra[start_ra:end_ra, 1:]

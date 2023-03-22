@@ -134,7 +134,7 @@ class Simulator:
         target_pop = self.model.connected_neurons['or']
 
         # Kickstart the simulation
-        total_timesteps = round(self.protocol.simulation_time / genn_model.dT)
+        total_timesteps = round(self.protocol.simulation_time)
 
         with logging_redirect_tqdm():
             with tqdm(total=total_timesteps) as pbar:
@@ -143,7 +143,8 @@ class Simulator:
                     genn_model.step_time()
                     self.update_target_pop(target_pop, current_events, events)
                     self.recorder.record(self.model, save)
-                    pbar.update()
+                    if genn_model.t % 1 == 0:
+                        pbar.update(1)
         self.recorder.flush()
 
 def pick_protocol(params):

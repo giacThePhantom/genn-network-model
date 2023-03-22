@@ -18,7 +18,6 @@ class Recorder:
         self.protocol_path = self.dirpath / "protocol.pickle"
         self.dirpath.mkdir(exist_ok=True)
         self.filters = tables.Filters(complib='blosc:zstd', complevel=5)
-        self._row_count = 0
 
         self.batch_var_reads = batch_var_reads
         self.batch_size_timesteps = round(batch / self.batch_var_reads)
@@ -27,11 +26,9 @@ class Recorder:
 
         self.recorded_vars = self._set_up_var_recording(to_be_tracked, connected_neurons)
 
-        self.recorded_vars = {}
+        self._row_count = 0
         self._data = self._set_container_for_data_recording(self.recorded_vars, connected_neurons)
         self._output_table = None
-        self.poll_spike_readings = True
-        self.recorded_vars = {}
         pass
 
     def dump_protocol(self, protocol):
@@ -45,9 +42,9 @@ class Recorder:
                     model.connected_neurons[pop].spike_recording_enabled = True
 
     def _set_container_for_data_recording(self, recorded_vars, connected_neurons):
-        res = defaultdict(lambda : defaultdict(lambda : np.array([])))
-
+        res = {}
         for pop in recorded_vars:
+            res[pop] = {}
             for var_name in recorded_vars[pop]:
                 if var_name != 'spikes':
                     res[pop][var_name] = np.empty((self.batch_size_timesteps, connected_neurons[pop].size + 1))
@@ -60,36 +57,24 @@ class Recorder:
             genn_pop = model.connected_neurons[pop]
             for var_name in self.recorded_vars[pop]:
                 if var_name != 'spikes':
-                    genn_pop.pull_var_name_from_device(var_name)
+                    genn_pop.pull_var_from_device(var_name)
                     logging.debug(f"{pop} -> {var_name}")
-                    logging.debug(genn_pop.var_names[var_name].view)
-                    series = genn_pop.var_names[var_name].view.T
-                    times = np.array([model.t])
+                    logging.debug(genn_pop.vars[var_name].view)
+                    series = genn_pop.vars[var_name].view.T
+                    times = np.array([model.network.t])
 
                     self._add_to_var(pop, var_name, times, series)
         self._row_count += 1
 
-    def _collect_spikes(self, poll_spike_readings, model):
+    def _collect_spikes(self, model):
         genn_model = model.network
-        if not poll_spike_readings:
-            genn_model.pull_recording_buffers_from_device()
+        genn_model.pull_recording_buffers_from_device()
         for pop_name in self.recorded_vars:
             if "spikes" not in self.recorded_vars[pop_name]:
                 continue
             genn_pop = model.connected_neurons[pop_name]
-            if not poll_spike_readings:
-                spike_t = genn_pop.spike_recording_data[0]
-                spike_id = genn_pop.spike_recording_data[1]
-            else:
-                genn_pop.pull_current_spikes_from_device()
-                spike_count = genn_pop.spike_count[0][0]
-                logging.debug(f"Detected {spike_count} spike events")
-                if spike_count > 0:
-                    spike_t = genn_model.t * np.ones(spike_count)
-                    spike_id = genn_pop.spikes[0][0][:spike_count]
-                else:
-                    spike_t = []
-                    spike_id = []
+            spike_t = genn_pop.spike_recording_data[0]
+            spike_id = genn_pop.spike_recording_data[1]
             self._add_to_var(pop_name, "spikes", spike_t, spike_id)
 
     def _add_to_var(self, pop, var, times, series):
@@ -110,10 +95,10 @@ class Recorder:
                 group = f.create_group(f.root, pop)
                 for var_name in to_be_tracked[pop]:
                     target_cols = self._get_cols_for_var(var_name, connected_neurons[pop])
-                    expected_rows = self.simulation_time // (self.batch_var_reads / self.dt)
+                    expected_rows = self.simulation_time // (self.batch_var_reads * self.dt)
+                    res.setdefault(pop, []).append(var_name)
                     f.create_earray(group, var_name, tables.Float64Atom(),
                                     (0, target_cols), expectedrows=expected_rows)
-                    res.setdefault(pop, []).append(var_name)
         return res
 
 
@@ -147,7 +132,7 @@ class Recorder:
                 # handle both spiking events and snapshots
                 if len(values.shape) == 1:
                     values = values.reshape((1, -1))
-                self._output_table.root[pop][var].append(values)
+                self._output_table.root[pop][var].append(values[:self._row_count])
 
         self._reset_population()
 
@@ -157,10 +142,10 @@ class Recorder:
         self._reset_population()
 
     def record(self, model, save):
-        if model.network.timestep % self.batch_var_reads == 0:
+        if model.network.timestep % self.batch_var_reads == 0 or model.network.timestep == self.simulation_time / self.dt:
             self._collect_vars(model)
 
-        if model.network.timestep % self.batch_size_timesteps == 0:
-            self._collect_spikes(self.poll_spike_readings, model)
+        if model.network.timestep % self.batch_size_timesteps == 0 or model.network.timestep ==  self.simulation_time / self.dt:
+            self._collect_spikes(model)
             if save:
                 self._stream_output()

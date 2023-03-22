@@ -7,7 +7,7 @@
     "optimize_code": false,
     "generate_empty_state_push": false,
     "save_to_disk" : 40,
-    "output_path": "outputs",
+    "output_path": "/media/data/thesis_output",
     "tracked_variables": {
         "or": [
             "ra"
