@@ -1,5 +1,4 @@
 import numpy as np
-from collections import defaultdict
 import logging
 from pathlib import Path
 import pickle
@@ -11,7 +10,7 @@ class Recorder:
     An object that records and saves data during a simulation run
     """
 
-    def __init__(self, output_path, sim_name, to_be_tracked, connected_neurons, batch, batch_var_reads,  dt, simulation_time):
+    def __init__(self, output_path, sim_name, to_be_tracked, connected_neurons, batch, n_timesteps_to_pull_var,  dt, simulation_time):
 
         self.dirpath = Path(output_path) / sim_name
         self.logging_path = self.dirpath / "tracked_vars.h5"
@@ -19,8 +18,8 @@ class Recorder:
         self.dirpath.mkdir(exist_ok=True)
         self.filters = tables.Filters(complib='blosc:zstd', complevel=5)
 
-        self.batch_var_reads = batch_var_reads
-        self.batch_size_timesteps = round(batch / self.batch_var_reads)
+        self.n_timesteps_to_pull_var = n_timesteps_to_pull_var
+        self.n_points_in_batch = round(batch / self.n_timesteps_to_pull_var)
         self.dt = dt
         self.simulation_time = simulation_time
 
@@ -47,7 +46,7 @@ class Recorder:
             res[pop] = {}
             for var_name in recorded_vars[pop]:
                 if var_name != 'spikes':
-                    res[pop][var_name] = np.empty((self.batch_size_timesteps, connected_neurons[pop].size + 1))
+                    res[pop][var_name] = np.empty((self.n_points_in_batch, connected_neurons[pop].size + 1))
 
         return res
 
@@ -95,7 +94,7 @@ class Recorder:
                 group = f.create_group(f.root, pop)
                 for var_name in to_be_tracked[pop]:
                     target_cols = self._get_cols_for_var(var_name, connected_neurons[pop])
-                    expected_rows = self.simulation_time // (self.batch_var_reads * self.dt)
+                    expected_rows = self.simulation_time // (self.n_timesteps_to_pull_var * self.dt)
                     res.setdefault(pop, []).append(var_name)
                     f.create_earray(group, var_name, tables.Float64Atom(),
                                     (0, target_cols), expectedrows=expected_rows)
@@ -142,10 +141,10 @@ class Recorder:
         self._reset_population()
 
     def record(self, model, save):
-        if model.network.timestep % self.batch_var_reads == 0 or model.network.timestep == self.simulation_time / self.dt:
+        if model.network.timestep % self.n_timesteps_to_pull_var == 0 or model.network.timestep == self.simulation_time / self.dt:
             self._collect_vars(model)
 
-        if model.network.timestep % self.batch_size_timesteps == 0 or model.network.timestep ==  self.simulation_time / self.dt:
+        if model.network.timestep % self.n_points_in_batch == 0 or model.network.timestep ==  self.simulation_time / self.dt:
             self._collect_spikes(model)
             if save:
                 self._stream_output()

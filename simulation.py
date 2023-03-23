@@ -58,22 +58,26 @@ class Simulator:
         self.sim_name = sim_name
 
         self.model = NeuronalNetwork(
-            param['simulation']['name'],
+            param['simulations']['name'],
             param['neuron_populations'],
             param['synapses'],
-            param['simulation']['simulation']['dt'],
-            optimizeCode=param['simulation']['simulation']['optimize_code'],
-            generateEmptyStatePush=param['simulation']['simulation']['generate_empty_state_push']
+            param['simulations']['simulation']['dt'],
+            optimizeCode=params['simulations']['simulation']['optimize_code'],
+            generateEmptyStatePush=params['simulations']['simulation']['generate_empty_state_push']
         )
         self.protocol = protocol
-        self.param = param['simulation']['simulation']
+        self.param = param['simulations']['simulation']
+
+        # N_timesteps_to_pull_var is the sampling frequency (in timesteps) for normal (non-event) vars.
+        # For example, n_timesteps_to_pull_var=100 means every 100 steps (or 100*dt ms) we pull a variable.
+        #
 
         self.recorder = Recorder(self.param['output_path'],
                                  self.sim_name,
                                  self.param['tracked_variables'],
                                  self.model.connected_neurons,
                                  self.param['batch'],
-                                 self.param['batch_var_reads'],
+                                 self.param['n_timesteps_to_pull_var'],
                                  self.param['dt'],
                                  protocol.simulation_time)
 
@@ -119,7 +123,7 @@ class Simulator:
 
         if not genn_model._built:
             logging.info("Build and load")
-            self.model.build_and_load(round(self.param['batch'] / self.param['batch_var_reads']))
+            self.model.build_and_load(round(self.param['batch'] / self.param['n_timesteps_to_pull_var']))
             logging.info("Done")
         else:
             logging.info("Reinitializing")
@@ -150,7 +154,7 @@ class Simulator:
 def pick_protocol(params):
     # Pick the correct protocol for the experiment
     protocol_data = params["protocols"]
-    match params["simulation"]["simulation"]["experiment_name"]:
+    match params["simulations"]["simulation"]["experiment_name"]:
         case "experiment1":
             protocol = FirstProtocol(protocol_data["experiment1"])
         case "experiment2":
@@ -174,7 +178,7 @@ if __name__ == "__main__":
     params = parse_cli()
     protocol = pick_protocol(params)
 
-    sim_params = params['simulation']
+    sim_params = params['simulations']
     name = sim_params['name']
     sim = Simulator(name, protocol,
                     params)
