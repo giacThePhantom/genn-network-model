@@ -2,8 +2,6 @@
 Make plots. TODO cleanup
 """
 
-from asyncio import protocols
-import math
 from multiprocessing.sharedctypes import Value
 from pathlib import Path
 import pickle
@@ -15,9 +13,9 @@ from matplotlib.patches import Rectangle
 import numpy as np
 import tables
 
-from simulation import TestFirstProtocol, FirstProtocol
-from protocol import Protocol
-from third_protocol import ThirdProtocol
+from .simulation import TestFirstProtocol, FirstProtocol
+from .protocol import Protocol
+from .third_protocol import ThirdProtocol
 from matplotlib import cm, pyplot as plt
 
 from reading_parameters import get_argparse_template, get_parameters, parse_cli

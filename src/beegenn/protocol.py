@@ -1,4 +1,5 @@
-from odors import Odor
+from .odors import Odor
+
 import numpy as np
 from abc import ABC, abstractmethod
 

@@ -1,4 +1,4 @@
-from first_protocol import FirstProtocol
+from .first_protocol import FirstProtocol
 
 class TestFirstProtocol(FirstProtocol):
     def events_generation(self, _):

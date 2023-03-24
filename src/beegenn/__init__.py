@@ -1,3 +1,5 @@
+__all__ = ["neuron", "network", "synapse", "plot", "protocol"]
+
 import sys
 
 if sys.version_info < (3, 10, 0):
