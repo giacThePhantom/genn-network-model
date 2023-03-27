@@ -150,6 +150,8 @@ def subplot_spike_pane(spike_t: np.ndarray, spike_ids: np.ndarray, idx: int, fac
     ax.plot(x, y, 'k', linewidth=0.2)
 
 def subplot_smoothed(t, data, ax, k):
+
+    print(data)
     kernel = np.ones((k,))/k
     convolved = np.convolve(data, kernel, mode='same')
     ax.plot(t, convolved, 'k', linewidth=0.5)
@@ -237,6 +239,8 @@ def plot_spikes(param, exp_name, **kwargs):
                 continue # exclude OR
 
             to_plot = data[f"{pop}_V"][start_ra:end_ra, 1:]
+            print(start_ra, end_ra)
+            print(to_plot)
             pop_n = param["neuron_populations"][pop]["n"]
             pop_spikes = data[f"{pop}_spikes"]
             pop_spikes_t = pop_spikes[:, 0]
@@ -246,6 +250,8 @@ def plot_spikes(param, exp_name, **kwargs):
             ax[j].set_title(f"{pop.upper()} V for neuron {ra_most_active*factor}")
             ax[j].spines['right'].set_visible(False)
             ax[j].spines['top'].set_visible(False)
+            print(to_plot)
+            print(to_plot[:, ra_most_active])
             subplot_smoothed(t, to_plot[:, ra_most_active], ax[j], scale_up)
             subplot_spike_pane(pop_spikes_t, pop_spikes_ids,
                             ra_most_active, factor, t_off, t_end, ax[j])
