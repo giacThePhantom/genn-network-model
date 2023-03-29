@@ -129,10 +129,11 @@ class Recorder:
 
         for pop, var_dict in self._data.items():
             for var, values in var_dict.items():
-                # handle both spiking events and snapshots
                 if len(values.shape) == 1:
                     values = values.reshape((1, -1))
-                self._output_table.root[pop][var].append(values[:self._row_count])
+                if var != "spikes":
+                    values = values[:self._row_count]
+                self._output_table.root[pop][var].append(values)
 
         self._reset_population()
 

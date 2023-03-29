@@ -15,6 +15,11 @@ import tables
 
 from .simulation import TestFirstProtocol, FirstProtocol
 from .protocol import Protocol
+from . import first_protocol
+from . import second_protocol
+from . import third_protocol
+
+from .second_protocol import SecondProtocol
 from .third_protocol import ThirdProtocol
 from matplotlib import cm, pyplot as plt
 
@@ -289,26 +294,51 @@ def plot_heatmap(param, exp_name, **kwargs):
     plt.rcParams['text.usetex'] = True
     n_or = param["neuron_populations"]["or"]["n"]
 
-    if isinstance(protocol, ThirdProtocol):
+    titles = []
+    # differentiate between this and TestFirstProtocol
+    if type(protocol) == FirstProtocol:
+        # First protocol: n odors x m concentrations.
+        # Since this is too many, let us take:
+        # 3 odors (first 3) x 4 (evenly distributed concentrations out of the 24 odors) = 12 combinations
+        iis = list(range(0, 3*24, 8))
+        events = protocol.events[0:3*24:8]
+        odors = protocol.odors
+
+        for event in events:
+            print(event["odor_name"])
+            # odor = odors[event["odor_name"]]
+            # odor_name = odor.name
+            odor_name = event["odor_name"]
+            conc = event["concentration"]
+            # small trick to get a latex-friendly label
+            conc_scientific = f"{conc:.2e}"
+            match conc_scientific.split("e"):
+                case [conc_just]:
+                    conc_latex = conc_just
+                case [mantissa, exp_]:
+                    exp_ = exp_.lstrip("0")
+                    conc_latex = f"{mantissa}\cdot 10^{{ {exp_} }}"
+            titles.append(f"{odor_name}, $c = {conc_latex}$")
+
+    elif isinstance(protocol, SecondProtocol):
+        pass
+
+    elif isinstance(protocol, ThirdProtocol):
         # select:
-        #   pure Geo [1e-6, 1e-5, 1e-4, 1e-3] OR
-        #   pure IAA [1e-3, 1e-1] OR
-        #   mixed IAA [(0.001, 0.001)]
+        #   pure iaa [1e-3, 1e-1] or
+        #   mixed iaa [(0.001, 0.001)]
         iis = [2, 4, 6, 8, 10, 20, 18]
-        titles = []
         for i in range(-6, -2):
             titles.append("Geo, $c = 10^{%d}$" % i)
         for i in [-3, -1]:
             titles.append("IAA, $c = 10^{%d}$" % i)
         titles.append("IAA+Geo, $c = 10^{%d}$" % -3)
 
-    else:
-        # TODO
-        iis = list(range(10))
 
     for pop in ["orn", "pn", "ln"]:
         sdfs = []
         glo_avg_sdfs = []
+        print(iis)
         for i in iis:
             od_active = protocol.events[i]
             # FIXME
@@ -316,7 +346,6 @@ def plot_heatmap(param, exp_name, **kwargs):
             od_active_tstart = od_active["t_start"]
             od_inactive_tend = od_inactive["t_end"]
             #print(od_active_tstart, od_inactive_tend)
-
 
             pop_spikes = data[f"{pop}_spikes"]
             pop_spikes_t = pop_spikes[:, 0]
@@ -330,11 +359,14 @@ def plot_heatmap(param, exp_name, **kwargs):
             spikes_t = pop_spikes_t[left_spikes_active_idx:right_spikes_inactive_idx]
             spikes_ids = pop_spikes_ids[left_spikes_active_idx:right_spikes_inactive_idx]
 
+            # speculative fix
             if len(spikes_t) == 0:
-                break
+                glo_avg_sdfs.append(np.zeros((int(od_inactive_tend - od_active_tstart), int(n_pop // factor), )))
+                print("gen", glo_avg_sdfs[-1].shape)
+                continue
 
             sigma_sdf = 100.0
-            dt_sdf = 1.0
+            dt_sdf = 0.2
 
             sdfs.append(make_sdf(spikes_t,
                         spikes_ids, n_pop, dt_sdf, sigma_sdf))
@@ -344,12 +376,13 @@ def plot_heatmap(param, exp_name, **kwargs):
         min_cbar = -20
         max_cbar = 100
 
-        fig, ax = plt.subplots(1, len(iis), sharey=True, layout="constrained", figsize=(10,4))
+        fig, ax = plt.subplots(1, len(iis), sharey=True, layout="constrained", figsize=(round(1.5*len(iis)),4))
         fig.suptitle(f"{protocol.param['connectivity_type']} configuration in {pop.upper()}")
         fig.text(0.5, 0.01, "Time ($s$)", ha='center')
         ax[0].set_ylabel("Neuron group")
         for i in range(len(iis)):
             ax[i].set_title(titles[i])
+            print(len(ax))
             last_image = ax[i].imshow(glo_avg_sdfs[i].T, vmin=min_cbar, vmax=max_cbar, cmap="hot")
             ax[i].set_aspect(60)
             ax[i].set_xticks(np.linspace(0, od_inactive_tend - od_active_tstart, 3))

@@ -186,5 +186,5 @@ if __name__ == "__main__":
 
     sim.run(
         poll_spike_readings=sim_params[name]['poll_spike_readings'],
-        save=False
+        save=sim_params[name]['save']
     )
