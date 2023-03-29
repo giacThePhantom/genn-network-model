@@ -63,7 +63,8 @@ class Simulator:
             param['synapses'],
             param['simulations']['simulation']['dt'],
             optimizeCode=params['simulations']['simulation']['optimize_code'],
-            generateEmptyStatePush=params['simulations']['simulation']['generate_empty_state_push']
+            generateEmptyStatePush=params['simulations']['simulation']['generate_empty_state_push'],
+            backend = params['simulations']['simulation'].get("backend", None)
         )
         self.protocol = protocol
         self.param = param['simulations']['simulation']
@@ -123,7 +124,7 @@ class Simulator:
 
         if not genn_model._built:
             logging.info("Build and load")
-            self.model.build_and_load(round(self.param['batch'] / self.param['n_timesteps_to_pull_var']))
+            self.model.build_and_load(self.param['batch'])
             logging.info("Done")
         else:
             logging.info("Reinitializing")
@@ -185,5 +186,5 @@ if __name__ == "__main__":
 
     sim.run(
         poll_spike_readings=sim_params[name]['poll_spike_readings'],
-        save=True
+        save=False
     )
