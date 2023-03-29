@@ -18,7 +18,7 @@ from .protocol import Protocol
 from .third_protocol import ThirdProtocol
 from matplotlib import cm, pyplot as plt
 
-from reading_parameters import get_argparse_template, get_parameters, parse_cli
+from .reading_parameters import get_argparse_template, get_parameters, parse_cli
 
 def make_sdf(spike_times: np.ndarray, spike_ids, n_all_ids, dt, sigma):
     """
