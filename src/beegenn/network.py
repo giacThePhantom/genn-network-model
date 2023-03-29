@@ -81,6 +81,7 @@ class NeuronalNetwork:
         backend_kwargs: pass backend options. Refer to PreferenceBase
         ( https://genn-team.github.io/genn/documentation/4/html/d1/d7a/structCodeGenerator_1_1PreferencesBase.html ) for details
         """
+        print(backend_kwargs)
         if cuda_capable:
             self.network = GeNNModel("double", name, **backend_kwargs)
         else:

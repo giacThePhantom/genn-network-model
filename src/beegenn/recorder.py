@@ -20,6 +20,7 @@ class Recorder:
 
         self.n_timesteps_to_pull_var = n_timesteps_to_pull_var
         self.n_points_in_batch = round(batch / self.n_timesteps_to_pull_var)
+        self.batch = batch
         self.dt = dt
         self.simulation_time = simulation_time
 
@@ -141,10 +142,11 @@ class Recorder:
         self._reset_population()
 
     def record(self, model, save):
+        if not save:
+            return
         if model.network.timestep % self.n_timesteps_to_pull_var == 0 or model.network.timestep == self.simulation_time / self.dt:
             self._collect_vars(model)
 
-        if model.network.timestep % self.n_points_in_batch == 0 or model.network.timestep ==  self.simulation_time / self.dt:
+        if model.network.timestep % self.batch == 0 or model.network.timestep ==  self.simulation_time / self.dt:
             self._collect_spikes(model)
-            if save:
-                self._stream_output()
+            self._stream_output()
