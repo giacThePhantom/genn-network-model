@@ -141,6 +141,8 @@ class Recorder:
         self._reset_population()
 
     def record(self, model, save):
+        if not save:
+            return
         if model.network.timestep % self.n_timesteps_to_pull_var == 0 or model.network.timestep == self.simulation_time / self.dt:
             self._collect_vars(model)
 
