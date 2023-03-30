@@ -2,11 +2,8 @@
 Make plots. TODO cleanup
 """
 
-from multiprocessing.sharedctypes import Value
 from pathlib import Path
 import pickle
-from pprint import pprint
-from turtle import left
 from typing import Dict, List, Tuple, cast
 
 from matplotlib.patches import Rectangle
@@ -16,9 +13,9 @@ import tables
 from .simulation import TestFirstProtocol, FirstProtocol
 from .protocol import Protocol
 from .third_protocol import ThirdProtocol
-from matplotlib import cm, pyplot as plt
+from matplotlib import pyplot as plt
 
-from .reading_parameters import get_argparse_template, get_parameters, parse_cli
+from .reading_parameters import get_argparse_template, parse_cli
 
 def make_sdf(spike_times: np.ndarray, spike_ids, n_all_ids, dt, sigma):
     """
@@ -392,7 +389,7 @@ def plot_sdf_over_c(param, exp_name, **kwargs):
     if not isinstance(protocol, FirstProtocol):
         raise ValueError("This plot requires FirstProtocol")
     for pop in ["orn"]:
-        concentrations = {"iaa": [0, 1, 2], "geo": [3, 4, 5]}
+        concentrations = {"iaa": [0], "geo": [0]}
         for odor, ii in concentrations.items():
             max_sdfs = []
             max_concentrations = []
