@@ -98,6 +98,7 @@ class Simulator:
             elif self.model.network.t == event['t_end']:
                 target_pop.vars["kp1cn_" + str(event['channel'])].view[:] = np.zeros(
                     np.shape(event['activation_rates']))
+                self.model.network.push_state_to_device("or")
 
                 if events[i]:
                     current_events[i] = events[i].pop(0)

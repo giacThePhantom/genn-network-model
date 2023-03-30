@@ -156,6 +156,8 @@ def subplot_smoothed(t, data, ax, k):
 
 
 def plot_spikes(param, exp_name, **kwargs):
+    """Plot spikes of a single neuron, selected from the most active ra"""
+
     to_read =  {
         "or": ["ra"],
         "orn": ["V", "spikes"],
@@ -170,8 +172,6 @@ def plot_spikes(param, exp_name, **kwargs):
     plt.rc('font', size=8)
     ra = data["or_ra"]
 
-    # select a timestep
-    print(param.keys())
 
     dt = param["simulations"]["simulation"]["dt"] * param["simulations"]["simulation"]["n_timesteps_to_pull_var"]
     if precision is None:
