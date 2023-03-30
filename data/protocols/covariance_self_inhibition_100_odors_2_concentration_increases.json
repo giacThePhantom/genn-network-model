@@ -1,13 +1,13 @@
 {
-	"num_odors" : 3,
-	"concentration_increases" : 1,
+	"num_odors" : 100,
+	"concentration_increases" : 2,
 	"connectivity_type" : "covariance",
-	"self_inhibition" : false,
+	"self_inhibition" : true,
 	"num_glomeruli" : "eval 2: params['neuron_populations']['or']['n']",
 	"num_channels" : "eval 2: params['neuron_populations']['or']['num_channels']",
-	"homogeneous" : true,
+	"homogeneous" : false,
 	"concentration" : {
-		"start" : 1e-4,
+		"start" : 1e-7,
 		"dilution_factor" : {
 			"base" : 10,
 			"exponent" : 0.25

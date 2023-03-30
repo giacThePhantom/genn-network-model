@@ -219,7 +219,7 @@ def parse_cli(parser: Optional[argparse.ArgumentParser]=None):
 
     Arguments
     ---------
-    parser: argparse 
+    parser: argparse
         If provided, parse from the given parser. See `get_argparse_template` for details.
     """
     if parser is None:

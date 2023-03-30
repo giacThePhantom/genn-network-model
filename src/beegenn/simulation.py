@@ -98,6 +98,7 @@ class Simulator:
             elif self.model.network.t == event['t_end']:
                 target_pop.vars["kp1cn_" + str(event['channel'])].view[:] = np.zeros(
                     np.shape(event['activation_rates']))
+                self.model.network.push_state_to_device("or")
 
                 if events[i]:
                     current_events[i] = events[i].pop(0)
@@ -155,17 +156,16 @@ class Simulator:
 def pick_protocol(params):
     # Pick the correct protocol for the experiment
     protocol_data = params["protocols"]
-    match params["simulations"]["simulation"]["experiment_name"]:
-        case "experiment1":
-            protocol = FirstProtocol(protocol_data["experiment1"])
-        case "experiment2":
-            protocol = SecondProtocol(protocol_data["experiment2"])
-        case "experiment3":
-            protocol = ThirdProtocol(protocol_data["experiment3"])
-        case "testexperiment":
-            protocol = TestFirstProtocol(protocol_data["experiment1"])
+    experiment_name = params['simulations']['simulation']['experiment_name']
+    match params["simulations"]["simulation"]["experiment_type"]:
+        case "first_protocol":
+            protocol = FirstProtocol(protocol_data[experiment_name])
+        case "second_protocol":
+            protocol = SecondProtocol(protocol_data[experiment_name])
+        case "third_protocol":
+            protocol = ThirdProtocol(protocol_data[experiment_name])
         case _:
-            protocol = FirstProtocol(protocol_data["experiment1_test"])
+            protocol = FirstProtocol(protocol_data[experiment_name])
 
     protocol.add_inhibitory_conductance(
         params['synapses']['ln_pn'], params['neuron_populations']['ln']['n'], params['neuron_populations']['pn']['n'])

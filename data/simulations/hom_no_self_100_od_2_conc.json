@@ -1,28 +1,28 @@
 {
   "dt": 0.2,
-  "experiment_name": "experiment3",
-  "batch": 40000,
+  "experiment_name": "homogeneous_no_self_inhibition_100_odors_2_concentration_increases",
+  "experiment_type" : "first_protocol",
+  "batch": 10000,
   "n_timesteps_to_pull_var": 1,
   "poll_spike_readings": false,
   "optimize_code": false,
   "generate_empty_state_push": false,
   "output_path": "/media/data/thesis_output/",
   "tracked_variables": {
-    "or": [
+    "or" : [
       "ra"
     ],
     "orn": [
       "V",
-      "a",
       "spikes"
     ],
     "ln": [
-      "spikes",
-      "V"
+      "V",
+      "spikes"
     ],
     "pn": [
-      "spikes",
-      "V"
+      "V",
+      "spikes"
     ]
   },
   "save": true

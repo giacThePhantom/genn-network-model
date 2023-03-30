@@ -156,6 +156,8 @@ def subplot_smoothed(t, data, ax, k):
 
 
 def plot_spikes(param, exp_name, **kwargs):
+    """Plot spikes of a single neuron, selected from the most active ra"""
+
     to_read =  {
         "or": ["ra"],
         "orn": ["V", "spikes"],
@@ -170,8 +172,6 @@ def plot_spikes(param, exp_name, **kwargs):
     plt.rc('font', size=8)
     ra = data["or_ra"]
 
-    # select a timestep
-    print(param.keys())
 
     dt = param["simulations"]["simulation"]["dt"] * param["simulations"]["simulation"]["n_timesteps_to_pull_var"]
     if precision is None:
@@ -373,7 +373,7 @@ def plot_heatmap(param, exp_name, **kwargs):
         min_cbar = -20
         max_cbar = 100
 
-        fig, ax = plt.subplots(1, len(iis), sharey=True, layout="constrained", figsize=(round(1.5*len(iis)),4))
+        fig, ax = plt.subplots(1, len(iis), sharey=True, figsize=(round(1.5*len(iis)),4))
         fig.suptitle(f"{protocol.param['connectivity_type']} configuration in {pop.upper()}")
         fig.text(0.5, 0.01, "Time ($s$)", ha='center')
         ax[0].set_ylabel("Neuron group")

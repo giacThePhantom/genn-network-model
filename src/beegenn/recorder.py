@@ -4,6 +4,8 @@ from pathlib import Path
 import pickle
 import tables
 from typing import List
+import pandas as pd
+from copy import deepcopy
 
 class Recorder:
     """
@@ -32,6 +34,14 @@ class Recorder:
         pass
 
     def dump_protocol(self, protocol):
+        events = deepcopy(protocol.events)
+        for i in events:
+            i.pop('binding_rates')
+            i.pop('activation_rates')
+            i.pop('happened')
+        df = pd.DataFrame.from_dict(events, orient = 'columns')
+        df.sort_values(by=['t_start', 't_end'])
+        df.to_csv(str(self.dirpath / "events.csv"))
         with self.protocol_path.open('wb') as f:
             pickle.dump(protocol, f)
 
