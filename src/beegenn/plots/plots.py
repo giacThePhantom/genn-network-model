@@ -2,9 +2,12 @@ import tables
 from pathlib import Path
 import pickle
 import numpy as np
-from . import spikes
 import matplotlib.pyplot as plt
 from beegenn.reading_parameters import parse_cli
+import pandas as pd
+
+from . import spikes
+from . import heatmap
 
 
 class Plots:
@@ -18,6 +21,7 @@ class Plots:
         self._root_plot_dir.mkdir(exist_ok = True)
         self.data = tables.open_file(str(self._root_out_dir / 'tracked_vars.h5'))
         self.recorded_data = sim_param['tracked_variables']
+        self.events_data = pd.read_csv(self._root_out_dir / 'events.csv')
         with (self._root_out_dir / 'protocol.pickle').open('rb') as f:
             self.protocol = pickle.load(f)
         pass
@@ -52,17 +56,18 @@ class Plots:
 
         return t_start, t_end
 
-    def plot_spikes(self, pops, event_index, include_resting = False, only_resting = False, show = False):
-
-        t_start, t_end = self.pick_time_window(event_index, include_resting, only_resting)
+    def plot_spikes(self, pops, t_start, t_end, show = False):
         ra_times, ra = self.get_data_window(("or", "ra"), t_start, t_end)
         most_active_or = spikes.or_most_active(ra)
 
-        figure, subplots = plt.subplots(len(pops) + 1, sharex=True, layout="constrained")
+        height_ratios = [4]
+        for i in pops:
+            height_ratios += [4, 1]
+        figure, subplots = plt.subplots((len(pops)*2) + 1, sharex=True, layout="constrained", gridspec_kw={'height_ratios' : height_ratios})
 
         spikes.plot_ra(most_active_or, ra_times, ra, subplots[0])
 
-        for (pop, subplot) in zip(pops, subplots[1:]):
+        for (i, pop) in enumerate(pops):
             time, voltage = self.get_data_window((pop, "V"), t_start, t_end)
             neuron_idx = most_active_or * self.neuron_param[pop]['n'] // self.neuron_param['or']['n']
             voltage = voltage[:, neuron_idx]
@@ -71,21 +76,54 @@ class Plots:
             filtered_spike_idx = spike_id == neuron_idx
             spike_times = spike_times[filtered_spike_idx]
 
-            spikes.plot_spikes(
+
+            spikes.plot_voltage(
                     voltage = voltage,
                     time = time,
                     spike_times = spike_times,
                     pop_name = pop,
                     id_neuron = neuron_idx,
-                    subplot = subplot,
+                    subplot = subplots[i*2+1],
                     kernel_dimension = 10
                     )
+
+            spikes.plot_spikes(spike_times, subplots[i*2+2])
 
         filename = self._root_plot_dir / 'spikes' / f"{t_start:.1f}_{t_end:.1f}.png"
         filename.parent.mkdir(exist_ok = True)
         self._show_or_save(filename, show)
 
-        pass
+    def get_spike_matrix(self, spike_times, spike_ids, pop, t_start, t_end):
+        duration_timesteps = int(np.ceil((t_end-t_start)/self.sim_param['dt'])) + 1
+        res = np.zeros(( self.neuron_param[pop]['n'], duration_timesteps))
+
+        for (time, id) in zip(spike_times, spike_ids):
+            time = int((time - t_start)/self.sim_param['dt'])
+            res[int(id)][time] = 1.0
+
+        return res
+
+    def plot_heatmap(self, pops, t_start, t_end, show):
+
+        figure, subplots = plt.subplots(1, len(pops), sharey=True, layout="constrained")
+        image = []
+
+        for (pop, subplot) in zip(pops, subplots):
+            spike_times, spike_ids = self.get_data_window((pop, "spikes"), t_start, t_end)
+            spike_matrix = self.get_spike_matrix(spike_times, spike_ids, pop, t_start, t_end)
+            spike_matrix = heatmap.compute_sdf_for_population(spike_matrix, self.sim_param['sdf_sigma'], self.sim_param['dt'])
+            spike_matrix = heatmap.sdf_glomerulus_avg(spike_matrix, self.neuron_param['or']['n'])
+            image.append(heatmap.plot_sdf_heatmap(spike_matrix, t_start, t_end, self.sim_param['dt'], pop, subplot))
+
+        cbar = figure.colorbar(image[-1], ax = subplots[-1])
+        cbar.ax.set_ylabel("SDF ($Hz$)")
+
+        filename = self._root_plot_dir / 'sdf' / f"{t_start:.1f}_{t_end:.1f}.png"
+        filename.parent.mkdir(exist_ok = True)
+
+        self._show_or_save(filename, show)
+
+
 
 
     def _show_or_save(self, filename, show = False):
@@ -101,4 +139,6 @@ if __name__ == '__main__':
     param = parse_cli()
     temp = Plots(param['simulations']['simulation'], param['simulations']['name'], param['neuron_populations'], param['synapses'])
 
-    temp.plot_spikes(['orn', 'pn', 'ln'], 2, show = True, include_resting = True)
+    # temp.plot_spikes(['orn', 'pn', 'ln'], 3000, 9000, show = False)
+    temp.plot_heatmap(['orn', 'pn', 'ln'], 3000, 9000, show = False)
+    temp.plot_heatmap(['orn', 'pn', 'ln'], 3000, 6000, show = False)
