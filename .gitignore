@@ -487,3 +487,6 @@ pyrightconfig.json
 *_CODE/*
 *.pickle
 outputs/
+
+# To avoid stumbing on each other's toes
+data/simulations/test_*

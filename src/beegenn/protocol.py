@@ -1,4 +1,5 @@
-from odors import Odor
+from .odors import Odor
+
 import numpy as np
 from abc import ABC, abstractmethod
 
@@ -44,6 +45,8 @@ class Protocol(ABC):
     get_events_for_channel() : list
         Returns all the events split into lists such that each list
         contains all events that involve a single channel
+    get_events() : list
+        Returns all the events
     """
 
     def _create_odor(self, param, name):
@@ -78,8 +81,10 @@ class Protocol(ABC):
         res = []
         for i in self.param['odors']:
             res.append(self._create_odor(odor_params[i], i))
+        i = 0
         while len(res) < self.param['num_odors']:
-            res.append(self._create_odor(odor_params['default'], 'default'))
+            res.append(self._create_odor(odor_params['default'], f'default_{i}'))
+            i += 1
         return res
 
     def _odor_binding_rate_permutation(self):
@@ -177,6 +182,7 @@ class Protocol(ABC):
         """
 
         return self.param['hill_exponential']
+
 
     def assign_channel_to_events(self):
         """Assigns each event to a possible channel, assuring that at most one
@@ -294,7 +300,6 @@ class Protocol(ABC):
             i.sort(key = lambda x : x['t_start'])
 
         return res
-
 
     def __init__(self, param):
         """Generates the protocol class that contains all the events that happen

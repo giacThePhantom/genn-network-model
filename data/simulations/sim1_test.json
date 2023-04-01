@@ -1,21 +1,28 @@
 {
     "dt": 0.2,
-    "experiment_name": "experiment1",
-    "batch": 10000.0,
-    "batch_var_reads": 10000.0,
+    "experiment_name": "experiment1_test",
+    "batch": 10000,
+    "n_timesteps_to_pull_var": 1,
     "poll_spike_readings": false,
     "optimize_code": false,
     "generate_empty_state_push": false,
     "output_path": "/media/data/thesis_output",
     "tracked_variables": {
+        "or": [
+            "ra"
+        ],
         "orn": [
+            "V",
+            "a",
             "spikes"
         ],
         "ln": [
-            "spikes"
+            "spikes",
+            "V"
         ],
         "pn": [
-            "spikes"
+            "spikes",
+            "V"
         ]
     }
 }

@@ -1,4 +1,4 @@
-from protocol import Protocol
+from .protocol import Protocol
 import numpy as np
 
 

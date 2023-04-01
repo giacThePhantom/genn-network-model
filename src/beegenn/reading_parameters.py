@@ -189,7 +189,7 @@ def get_parameters(dir_name, sim_name):
     params = get_all_params(dir_name)
     to_be_eval = []
     # set the current simulation
-    params["simulation"]["simulation"] = params["simulation"][sim_name]
+    params["simulations"]["simulation"] = params["simulations"][sim_name]
     get_evaluable_strings(params, to_be_eval)
     evaluate_param(to_be_eval, params)
     return params
@@ -239,8 +239,8 @@ def parse_cli(parser: Optional[argparse.ArgumentParser]=None):
     logging.basicConfig(filename=str(out_path), level=level)
 
     params = get_parameters(str(Path(args.data)), args.sim_name)
-    params["simulation"]["name"] = args.sim_name
-    params["simulation"]["out_path"] = out_path
+    params["simulations"]["name"] = args.sim_name
+    params["simulations"]["out_path"] = out_path
 
     # Expand params with extra params
     params["cli"] = vars(args)
