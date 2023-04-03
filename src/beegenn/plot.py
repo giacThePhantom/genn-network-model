@@ -546,7 +546,7 @@ if __name__ == "__main__":
     plot_group.add_argument("plot", choices=['spikes', 'heatmap', 'sdf-over-c', 'mono'])
     plot_group.add_argument("--precision", help="For spikes plotting, set the desired resolution (in ms). Defaults to the simulation dt.")
     params = parse_cli(parser)
-    name = params['simulations']['name']
+    name = params['simulation']['name']
 
     match params["cli"]["plot"]:
         case "spikes":
