@@ -484,9 +484,18 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,latex
 
-**_CODE/*
-**.pickle
+*_CODE/
+*.pickle
 outputs/
 
 # To avoid stumbing on each other's toes
 data/simulations/test_*
+
+# some ide-specific stuff
+
+.idea/
+.envrc
+.code/
+
+# for myself (enrico), sometimes it's easier to have genn in the root folder to easily browse through the code
+genn/
