@@ -484,8 +484,8 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,latex
 
-*_CODE/*
-*.pickle
+**_CODE/*
+**.pickle
 outputs/
 
 # To avoid stumbing on each other's toes

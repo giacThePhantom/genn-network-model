@@ -8,6 +8,7 @@ import pandas as pd
 
 from . import spikes
 from . import sdf
+from . import mean_activation_glomerulus as mag
 
 
 class Plots:
@@ -123,18 +124,20 @@ class Plots:
 
         self._show_or_save(filename, show)
 
-    def plot_mean_activation_glomerulus(self, pops, t_start, t_end, show):
+    def plot_outliers_sdf_over_time(self, pops, t_start, t_end, show):
         figure, subplots = plt.subplots(len(pops))
 
         for (pop, subplot) in zip(pops, subplots):
             spike_times, spike_ids = self.get_data_window((pop, "spikes"), t_start, t_end)
             spike_matrix = self.get_spike_matrix(spike_times, spike_ids, pop, t_start, t_end)
-            spike_matrix = sdf.compute_sdf_for_population(spike_matrix, self.sim_param['sdf_sigma'], self.sim_param['dt'])
-            spike_matrix = sdf.sdf_glomerulus_avg(spike_matrix, self.neuron_param['or']['n'])
+            sdf_matrix = sdf.compute_sdf_for_population(spike_matrix, self.sim_param['sdf_sigma'], self.sim_param['dt'])
+            sdf_matrix_avg = sdf.sdf_glomerulus_avg(sdf_matrix, self.neuron_param['or']['n'])
 
+            mag.plot_active_glomeruli_sdf(sdf_matrix_avg, subplot)
 
-
-        pass
+        filename = self._root_plot_dir / 'sdf_over_time' / f"{t_start:.1f}_{t_end:.1f}.png"
+        filename.parent.mkdir(exist_ok = True)
+        self._show_or_save(filename, show)
 
 
     def plot_sdf_over_c(self, pops, t_start, t_end, show):
@@ -161,6 +164,7 @@ if __name__ == '__main__':
     temp = Plots(param['simulations']['simulation'], param['simulations']['name'], param['neuron_populations'], param['synapses'])
 
     # temp.plot_spikes(['orn', 'pn', 'ln'], 3000, 9000, show = False)
-    temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], 3000, 9000, show = False)
-    temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], 3000, 6000, show = False)
+    # temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], 3000, 9000, show = False)
+    # temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], 3000, 6000, show = False)
+    temp.plot_mean_activation_glomerulus(['orn', 'pn', 'ln'], 0, 12000, show = False)
     temp.close_file()
