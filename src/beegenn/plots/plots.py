@@ -98,7 +98,10 @@ class Plots:
         duration_timesteps = int(np.ceil((t_end-t_start)/self.sim_param['dt'])) + 1
         res = np.zeros(( self.neuron_param[pop]['n'], duration_timesteps))
 
-        for (time, id) in zip(spike_times, spike_ids):
+        if np.all(spike_times != np.sort(spike_times)):
+            print("NOT ORDERED")
+
+        for (i, (time, id)) in enumerate(zip(spike_times, spike_ids)):
             time = int((time - t_start)/self.sim_param['dt'])
             res[int(id)][time] = 1.0
 
@@ -148,12 +151,14 @@ class Plots:
 
 
     def _show_or_save(self, filename, show = False):
+        print("Saving to ", filename)
         if show:
             plt.show()
         else:
             plt.savefig(filename, dpi = 700, bbox_inches = 'tight')
         plt.cla()
         plt.clf()
+        plt.close()
 
     def close_file(self):
         self.data.close()
@@ -163,8 +168,17 @@ if __name__ == '__main__':
     param = parse_cli()
     temp = Plots(param['simulations']['simulation'], param['simulations']['name'], param['neuron_populations'], param['synapses'])
 
+    events = pd.read_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'events.csv')
+
+    events = [(start, end) for (start, end) in zip(events['t_start'], events['t_end'])]
+
+    print(events)
+
+    for (t_start, t_end) in events:
+        temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, show = False)
+
     # temp.plot_spikes(['orn', 'pn', 'ln'], 3000, 9000, show = False)
     # temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], 3000, 9000, show = False)
     # temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], 3000, 6000, show = False)
-    temp.plot_mean_activation_glomerulus(['orn', 'pn', 'ln'], 0, 12000, show = False)
+    # temp.plot_mean_activation_glomerulus(['orn', 'pn', 'ln'], 0, 12000, show = False)
     temp.close_file()
