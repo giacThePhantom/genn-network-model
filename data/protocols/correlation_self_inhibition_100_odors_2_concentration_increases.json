@@ -7,7 +7,7 @@
 	"num_channels" : "eval 2: params['neuron_populations']['or']['num_channels']",
 	"homogeneous" : false,
 	"concentration" : {
-		"start" : 1e-7,
+		"start" : 1e-3,
 		"dilution_factor" : {
 			"base" : 10,
 			"exponent" : 0.25

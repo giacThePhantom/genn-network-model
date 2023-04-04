@@ -9,21 +9,16 @@
   "generate_empty_state_push": false,
   "output_path": "/media/data/thesis_output/",
   "tracked_variables": {
-    "or" : [
-      "ra"
-    ],
     "orn": [
-      "V",
       "spikes"
     ],
     "ln": [
-      "V",
       "spikes"
     ],
     "pn": [
-      "V",
       "spikes"
     ]
   },
-  "save": true
+  "save": true,
+  "sdf_sigma" : 50
 }

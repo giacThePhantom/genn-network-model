@@ -166,7 +166,6 @@ def pick_protocol(params):
             protocol = ThirdProtocol(protocol_data[experiment_name])
         case _:
             protocol = FirstProtocol(protocol_data[experiment_name])
-
     protocol.add_inhibitory_conductance(
         params['synapses']['ln_pn'], params['neuron_populations']['ln']['n'], params['neuron_populations']['pn']['n'])
     protocol.add_inhibitory_conductance(

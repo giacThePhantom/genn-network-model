@@ -68,6 +68,7 @@ class Odor:
             while True:
                 res = np.random.normal(var['mu'], var['sigma'])
                 if res >= var['interval'][0] and res <= var['interval'][1]:
+                    var = res
                     break
         else:
             res = var
@@ -95,8 +96,8 @@ class Odor:
         # Set a threshold on the maximum value for the point
         x = np.minimum(np.abs(x), np.abs(x - self.num_glomeruli))
         # Compute the binding distribution as a Gaussian profile
-        binding_profile = np.power(10, self._compute_random_variable(binding_params['amplitude']))*np.exp(-np.power(x, 2)/2*np.power(self._compute_random_variable(binding_params['sigma']), 2))
-        # Set a minimum threshold
+        binding_profile = np.power(10, self._compute_random_variable(binding_params['amplitude']))*\
+                np.exp(-np.power(x, 2)/(2*np.power(self._compute_random_variable(binding_params['sigma']), 2)))
         if binding_profile < binding_params['min_thresh']:
             binding_profile = 0
         return binding_profile

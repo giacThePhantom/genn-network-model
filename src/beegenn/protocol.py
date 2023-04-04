@@ -1,4 +1,5 @@
 from .odors import Odor
+import random
 
 import numpy as np
 from abc import ABC, abstractmethod
@@ -92,6 +93,7 @@ class Protocol(ABC):
         shuffle
         """
         not_default_shuffle = np.arange(self.param['num_glomeruli'])
+        random.shuffle(not_default_shuffle)
         for i in self._odors:
             if i.name != 'default':
                 i.shuffle_binding_rates(not_default_shuffle)
