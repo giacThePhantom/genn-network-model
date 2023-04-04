@@ -195,6 +195,7 @@ if __name__ == '__main__':
 
     for (t_start, t_end) in events:
         temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, show=False)
+        temp.plot_outliers_sdf_over_time(['orn', 'pn', 'ln'], t_start, t_end, show = False)
 
     # temp.plot_spikes(['orn', 'pn', 'ln'], 3000, 9000, show = False)
     # temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], 3000, 9000, show = False)

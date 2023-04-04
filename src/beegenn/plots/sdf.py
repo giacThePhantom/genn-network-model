@@ -39,7 +39,7 @@ def plot_sdf_heatmap(sdf_average, t_start, t_end, dt, pop, subplot):
     subplot.set_aspect((t_end-t_start)//10)
     nbins = (t_end-t_start)// 3000 + 2
     subplot.xaxis.set_major_locator(matplotlib.ticker.FixedLocator([3000*i//dt for i in range(int(t_end-t_start)//3000 + 1)]))
-    subplot.set_xticklabels([int(t_start) * (i + 1) for i in range(int(t_end-t_start)//3000 + 1)])
+    subplot.set_xticklabels([f"{t_start * (i + 1):.1g}" for i in range(int(t_end-t_start)//3000 + 1)], rotation=45, fontsize = 8)
     subplot.set_title(pop)
     subplot.set_xlabel("Time [ms]")
     subplot.set_ylabel("Glomeruli")
