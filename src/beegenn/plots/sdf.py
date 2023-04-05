@@ -1,8 +1,6 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib
 import scipy as sp
-from mpl_toolkits.axes_grid1 import Divider, Size
 
 
 def compute_sdf_for_population(spike_matrix, sigma, dt):
@@ -37,7 +35,6 @@ def sdf_glomerulus_avg(sdf_matrix, n_glomeruli):
 def plot_sdf_heatmap(sdf_average, t_start, t_end, dt, pop, subplot):
     res = subplot.imshow(sdf_average, vmin = 0, vmax = 100, cmap = 'plasma')
     subplot.set_aspect((t_end-t_start)//10)
-    nbins = (t_end-t_start)// 3000 + 2
     subplot.xaxis.set_major_locator(matplotlib.ticker.FixedLocator([3000*i//dt for i in range(int(t_end-t_start)//3000 + 1)]))
     subplot.set_xticklabels([f"{t_start * (i + 1):.1g}" for i in range(int(t_end-t_start)//3000 + 1)], rotation=45, fontsize = 8)
     subplot.set_title(pop)
@@ -55,7 +52,6 @@ def plot_sdf_over_time_outliers(sdf_matrix_avg, subplot):
         if np.abs(mean_sdf - global_mean) > global_sdt:
             glomeruli_of_interest.append(i)
 
-    print(glomeruli_of_interest)
     for i in glomeruli_of_interest:
         subplot.plot(sdf_matrix_avg[i, :], label = f"Glomerulus {i}")
     subplot.legend()

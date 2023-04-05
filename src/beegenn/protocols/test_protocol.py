@@ -17,4 +17,3 @@ class TestFirstProtocol(FirstProtocol):
                 res.append(self._event_generation(t, odor, c_exp))
                 t = res[-1]['t_end'] + self.resting_duration
         self.events = res
-

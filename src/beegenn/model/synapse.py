@@ -1,12 +1,3 @@
-from copy import copy
-from logging import warning
-from pathlib import Path
-from re import I
-from typing import Dict, List, Union, cast
-
-from matplotlib.pyplot import connect
-import numpy as np
-from pygenn import genn_wrapper
 import pygenn.genn_model as genn
 
 

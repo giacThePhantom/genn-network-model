@@ -3,7 +3,7 @@ from pathlib import Path
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-from beegenn.reading_parameters import parse_cli
+from beegenn.parameters.reading_parameters import parse_cli
 import pandas as pd
 
 from . import spikes
@@ -209,11 +209,10 @@ if __name__ == '__main__':
     # events = [(12000*i + 3000, 12000.0*i + 6000.0) for i in range(12)]
 
 
-    # for (t_start, t_end) in events:
-    #     temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, show=False)
-    #     temp.plot_outliers_sdf_over_time(['orn', 'pn', 'ln'], t_start, t_end, show = False)
+    for (t_start, t_end) in events:
+        temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, show=False)
+        temp.plot_outliers_sdf_over_time(['orn', 'pn', 'ln'], t_start, t_end, show = False)
 
-    temp.plot_inhibitory_connectivity([('pn', 'ln'), ('ln', 'ln')], show = False)
 
     # temp.plot_spikes(['orn', 'pn', 'ln'], 3000, 9000, show = False)
     # temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], 3000, 9000, show = False)

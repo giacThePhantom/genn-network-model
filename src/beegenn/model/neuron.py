@@ -1,4 +1,3 @@
-import numpy as np
 from pygenn.genn_model import create_custom_neuron_class
 
 class NeuronPopulation:

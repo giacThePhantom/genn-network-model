@@ -1,11 +1,11 @@
 import logging
-from .network import NeuronalNetwork
-from .reading_parameters import parse_cli
-from .protocol import Protocol
-from .first_protocol import FirstProtocol
-from .second_protocol import SecondProtocol
-from .third_protocol import ThirdProtocol
-from .recorder import Recorder
+from beegenn.model.network import NeuronalNetwork
+from beegenn.parameters.reading_parameters import parse_cli
+from beegenn.protocols.protocol import Protocol
+from beegenn.protocols.first_protocol import FirstProtocol
+from beegenn.protocols.second_protocol import SecondProtocol
+from beegenn.protocols.third_protocol import ThirdProtocol
+from beegenn.recorder.recorder import Recorder
 
 import numpy as np
 

@@ -1,9 +1,8 @@
 from . import neuron
 from . import synapse
-from . import draw_connectivity
+from ..plots import draw_connectivity
 
 from typing import Dict
-import numpy as np
 from pygenn.genn_model import GeNNModel, NeuronGroup
 
 class NeuronalNetwork:

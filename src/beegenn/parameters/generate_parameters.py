@@ -1,6 +1,6 @@
 import json
 import numpy as np
-import protocols
+from ..protocols import protocol
 
 
 

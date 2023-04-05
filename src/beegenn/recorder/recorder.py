@@ -6,7 +6,7 @@ import tables
 from typing import List
 import pandas as pd
 from copy import deepcopy
-from . import draw_connectivity as connectivity
+from beegenn.plots import draw_connectivity as connectivity
 
 class Recorder:
     """
