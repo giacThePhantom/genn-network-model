@@ -130,6 +130,7 @@ class NeuronalNetwork:
                         "post_id" : z,
                     })
             else:
+                self.connected_synapses[i].pull_connectivity_from_device()
                 source_size = self.connected_synapses[i].src.size
                 target_size = self.connected_synapses[i].trg.size
                 connections = self.connected_synapses[i].get_var_values('g').reshape(source_size, target_size)

@@ -3,7 +3,7 @@
 	"num_glomeruli" : "eval 2: params['neuron_populations']['or']['n']",
 	"num_channels" : "eval 2: params['neuron_populations']['or']['num_channels']",
 	"homogeneous" : false,
-	"connectivity_type" : "correlation",
+	"connectivity_type" : "homogeneous",
 	"self_inhibition" : false,
 	"first_odor_concentrations" : [ 0, 1e-3, 1e-1 ],
 	"second_odor_concentrations" : [ 0, 1e-6, 1e-5, 1e-4, 1e-3 ],

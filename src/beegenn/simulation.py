@@ -1,18 +1,10 @@
-from collections import defaultdict, deque
-from pathlib import Path
-import pickle
-from typing import List, Tuple
 import logging
-
 from .network import NeuronalNetwork
-from .neuron import NeuronPopulation
 from .reading_parameters import parse_cli
-from .odors import Odor
 from .protocol import Protocol
 from .first_protocol import FirstProtocol
 from .second_protocol import SecondProtocol
 from .third_protocol import ThirdProtocol
-from .test_protocol import TestFirstProtocol
 from .recorder import Recorder
 
 import numpy as np

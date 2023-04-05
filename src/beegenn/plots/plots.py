@@ -9,6 +9,7 @@ import pandas as pd
 from . import spikes
 from . import sdf
 from . import mean_activation_glomerulus as mag
+from . import connectivity
 
 
 class Plots:
@@ -165,6 +166,22 @@ class Plots:
         filename.parent.mkdir(exist_ok=True)
         self._show_or_save(filename, show)
 
+    def plot_inhibitory_connectivity(self, pops_couples, show = False):
+        figure, subplots = plt.subplots(len(pops_couples) + 1, layout = 'constrained')
+
+        connectivity_matrix = self.protocol._generate_inhibitory_connectivity(self.protocol.param['connectivity_type'], self.protocol.param['self_inhibition'])
+
+        connectivity.plot_connectivity(connectivity_matrix, self.neuron_param['or']['n'], self.neuron_param['or']['n'], "Standard", subplots[0])
+        for ((source, target), subplot) in zip(pops_couples, subplots[1:]):
+            connectivity.plot_connectivity(connectivity_matrix, self.neuron_param[source]['n'], self.neuron_param[target]['n'], f"{source} to {target}", subplot)
+
+
+        filename = self._root_plot_dir / 'connectivity' / \
+            "inhibitory_connectivity.png"
+        filename.parent.mkdir(exist_ok=True)
+        self._show_or_save(filename, show)
+
+
     def plot_sdf_over_c(self, pops, t_start, t_end, show):
         pass
 
@@ -191,11 +208,12 @@ if __name__ == '__main__':
     events = list(dict.fromkeys((start, end) for (start, end) in zip(events['t_start'], events['t_end'])))
     # events = [(12000*i + 3000, 12000.0*i + 6000.0) for i in range(12)]
 
-    print(events)
 
-    for (t_start, t_end) in events:
-        temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, show=False)
-        temp.plot_outliers_sdf_over_time(['orn', 'pn', 'ln'], t_start, t_end, show = False)
+    # for (t_start, t_end) in events:
+    #     temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, show=False)
+    #     temp.plot_outliers_sdf_over_time(['orn', 'pn', 'ln'], t_start, t_end, show = False)
+
+    temp.plot_inhibitory_connectivity([('pn', 'ln'), ('ln', 'ln')], show = False)
 
     # temp.plot_spikes(['orn', 'pn', 'ln'], 3000, 9000, show = False)
     # temp.plot_sdf_heatmap(['orn', 'pn', 'ln'], 3000, 9000, show = False)

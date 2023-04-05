@@ -6,6 +6,7 @@ import tables
 from typing import List
 import pandas as pd
 from copy import deepcopy
+from . import draw_connectivity as connectivity
 
 class Recorder:
     """
@@ -44,6 +45,11 @@ class Recorder:
         df.to_csv(str(self.dirpath / "events.csv"))
         with self.protocol_path.open('wb') as f:
             pickle.dump(protocol, f)
+
+    def create_glomerulus_graph(self, network, glomerulus_idx):
+        filename = self.dirpath / "glomeruli_connectivity/" / f"glomerulus_{glomerulus_idx}.dot"
+        filename.parent.mkdir(exist_ok = True)
+        connectivity.create_glomerulus_graph(network, glomerulus_idx, filename)
 
     def enable_spike_recording(self, model):
         for pop in self.recorded_vars:

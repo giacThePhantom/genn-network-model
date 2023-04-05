@@ -47,5 +47,4 @@ def create_glomerulus_graph(network, glomerulus_idx, outname):
         if i['pre_id'] + offset[i['pre_population']] in res.nodes and i['post_id'] + offset[i['post_population']] in res.nodes:
             res.add_edge(i['pre_id']+offset[i['pre_population']], i['post_id']+offset[i['post_population']])
 
-    print("Writing")
     write_dot(res, outname)
