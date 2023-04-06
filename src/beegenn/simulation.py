@@ -97,7 +97,7 @@ class Simulator:
 
 
 
-    def run(self, poll_spike_readings=False, save=True):
+    def run(self, save=True):
         """
         Run a simulation. The user is advised to call `track_vars` first
         to register which variables to log during the simulation
@@ -122,6 +122,10 @@ class Simulator:
         else:
             logging.info("Reinitializing")
             self.model.reinitialise()
+
+        # self.recorder.dump_connectivity(self.model)
+
+
 
         events = self.protocol.get_events_for_channel()
         current_events = []
@@ -176,6 +180,5 @@ if __name__ == "__main__":
                     params)
 
     sim.run(
-        poll_spike_readings=sim_params[name]['poll_spike_readings'],
         save=sim_params[name]['save']
     )

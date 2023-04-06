@@ -6,13 +6,12 @@ import matplotlib.pyplot as plt
 from beegenn.parameters.reading_parameters import parse_cli
 import pandas as pd
 
-from . import spikes
 from . import sdf
 from . import mean_activation_glomerulus as mag
 from . import connectivity
 
 
-class Plots:
+class DataManager:
 
     def __init__(self, sim_param, sim_name, neuron_param, synapse_param):
         self.sim_param = sim_param
@@ -68,45 +67,33 @@ class Plots:
 
         return t_start, t_end
 
-    def plot_spikes(self, pops, t_start, t_end, show=False):
-        ra_times, ra = self.get_data_window(("or", "ra"), t_start, t_end)
-        most_active_or = spikes.or_most_active(ra)
+    def get_data_for_first_neuron_in_glomerulus(self, glo_idx, pop, var, t_start, t_end):
+        neuron_idx = self.get_first_neuron_in_glomerulus(glo_idx, pop)
+        time, voltage = self.get_data_window((pop, var), t_start, t_end)
+        voltage = voltage[:, neuron_idx]
+        return time, voltage
 
-        height_ratios = [4]
-        for i in pops:
-            height_ratios += [4, 1]
-        figure, subplots = plt.subplots(
-            (len(pops)*2) + 1, sharex=True, layout="constrained", gridspec_kw={'height_ratios': height_ratios})
+    def get_spikes_for_first_neuron_in_glomerulus(self, glo_idx, pop, t_start, t_end):
+        neuron_idx = self.get_first_neuron_in_glomerulus(glo_idx, pop)
+        spike_times, spike_id = self.get_data_window(
+            (pop, "spikes"), t_start, t_end)
+        filtered_spike_idx = spike_id == neuron_idx
+        spike_times = spike_times[filtered_spike_idx]
+        return spike_times
 
-        spikes.plot_ra(most_active_or, ra_times, ra, subplots[0])
+    def get_first_neuron_in_glomerulus(self, glo_idx, pop):
+        neuron_idx = glo_idx * \
+            self.neuron_param[pop]['n'] // self.neuron_param['or']['n']
+        return neuron_idx
 
-        for (i, pop) in enumerate(pops):
-            time, voltage = self.get_data_window((pop, "V"), t_start, t_end)
-            neuron_idx = most_active_or * \
-                self.neuron_param[pop]['n'] // self.neuron_param['or']['n']
-            voltage = voltage[:, neuron_idx]
+    def or_most_active(self, ra):
+        #Sum over time
+        ra_sum = np.sum(ra, axis=0)
+        #Pick the or that has been the most active during
+        #The time window
+        or_most_active = np.argmax(ra_sum)
+        return or_most_active
 
-            spike_times, spike_id = self.get_data_window(
-                (pop, "spikes"), t_start, t_end)
-            filtered_spike_idx = spike_id == neuron_idx
-            spike_times = spike_times[filtered_spike_idx]
-
-            spikes.plot_voltage(
-                voltage=voltage,
-                time=time,
-                spike_times=spike_times,
-                pop_name=pop,
-                id_neuron=neuron_idx,
-                subplot=subplots[i*2+1],
-                kernel_dimension=10
-            )
-
-            spikes.plot_spikes(spike_times, subplots[i*2+2])
-
-        filename = self._root_plot_dir / 'spikes' / \
-            f"{t_start:.1f}_{t_end:.1f}.png"
-        filename.parent.mkdir(exist_ok=True)
-        self._show_or_save(filename, show)
 
     def get_spike_matrix(self, spike_times, spike_ids, pop, t_start, t_end):
         duration_timesteps = int(
@@ -118,6 +105,22 @@ class Plots:
             res[int(id)][time] = 1.0
 
         return res
+
+    def show_or_save_spikes(self, t_start, t_end, show):
+        filename = self._root_plot_dir / 'spikes' / \
+            f"{t_start:.1f}_{t_end:.1f}.png"
+        filename.parent.mkdir(exist_ok=True)
+        self._show_or_save(filename, show)
+
+    def _show_or_save(self, filename, show=False):
+        if show:
+            plt.show()
+        else:
+            print("Saving to ", filename)
+            plt.savefig(filename, dpi=700, bbox_inches='tight')
+        plt.cla()
+        plt.clf()
+        plt.close()
 
     def plot_sdf_heatmap(self, pops, t_start, t_end, show):
 
@@ -185,15 +188,6 @@ class Plots:
     def plot_sdf_over_c(self, pops, t_start, t_end, show):
         pass
 
-    def _show_or_save(self, filename, show=False):
-        print("Saving to ", filename)
-        if show:
-            plt.show()
-        else:
-            plt.savefig(filename, dpi=700, bbox_inches='tight')
-        plt.cla()
-        plt.clf()
-        plt.close()
 
     def close_file(self):
         self.data.close()

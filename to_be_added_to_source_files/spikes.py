@@ -100,6 +100,8 @@ def plot_spikes(pops, t_start, t_end, data_manager, show = False):
                 t_end
                 )
 
+        print(pop, voltage)
+
         spike_times = data_manager.get_spikes_for_first_neuron_in_glomerulus(
                 most_active_or,
                 pop,
@@ -124,10 +126,7 @@ def plot_spikes(pops, t_start, t_end, data_manager, show = False):
 
         plot_spikes_for_population(spike_times, subplots[i*2+2])
 
-
-    filename = f"spikes/{t_start:.1f}_{t_end:.1f}.png"
-
-    data_manager.show_or_save(filename, show)
+    data_manager.show_or_save_spikes(t_start, t_end, show)
 
 if __name__ == "__main__":
     from beegenn.parameters.reading_parameters import parse_cli
@@ -139,4 +138,4 @@ if __name__ == "__main__":
 
     events = pd.read_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'events.csv')
 
-    plot_spikes(['orn', 'pn', 'ln'], 9000, 12000, data_manager, show = False)
+    plot_spikes(['orn', 'pn', 'ln'], 3000, 9000, data_manager, show = True)

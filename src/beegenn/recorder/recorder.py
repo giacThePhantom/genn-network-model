@@ -6,7 +6,6 @@ import tables
 from typing import List
 import pandas as pd
 from copy import deepcopy
-from beegenn.plots import draw_connectivity as connectivity
 
 class Recorder:
     """
@@ -46,10 +45,6 @@ class Recorder:
         with self.protocol_path.open('wb') as f:
             pickle.dump(protocol, f)
 
-    def create_glomerulus_graph(self, network, glomerulus_idx):
-        filename = self.dirpath / "glomeruli_connectivity/" / f"glomerulus_{glomerulus_idx}.dot"
-        filename.parent.mkdir(exist_ok = True)
-        connectivity.create_glomerulus_graph(network, glomerulus_idx, filename)
 
     def enable_spike_recording(self, model):
         for pop in self.recorded_vars:
@@ -167,3 +162,9 @@ class Recorder:
         if model.network.timestep % self.batch == 0 or model.network.timestep ==  self.simulation_time / self.dt:
             self._collect_spikes(model)
             self._stream_output()
+
+    def dump_connectivity(self, model):
+        connectivity = model.get_connectivity()
+        connectivity = pd.DataFrame(connectivity)
+        filename = self.dirpath / "connectivity.csv"
+        connectivity.to_csv(filename)

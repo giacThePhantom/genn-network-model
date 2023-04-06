@@ -1,7 +1,5 @@
 from . import neuron
 from . import synapse
-from ..plots import draw_connectivity
-
 from typing import Dict
 from pygenn.genn_model import GeNNModel, NeuronGroup
 
@@ -105,6 +103,11 @@ class NeuronalNetwork:
         """
         self.network.build()
         self.network.load(num_recording_timesteps=num_recording_steps)
+        for i in self.connected_neurons:
+            self.connected_neurons[i].push_state_to_device()
+
+        for i in self.connected_synapses:
+            self.connected_synapses[i].push_state_to_device()
 
     def reinitialize(self):
         """
@@ -122,14 +125,16 @@ class NeuronalNetwork:
             if self.connected_synapses[i].is_ragged:
                 self.connected_synapses[i].pull_connectivity_from_device()
                 for (j, z) in zip(self.connected_synapses[i].get_sparse_pre_inds(), self.connected_synapses[i].get_sparse_post_inds()):
+                    value = 1 if not 'g' in self.connected_synapses[i].vars else self.synapses[i].param['wu_var_space']['g']
                     res.append({
                         "pre_population" : self.connected_synapses[i].src.name,
                         "post_population" : self.connected_synapses[i].trg.name,
                         "pre_id" : j,
                         "post_id" : z,
+                        "value" : value,
                     })
             else:
-                self.connected_synapses[i].pull_connectivity_from_device()
+                #self.connected_synapses[i].pull_connectivity_from_device()
                 source_size = self.connected_synapses[i].src.size
                 target_size = self.connected_synapses[i].trg.size
                 connections = self.connected_synapses[i].get_var_values('g').reshape(source_size, target_size)
@@ -141,16 +146,7 @@ class NeuronalNetwork:
                                 "post_population" : self.connected_synapses[i].trg.name,
                                 "pre_id" : j,
                                 "post_id" : z,
+                                "value" : row[z]
                             })
 
         return res
-
-
-if __name__ == '__main__':
-    import sys
-    from reading_parameters import get_parameters
-    params = get_parameters(sys.argv[1])
-    model = NeuronalNetwork("Test", params['neuron_populations'], params['synapses'], 0.1)
-    model.build_and_load()
-    model.network.step_time()
-    draw_connectivity.create_glomerulus_graph(model, int(sys.argv[2]), sys.argv[3])

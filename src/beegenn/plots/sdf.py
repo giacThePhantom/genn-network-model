@@ -1,38 +1,10 @@
 import numpy as np
 import matplotlib
-import scipy as sp
+import matplotlib.pyplot as plt
+from .data_manager import DataManager
 
 
-def compute_sdf_for_population(spike_matrix, sigma, dt):
-    kernel = np.arange(-3*sigma, +3*sigma, dt)
-    kernel = np.exp(-np.power(kernel, 2)/(2*sigma*sigma))
-    kernel = kernel/(sigma*np.sqrt(2.0*np.pi))*1000.0
-    res = np.apply_along_axis(lambda m : sp.signal.convolve(m, kernel, mode='same'), axis = 1, arr=spike_matrix)
-    return res
-
-
-def sdf_glomerulus_avg(sdf_matrix, n_glomeruli):
-    """
-    Get the average activation intensity across n-sized groups of glomeruli
-    for each timestep.
-
-    Arguments
-    ---------
-    sdf_matrix : np.ndarray
-        an SDF matrix obtained by eg. `make_sdf`
-    glomerulus_dim : int
-        How many neurons per glomerulus
-    """
-    res = np.zeros((n_glomeruli, sdf_matrix.shape[1]))
-    glomerulus_dim = sdf_matrix.shape[0] // n_glomeruli
-    for i in range(n_glomeruli):
-        res[i, :]= np.mean(sdf_matrix[glomerulus_dim*i:glomerulus_dim*(i+1), :],axis=0)
-    return res
-
-
-
-
-def plot_sdf_heatmap(sdf_average, t_start, t_end, dt, pop, subplot):
+def plot_sdf_heatmap_per_pop(sdf_average, t_start, t_end, dt, pop, subplot):
     res = subplot.imshow(sdf_average, vmin = 0, vmax = 100, cmap = 'plasma')
     subplot.set_aspect((t_end-t_start)//10)
     subplot.xaxis.set_major_locator(matplotlib.ticker.FixedLocator([3000*i//dt for i in range(int(t_end-t_start)//3000 + 1)]))
@@ -55,3 +27,49 @@ def plot_sdf_over_time_outliers(sdf_matrix_avg, subplot):
     for i in glomeruli_of_interest:
         subplot.plot(sdf_matrix_avg[i, :], label = f"Glomerulus {i}")
     subplot.legend()
+
+def get_subplots(n_pops):
+    figure, subplots = plt.subplots(
+        1, n_pops, sharey=True, layout="constrained")
+    return figure, subplots
+
+def colorbar(image, subplot, figure):
+    cbar = figure.colorbar(image, ax=subplot)
+    cbar.ax.set_ylabel("SDF ($Hz$)")
+
+def plot_sdf_heatmap(pops, t_start, t_end, data_manager, show):
+
+    figure, subplots = get_subplots(len(pops))
+    image = []
+
+    for (pop, subplot) in zip(pops, subplots):
+        sdf_avg = data_manager.sdf_per_glomerulus_avg(
+                pop,
+                t_start,
+                t_end
+                )
+        image.append(
+                plot_sdf_heatmap_per_pop(
+                    sdf_avg,
+                    t_start,
+                    t_end,
+                    data_manager.get_sim_dt(),
+                    pop,
+                    subplot
+                    )
+                )
+    colorbar(image[-1], subplots[-1], figure)
+    filename = f"sdf/{t_start:.1f}_{t_end:.1f}.png"
+    data_manager.show_or_save(filename, show)
+
+if __name__ == "__main__":
+    from beegenn.parameters.reading_parameters import parse_cli
+    from pathlib import Path
+    import pandas as pd
+    param = parse_cli()
+    data_manager = DataManager(param['simulations']['simulation'], param['simulations']
+                 ['name'], param['neuron_populations'], param['synapses'])
+
+    events = pd.read_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'events.csv')
+
+    plot_sdf_heatmap(['orn', 'pn', 'ln'], 9000, 12000, data_manager, show = False)
