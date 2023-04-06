@@ -29,3 +29,4 @@ tornado
 tqdm
 wrapt==1.15.0
 networkx
+jsonschema

@@ -3,7 +3,10 @@ import logging
 from pathlib import Path
 import json
 from typing import Optional
+
 import numpy as np
+import jsonschema
+
 from pygenn import genn_wrapper
 # needed for lambda evaluation
 from pygenn.genn_model import create_cmlf_class
@@ -20,9 +23,9 @@ def get_all_parameter_files(dir_name):
         List containing all the relative path to the json parameter files.
     """
     par_dir = Path(dir_name)
-    return [str(x) for x in par_dir.glob("*/*.json")]
+    return [x for x in par_dir.glob("*/*[!schema].json")]
 
-def read_json_data(filename):
+def read_json_data(filename: Path):
     """Reads a json file and returns the corresponding dictionary.
     Parameters
     ----------
@@ -33,8 +36,19 @@ def read_json_data(filename):
     res : dict
         A dictionary containing all the parameters extracted from the json file.
     """
-    with open(filename, 'r') as data:
+    with filename.open('r') as data:
         res = json.load(data)
+
+    schema_path = filename.parent / "schema.json"
+    if schema_path.exists():
+        with schema_path.open('r') as schema_fp:
+            schema = json.load(schema_fp)
+        try:
+            jsonschema.validate(res, schema)
+        except jsonschema.exceptions.ValidationError as e:
+            raise ValueError(
+                f"Error while matching the file {filename} to the schema {schema_path}.\n"
+                 "Make sure to fix the schema errors (listed above).") from e
     return res
 
 def add_params_to_dict(in_dict, filename, json_data):
@@ -79,6 +93,7 @@ def get_all_params(dir_name):
     res = {}
     for filename in files:
         json_data = read_json_data(filename) #Get json data
+        filename = str(filename) # can we avoid this?
         add_params_to_dict(res, filename.replace(dir_name, ''), json_data) #Add to resulting dictionary
     return res
 
