@@ -23,7 +23,7 @@ def get_all_parameter_files(dir_name):
         List containing all the relative path to the json parameter files.
     """
     par_dir = Path(dir_name)
-    return [x for x in par_dir.glob("*/*[!schema].json")]
+    return [x for x in par_dir.glob("*/*.json") if "schema.json" not in str(x)]
 
 def read_json_data(filename: Path):
     """Reads a json file and returns the corresponding dictionary.

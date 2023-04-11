@@ -1,17 +1,15 @@
-import numpy as np
 import matplotlib.pyplot as plt
 from .data_manager import DataManager
 
-def plot_active_glomeruli_sdf_per_pop(sdf_matrix_avg, subplot):
-    glomeruli_mean_sdf = np.mean(sdf_matrix_avg, axis = 1)
-    global_mean = np.mean(glomeruli_mean_sdf)
-    global_sdt = np.std(glomeruli_mean_sdf)
-    glomeruli_of_interest = []
-
-    for (i, mean_sdf) in enumerate(glomeruli_mean_sdf):
-        if np.abs(mean_sdf - global_mean) > global_sdt:
-            glomeruli_of_interest.append(i)
-
+def plot_active_glomeruli_sdf_per_pop(pop, t_start, t_end, data_manager, subplot):
+    sdf_matrix_avg = data_manager.sdf_per_glomerulus_avg(
+            pop,
+            t_start,
+            t_end,
+            )
+    glomeruli_of_interest = data_manager.get_active_glomeruli_per_pop(
+            sdf_matrix_avg
+            )
     for i in glomeruli_of_interest:
         subplot.plot(sdf_matrix_avg[i, :], label = f"{i}")
     subplot.legend()
@@ -41,7 +39,6 @@ def fix_labels(figure, handles, labels):
             fancybox = True,
             shadow = True,
             bbox_to_anchor = (0., 1.02, 1., .102),
-            # mode = 'expand',
             borderaxespad = 0.0,
             )
 
@@ -51,12 +48,13 @@ def plot_outliers_sdf_over_time(pops, t_start, t_end, data_manager, show):
     handles = []
     labels = []
     for (pop, subplot) in zip(pops, subplots):
-        sdf_avg = data_manager.sdf_per_glomerulus_avg(
+        handle, label = plot_active_glomeruli_sdf_per_pop(
                 pop,
                 t_start,
-                t_end
+                t_end,
+                data_manager,
+                subplot,
                 )
-        handle, label = plot_active_glomeruli_sdf_per_pop(sdf_avg, subplot)
         handles.append(handle)
         labels.append(label)
     fix_labels(figure, handles, labels)

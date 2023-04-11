@@ -1,0 +1,728 @@
+{
+  "num_odors": 44,
+  "concentration_increases": 25,
+  "connectivity_type": "homogeneous",
+  "self_inhibition": false,
+  "num_glomeruli": "eval 2: params['neuron_populations']['or']['n']",
+  "num_channels": "eval 2: params['neuron_populations']['or']['num_channels']",
+  "homogeneous": false,
+  "concentration": {
+    "start": 1e-07,
+    "dilution_factor": {
+      "base": 10,
+      "exponent": 0.25
+    }
+  },
+  "event_duration": 3000.0,
+  "resting_duration": 3000.0,
+  "hill_exponential": {
+    "min": 0.95,
+    "max": 1.05
+  },
+  "odors": {
+    "a:0.7000000000000001;s:6.800000000000003": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 6.800000000000003,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:6.900000000000004": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 6.900000000000004,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:7.0000000000000036": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 7.0000000000000036,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:7.100000000000003": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 7.100000000000003,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:7.200000000000004": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 7.200000000000004,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:7.300000000000004": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 7.300000000000004,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:7.400000000000004": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 7.400000000000004,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:7.5000000000000036": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 7.5000000000000036,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:7.600000000000004": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 7.600000000000004,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:7.700000000000005": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 7.700000000000005,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:7.800000000000004": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 7.800000000000004,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:7.900000000000004": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 7.900000000000004,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:8.000000000000004": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 8.000000000000004,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:8.100000000000005": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 8.100000000000005,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:8.200000000000005": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 8.200000000000005,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:8.300000000000004": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 8.300000000000004,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:8.400000000000006": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 8.400000000000006,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:8.500000000000005": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 8.500000000000005,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:8.600000000000005": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 8.600000000000005,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:8.700000000000005": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 8.700000000000005,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:8.800000000000004": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 8.800000000000004,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:8.900000000000006": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 8.900000000000006,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:9.000000000000005": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 9.000000000000005,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:9.100000000000005": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 9.100000000000005,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:9.200000000000006": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 9.200000000000006,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:9.300000000000006": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 9.300000000000006,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:9.400000000000006": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 9.400000000000006,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:9.500000000000005": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 9.500000000000005,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:9.600000000000005": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 9.600000000000005,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:9.700000000000006": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 9.700000000000006,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:9.800000000000006": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 9.800000000000006,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.7000000000000001;s:9.900000000000006": {
+      "binding": {
+        "amplitude": 0.7000000000000001,
+        "sigma": 9.900000000000006,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.8;s:3.0": {
+      "binding": {
+        "amplitude": 0.8,
+        "sigma": 3.0,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.8;s:3.1": {
+      "binding": {
+        "amplitude": 0.8,
+        "sigma": 3.1,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.8;s:3.2": {
+      "binding": {
+        "amplitude": 0.8,
+        "sigma": 3.2,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.8;s:3.3000000000000003": {
+      "binding": {
+        "amplitude": 0.8,
+        "sigma": 3.3000000000000003,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.8;s:3.4000000000000004": {
+      "binding": {
+        "amplitude": 0.8,
+        "sigma": 3.4000000000000004,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.8;s:3.5000000000000004": {
+      "binding": {
+        "amplitude": 0.8,
+        "sigma": 3.5000000000000004,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.8;s:3.6000000000000005": {
+      "binding": {
+        "amplitude": 0.8,
+        "sigma": 3.6000000000000005,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.8;s:3.7000000000000006": {
+      "binding": {
+        "amplitude": 0.8,
+        "sigma": 3.7000000000000006,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.8;s:3.8000000000000007": {
+      "binding": {
+        "amplitude": 0.8,
+        "sigma": 3.8000000000000007,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.8;s:3.900000000000001": {
+      "binding": {
+        "amplitude": 0.8,
+        "sigma": 3.900000000000001,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.8;s:4.000000000000001": {
+      "binding": {
+        "amplitude": 0.8,
+        "sigma": 4.000000000000001,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    },
+    "a:0.8;s:4.100000000000001": {
+      "binding": {
+        "amplitude": 0.8,
+        "sigma": 4.100000000000001,
+        "midpoint": 0,
+        "min_thresh": 0
+      },
+      "activation": {
+        "mu": 0.02,
+        "sigma": 0.02,
+        "interval": [
+          0.003,
+          0.2
+        ]
+      }
+    }
+  }
+}

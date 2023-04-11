@@ -38,6 +38,11 @@ class Simulator:
     """
 
     def _reset(self):
+        """
+        Deletes the collections of recorded variables and
+        reinitializes the model
+        """
+
         self.recorded_vars = {}
         self.model.reinitialize()
 
@@ -47,6 +52,12 @@ class Simulator:
         protocol: Protocol,
         param: dict
     ) -> None:
+        """
+        Builds a simulation objects that contains the network model and
+        a recorder that saves to disks all the variables that will be
+        recorded
+        """
+
         self.sim_name = sim_name
 
         self.model = NeuronalNetwork(
@@ -61,10 +72,6 @@ class Simulator:
         self.protocol = protocol
         self.param = param['simulations']['simulation']
 
-        # N_timesteps_to_pull_var is the sampling frequency (in timesteps) for normal (non-event) vars.
-        # For example, n_timesteps_to_pull_var=100 means every 100 steps (or 100*dt ms) we pull a variable.
-        #
-
         self.recorder = Recorder(self.param['output_path'],
                                  self.sim_name,
                                  self.param['tracked_variables'],
@@ -78,6 +85,19 @@ class Simulator:
         self.recorder.enable_spike_recording(self.model)
 
     def update_target_pop(self, target_pop, current_events, events):
+        """
+        Updates the target population based on a list of events determined by the protocol
+
+        Parameters
+        ----------
+        target_pop : NeuronPopulation
+            The population for which to update the variables
+        current_events : list
+            The list of events that are happening right now
+        events : list
+            The list of all the remaining events
+        """
+
         for (i, event) in enumerate(current_events):
             if self.model.network.t >= event['t_start'] and not event['happened']:
                 event['happened'] = True
@@ -98,19 +118,16 @@ class Simulator:
 
 
     def run(self, save=True):
-        """
-        Run a simulation. The user is advised to call `track_vars` first
+        """Run a simulation. The user is advised to call `track_vars` first
         to register which variables to log during the simulation
 
         Parameters
         ----------
 
-        poll_spike_readings: bool
-            if False (default), use the internal SpikeRecorder class to record spike events.
-            This is much faster than polling the internal state, but is limited to the internal implementation.
-            Otherwise, use the (old) spike event polling method. This means almost all events will be lost between
-            readings, however it provides useful "snapshot" views for debugging.
+        save : bool
+            Whether the recorder has to save the recorded variables to disk
         """
+
         genn_model = self.model.network
         logging.info(
             f"Starting a simulation for the model {genn_model.model_name} that will run for {self.protocol.simulation_time} ms")
@@ -122,10 +139,6 @@ class Simulator:
         else:
             logging.info("Reinitializing")
             self.model.reinitialise()
-
-        # self.recorder.dump_connectivity(self.model)
-
-
 
         events = self.protocol.get_events_for_channel()
         current_events = []
@@ -150,7 +163,20 @@ class Simulator:
         self.recorder.flush()
 
 def pick_protocol(params):
-    # Pick the correct protocol for the experiment
+    """Pick the correct protocol for the experiment
+
+    Parameters
+    ----------
+    params : dict
+        A dictionary containing all the parameters needed for the simulation
+
+    Returns
+    -------
+    protocol : Protocol
+        The protocol object that will be used to generate the events for
+        the simulation
+    """
+
     protocol_data = params["protocols"]
     experiment_name = params['simulations']['simulation']['experiment_name']
     match params["simulations"]["simulation"]["experiment_type"]:
