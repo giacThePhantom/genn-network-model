@@ -10,6 +10,38 @@ from copy import deepcopy
 class Recorder:
     """
     An object that records and saves data during a simulation run
+
+    Attributes
+    ----------
+    dirpath : pathlib.Path
+        The directory where the output is stored
+    logging_path : pathlib.Path
+        The file where simulation data will be saved
+    protocol_path : pathlib.Path
+        Where the protocol will be saved
+    filters : tables.Filters
+        The compression method for the data
+    n_timesteps_to_pull_var : int
+        How often data is saved during the simulation
+    n_points_in_batch : int
+        Number of element in a batch
+    batch : int
+        How often data is saved to disk
+    dt : float
+        The duration of a timestep of the simulation
+    simulation_time : float
+        How long the simulation is
+    recorded_vars : dict
+        Which variables are going to be saved to disk
+
+    Methods
+    -------
+
+    record(model, save) : None
+        Saves the data to the disk
+    dump_connectivity(model) : None
+        Write the csv of the connectivity to disk
+        NOT WORKING AT THE MOMENT
     """
 
     def __init__(self, output_path, sim_name, to_be_tracked, connected_neurons, batch, n_timesteps_to_pull_var,  dt, simulation_time):
@@ -45,7 +77,6 @@ class Recorder:
         with self.protocol_path.open('wb') as f:
             pickle.dump(protocol, f)
 
-
     def enable_spike_recording(self, model):
         for pop in self.recorded_vars:
             for var_name in self.recorded_vars[pop]:
@@ -61,7 +92,6 @@ class Recorder:
                     res[pop][var_name] = np.empty((self.n_points_in_batch, connected_neurons[pop].size + 1))
 
         return res
-
 
     def _collect_vars(self, model):
         for pop in self.recorded_vars:
@@ -94,8 +124,6 @@ class Recorder:
         else:
             self._data[pop][var] = np.column_stack([times, series])
 
-
-
     def _set_up_var_recording(self, to_be_tracked, connected_neurons):
         """
         Tracks a list of variables
@@ -112,8 +140,6 @@ class Recorder:
                                     (0, target_cols), expectedrows=expected_rows)
         return res
 
-
-
     def _get_cols_for_var(self, var_name: List[str], neurons):
         if var_name == "spikes":
             target_cols = 2
@@ -129,7 +155,6 @@ class Recorder:
 
     def _reset_population(self):
         self._row_count = 0
-
 
     def _stream_output(self):
         logging.info(f"Saving to {self.dirpath}")
@@ -154,6 +179,15 @@ class Recorder:
         self._reset_population()
 
     def record(self, model, save):
+        """Saves the data to the disk
+
+        Parameters
+        ----------
+        model : model.network.NeuronalNetwork
+            The model for which data has to be saved
+        save : bool
+            Whether to save to disk
+        """
         if not save:
             return
         if model.network.timestep % self.n_timesteps_to_pull_var == 0 or model.network.timestep == self.simulation_time / self.dt:
@@ -164,6 +198,15 @@ class Recorder:
             self._stream_output()
 
     def dump_connectivity(self, model):
+        """Writes the connectivity of the model to disk
+
+        Parameters
+        ----------
+        model : model.network.NeuronalNetwork
+            The model for which the connectivity
+            has to be saved
+        """
+
         connectivity = model.get_connectivity()
         connectivity = pd.DataFrame(connectivity)
         filename = self.dirpath / "connectivity.csv"

@@ -191,23 +191,18 @@ class Protocol(ABC):
         odor is presented to one channel during a time step
         """
 
-        channel_occupancy_state = [[] for i in range(self.param['num_channels'])]
-        for i in self.events:
-            found_free_channel = False
-            channel_index = 0
-            while not found_free_channel and channel_index < self.param['num_channels']:
-                channel_occupied_during_event = False
-                for j in channel_occupancy_state[channel_index]:
-                    if (i['t_start'] >= j[0] and i['t_start'] <= j[1]) or (i['t_end'] >= j[0] and i['t_end'] <= j[1]):
-                        channel_occupied_during_event = True
-                if not channel_occupied_during_event:
-                    found_free_channel = True
-                else:
-                    channel_index += 1
-            if found_free_channel:
-                i['channel'] = channel_index
-                channel_occupancy_state[channel_index].append((i['t_start'], i['t_end']))
-            else:
+        self.events.sort(key = lambda x : x['t_start'])
+        current_events = [None for i in range(self.param['num_channels'])]
+
+        for event in self.events:
+            found_channel = False
+            for (i, cur_event) in enumerate(current_events):
+                if not found_channel and (cur_event == None or cur_event['t_end'] < event['t_start']):
+                    event['channel'] = i
+                    found_channel = True
+                    current_events[i] = event
+
+            if not found_channel:
                 raise Exception("The number of channels is not enough to allow for all the events to happen")
 
     def _generate_inhibitory_connectivity(self, connectivity_type, self_inhibition):
@@ -269,9 +264,9 @@ class Protocol(ABC):
         res : double
             The total simulation time
         """
-
-        max_time = max(self.events, key = lambda x : x['t_end'])['t_end']
-        return max_time + self.param['resting_duration']
+        if not self.max_time:
+            self.max_time = max(self.events, key = lambda x : x['t_end'])['t_end'] + self.param['resting_duration']
+        return self.max_time
 
 
     @abstractmethod
@@ -314,6 +309,7 @@ class Protocol(ABC):
         """
 
         self.param = param
+        self.max_time = None
         self._odors = self._create_odors(self.param['odors'])
         self._odor_binding_rate_permutation()
         self.param['hill_exponential'] = self._compute_hill_exponential(self.param['hill_exponential'])

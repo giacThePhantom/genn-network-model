@@ -35,6 +35,52 @@ class DataManager:
 
     Methods
     -------
+
+    close() : None
+        Closes the data file, to be used when the
+        object is no longer referenced
+    get_data_window(var_path, t_start, t_end) : numpy.ndArray
+        Get all the collected data for a given variable from time
+        t_start to time t_end
+    get_data_for_first_neuron_in_glomerulus(glo_idx, pop, var, t_start, t_end) : numpy.ndArray
+        Gets the evolution of a variable during a time interval for the first
+        neuron of a population in a glomerulus
+    get_spikes_for_first_neuron_in_glomerulus(glo_idx, pop, t_start, t_end) : numpy.ndArray
+        Gets the time at which spikes happen for the first neuron of a population
+        in a glomerulus during a time step
+    get_first_neuron_in_glomerulus(glo_idx, pop) : int
+        Returns the first neuron of a population in a glomerulus
+    or_most_active(ra) : int
+        Gets the most active glomerulus given the ra matrix
+    get_spike_matrix(spike_times, spike_ids, pop, t_start, t_end) : numpy.ndArray
+        Compute the matrix of spikes for a population in an interval
+    sdf_for_population(pop, t_start, t_end) : numpy.ndArray
+        Computes the spike density matrix for a population
+        in a time interval
+    sdf_per_glomerulus_avg(pop, t_start, t_end) : numpy.ndArray
+        The average sdf in each glomerulus for each
+        time step during a time interval.
+    sdf_time_avg(sdf) : numpy.ndArray
+        Takes a sdf matrix and computes the corresponding
+        time average
+    get_active_glomeruli_per_pop(sdf) : numpy.ndArray
+        Given a spike density matrix computes which glomeruli
+        are activated (or deactivated) as if their distance from
+        the mean value of sdf is more than one standard deviation
+    get_sim_dt() : double
+        Getter for the timestep of the simulation
+    show_or_save(filename, show)
+        Whether to show or save a matplotlibe image
+    get_pop_size(pop) : int
+        Getter for the population size of a neuron
+        population
+    get_inhibitory_connectivity() : numpy.ndArray
+        Getter for the inhibitory connectivity
+    get_events() : pandas.DataFrame
+        Getter for the events that happened during the
+        simulation
+    get_sim_name() : str
+        Getter for the simulation name
     """
 
     def __init__(self, sim_param, sim_name, neuron_param, synapse_param):
@@ -57,6 +103,7 @@ class DataManager:
         self.sim_param = sim_param
         self.neuron_param = neuron_param
         self.synapse_param = synapse_param
+        self.sim_name = sim_name
         self._root_out_dir = Path(sim_param['output_path']) / sim_name
         self._root_plot_dir = self._root_out_dir / 'plots'
         self._root_plot_dir.mkdir(exist_ok=True)
@@ -220,7 +267,6 @@ class DataManager:
         or_most_active = np.argmax(ra_sum)
         return or_most_active
 
-
     def get_spike_matrix(self, spike_times, spike_ids, pop, t_start, t_end):
         """Compute the matrix of spikes for a population in an interval
 
@@ -379,7 +425,6 @@ class DataManager:
 
         return self.sim_param['dt']
 
-
     def show_or_save(self, filename, show=False):
         """Whether to show or save a matplotlibe image
 
@@ -443,3 +488,14 @@ class DataManager:
         """
 
         return self.events
+
+    def get_sim_name(self):
+        """Getter for the simulation name
+
+        Returns
+        -------
+        res : str
+            The name of the simulation
+        """
+
+        return self.sim_name

@@ -1,0 +1,24 @@
+{
+  "dt": 0.2,
+  "experiment_name": "explore_different_odors_with_sigma",
+  "experiment_type": "first_protocol",
+  "batch": 100000,
+  "n_timesteps_to_pull_var": 1,
+  "poll_spike_readings": false,
+  "optimize_code": false,
+  "generate_empty_state_push": false,
+  "output_path": "/media/data/thesis_output/",
+  "tracked_variables": {
+    "orn": [
+      "spikes"
+    ],
+    "ln": [
+      "spikes"
+    ],
+    "pn": [
+      "spikes"
+    ]
+  },
+  "save": true,
+  "sdf_sigma": 50
+}
