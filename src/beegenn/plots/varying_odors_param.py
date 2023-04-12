@@ -77,7 +77,6 @@ def plot_active_glomeruli_over_amplitude(data_manager, pops, filters, explored_v
     pass
 
 if __name__ == "__main__":
-    simulations = input().split()
     from beegenn.parameters.reading_parameters import parse_cli
     param = parse_cli()
 
