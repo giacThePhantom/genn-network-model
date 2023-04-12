@@ -18,8 +18,6 @@ psutil==5.9.4
 pycodestyle
 pygenn
 pyparsing
-PyQt5
-PyQt5-sip
 python-dateutil
 pytz
 six
