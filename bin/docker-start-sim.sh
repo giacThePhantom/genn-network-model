@@ -10,9 +10,7 @@ GROUP_ID=${LOCAL_USER_ID:-$USER_ID}
 groupadd -g $GROUP_ID genn
 useradd --shell /bin/bash -u $USER_ID -g genn -o -c "" -m genn
 export HOME=/home/genn
-
-echo $@
-echo $1
+chown genn:genn $HOME # make sure it is writeable by genn
 
 # Launch the script
 cd $HOME
