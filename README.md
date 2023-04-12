@@ -24,7 +24,7 @@ python -m beegenn.simulation data <simname>
 If you wish to run docker locally, after checking out the project, install Docker and then proceed to build an image:
 
 ```bash
-docker build . -t beegenn:beegenn:latest
+docker build . -t beegenn/beegenn:latest
 ```
 
 Our entrypoint will automatically start a simulation in a hardened scenario. To get outputs you should bind-mount an output directory to `/home/genn`, and a data directory to `/data`. For example:
@@ -33,8 +33,12 @@ Our entrypoint will automatically start a simulation in a hardened scenario. To 
 docker run -it \
   --mount type=bind,source=$(pwd)/data,target=/data \
   --mount type=bind,source=/some/output/folder,target=/home/genn \
-  beegenn:beegenn:latest
+  beegenn/beegenn:latest
 ```
+
+### Run inside the cluster 
+
+Please refer to our [internal guide](https://github.com/giacThePhantom/genn-network-model/blob/master/cluster/README.md).
 
 ### Authors
 
