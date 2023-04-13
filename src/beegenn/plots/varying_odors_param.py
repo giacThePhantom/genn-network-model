@@ -86,6 +86,7 @@ if __name__ == "__main__":
             param['neuron_populations'],
             param['synapses']
             )
+
     amplitude_concentration_coefficient(data_manager.get_events())
 
     plot_active_glomeruli_over_amplitude(data_manager,
