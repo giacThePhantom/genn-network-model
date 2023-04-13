@@ -1,7 +1,5 @@
 autopep8
 certifi
-contourpy
-cycler
 dbus-python==1.2.18
 defusedxml
 Deprecated==1.2.13

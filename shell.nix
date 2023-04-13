@@ -1,8 +1,5 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/d1c3fea7ecbed758168787fe4e4a3157e52bc808.tar.gz") {}
+}:
 
-let
-   beegenn = import ./default.nix {pkgs = pkgs;};
-in
-  pkgs.mkShell {
-    packages = [pkgs.python310 beegenn];
-  }
+import ./default.nix {pkgs = pkgs;}
+

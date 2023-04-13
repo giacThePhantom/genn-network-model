@@ -6,16 +6,9 @@ with pkgs;
 
 let
    # To get CUDA 11.1 we need to fix some nixpkgs.
-   cudaNixpkgs = import (builtins.fetchGit {
-       # Descriptive name to make the store path easier to identify                
-       name = "cuda-11.1-nixpkgs";
-       url = "https://github.com/NixOS/nixpkgs/";                       
-       ref = "refs/heads/nixpkgs-unstable";                     
-       rev = "d1c3fea7ecbed758168787fe4e4a3157e52bc808";
-   }) {};
-
-  cuda = cudaNixpkgs.cudaPackages.cudatoolkit_11_1;
-  nvidia_x11 = cudaPkgs.linuxPackages.nvidia_x11;
+  
+  cuda = cudaPackages.cudatoolkit_11_1;
+  nvidia_x11 = linuxPackages.nvidia_x11;
 
   cudaPkgs = [cuda nvidia_x11];
 
@@ -78,6 +71,8 @@ let
     src = lib.cleanSource ./.; # TODO
 
     propagatedBuildInputs = beegennPythonDeps ++ cudaPkgs;
+
+    preBuildHook = "pip show setuptools";
 
     doCheck = false;
   };

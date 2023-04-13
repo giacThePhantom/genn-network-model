@@ -1,19 +1,15 @@
-{
-  pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/3fb8eedc450286d5092e4953118212fa21091b3b.tar.gz") {}
-, pkgsLinux ?  import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/3fb8eedc450286d5092e4953118212fa21091b3b.tar.gz") { system = "x86_64-linux"; }
+{ pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/d1c3fea7ecbed758168787fe4e4a3157e52bc808.tar.gz") {}
+, pkgsLinux ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/d1c3fea7ecbed758168787fe4e4a3157e52bc808.tar.gz") {}
 }:
 
 let
   beegenn = import ./default.nix {inherit pkgs; };
 in
-  # run the following:
-  # docker load $(nix-build docker.nix)
-  # This will avoid making another intermediate file...
   pkgs.dockerTools.buildImage {
-    name = "beegenn";
+    name = "erolmatei/beegenn";
     tag = "latest";
 
-    copyToRoot = pkgs.buildEnv {
+    contents = pkgs.buildEnv {
       name = "image-root";
       paths = with pkgs; [
         python310
@@ -30,7 +26,7 @@ in
     '';
 
     config = {
-       Cmd = [ "/bin/python" "-m" "beegenn" "simulation" "/out/data" "sim3" ];
+       Cmd = [ "/bin/python" "-m" "beegenn" "simulation" "/data" "sim3" ];
       # Cmd = ["/bin/python" "--version" ];
       WorkingDir = "/out";
       Volumes = { "/out" = { }; };
