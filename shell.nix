@@ -1,8 +1,8 @@
 { pkgs ? import <nixpkgs> {} }:
 
 let
-   beegenn = import ./default.nix;
+   beegenn = import ./default.nix {pkgs = pkgs;};
 in
   pkgs.mkShell {
-    packages = [beegenn pkgs.python310];
+    packages = [pkgs.python310 beegenn];
   }

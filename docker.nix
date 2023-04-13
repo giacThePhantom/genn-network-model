@@ -1,9 +1,10 @@
-{ pkgs ? import <nixpkgs> { }
-, pkgsLinux ? import <nixpkgs> { system = "x86_64-linux"; }
+{
+  pkgs ? import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/3fb8eedc450286d5092e4953118212fa21091b3b.tar.gz") {}
+, pkgsLinux ?  import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/3fb8eedc450286d5092e4953118212fa21091b3b.tar.gz") { system = "x86_64-linux"; }
 }:
 
 let
-  beegenn = import ./default.nix;
+  beegenn = import ./default.nix {inherit pkgs; };
 in
   # run the following:
   # docker load $(nix-build docker.nix)
@@ -19,10 +20,7 @@ in
         busybox
         beegenn
         bashInteractive
-        # TODO: this does not work. propagatedBuildInputs does not work as I expected. 
-        linuxPackages.nvidia_x11 
-        cudatoolkit
-      ] ++ beegenn.env.propagatedBuildInputs
+      ]; 
       #pathsToLink = ["/bin"]; # We need EVERYTHING
     };
 
