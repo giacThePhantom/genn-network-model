@@ -5,7 +5,7 @@ from .data_manager import DataManager
 
 
 def plot_sdf_heatmap_per_pop(sdf_average, t_start, t_end, dt, pop, subplot):
-    res = subplot.imshow(sdf_average, vmin = 0, vmax = 100, cmap = 'plasma')
+    res = subplot.imshow(sdf_average, vmin = 0, cmap = 'plasma')
     subplot.set_aspect((t_end-t_start)//10)
     subplot.xaxis.set_major_locator(matplotlib.ticker.FixedLocator([3000*i//dt for i in range(int(t_end-t_start)//3000 + 1)]))
     subplot.set_xticklabels([f"{t_start * (i + 1):.1g}" for i in range(int(t_end-t_start)//3000 + 1)], rotation=45, fontsize = 8)
@@ -39,6 +39,7 @@ def colorbar(image, subplot, figure):
 
 def plot_sdf_heatmap(pops, t_start, t_end, data_manager, show):
 
+
     figure, subplots = get_subplots(len(pops))
     image = []
 
@@ -71,5 +72,6 @@ if __name__ == "__main__":
                  ['name'], param['neuron_populations'], param['synapses'])
 
     events = pd.read_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'events.csv')
+    print(events)
 
-    plot_sdf_heatmap(['orn', 'pn', 'ln'], 9000, 12000, data_manager, show = False)
+    plot_sdf_heatmap(['orn', 'pn', 'ln'], 0, 3000, data_manager, show = False)

@@ -19,5 +19,6 @@
       "spikes"
     ]
   },
-  "save": true
+  "save": true,
+  "sdf_sigma" : 50
 }

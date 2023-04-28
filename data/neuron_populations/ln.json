@@ -4,7 +4,9 @@
 	"spike_rec" : false,
 	"sim_code" : [
     "$(V)+= (-$(g_leak)*($(V)-$(V_leak)) - $(g_adapt)*$(a)*($(V)-$(V_adapt)) + $(r_scale)*$(Isyn)+$(noise_A)*$(gennrand_normal))*DT/$(C_mem);",
-    "$(a)+= -$(a)*DT/$(tau_adapt);"
+    "$(a)+= -$(a)*DT/$(tau_adapt);",
+    "$(g_adapt) = $(g_adapt_0)*std::pow($(Q), ($(T)-$(T_ref))/10);",
+    "$(g_leak) = $(g_leak_0)*std::pow($(Q), ($(T)-$(T_ref))/10);"
 	],
 	"reset_code" : [
     "$(V)= $(V_reset);",
@@ -18,10 +20,11 @@
     "V_reset": -70.0,
     "V_thresh": -40.0,
     "V_leak": -60.0,
-    "g_leak": 0.01,
+    "g_leak_0": 0.01,
     "r_scale": 1.0,
-    "g_adapt": 0.0005,
+    "g_adapt_0": 0.0005,
     "V_adapt": -70.0,
+    "T_ref" : 36,
     "tau_adapt": 1000.0,
 		"noise_A": "eval 1: 1.4/np.sqrt(params['simulations']['simulation']['dt'])"
 	},
@@ -37,6 +40,30 @@
 			"type" : "scalar",
 			"value" : 0.0,
 			"_comment_" : "adaptive strength"
+		},
+		{
+			"name" : "g_adapt",
+			"type" : "scalar",
+			"value" : 0.0005,
+			"_comment_" : "adaptive conductance"
+		},
+		{
+			"name" : "g_leak",
+			"type" : "scalar",
+			"value" : 0.01,
+			"_comment_" : "leak conductance"
+		},
+		{
+			"name" : "T",
+			"type" : "scalar",
+			"value" : 36.0,
+			"_comment_" : "leak conductance"
+		},
+		{
+			"name" : "Q",
+			"type" : "scalar",
+			"value" : 0.0,
+			"_comment_" : "leak conductance"
 		}
 	]
 }
