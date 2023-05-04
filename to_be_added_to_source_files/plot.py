@@ -4,6 +4,8 @@ Make plots. TODO cleanup
 import numpy as np
 from matplotlib import pyplot as plt
 
+
+
 def plot_sdf_over_c(param, exp_name, **kwargs):
     data, protocol = parse_data(
         param,

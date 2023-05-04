@@ -5,6 +5,7 @@ from beegenn.protocols.protocol import Protocol
 from beegenn.protocols.first_protocol import FirstProtocol
 from beegenn.protocols.second_protocol import SecondProtocol
 from beegenn.protocols.third_protocol import ThirdProtocol
+from beegenn.protocols.temperature_protocol import TemperatureProtocol
 from beegenn.recorder.recorder import Recorder
 
 import numpy as np
@@ -115,6 +116,50 @@ class Simulator:
                 if events[i]:
                     current_events[i] = events[i].pop(0)
 
+    def update_target_variables(self, target_pop, var, values):
+        """
+        Updates the target population based on a list of
+        events determined by the protocol
+
+        Parameters
+        ----------
+        target_pop : NeuronPopulation
+            The population for which to update the variables
+        var : str
+            The name of the variable to update
+        values : list
+            The list of values to update the variable with
+        """
+
+        self.model.connected_neurons[target_pop].vars[var].view[:] = values
+        self.model.network.push_state_to_device(target_pop)
+
+    def update_variables(self, current_events, events):
+        """
+        Updates the variables of the model based
+        on a list of events determined by the protocol
+
+        Parameters
+        ----------
+        current_events : list
+            The list of events that are happening right now
+        events : list
+            The list of all the remaining events
+        """
+
+        for (i, event) in enumerate(current_events):
+            if self.model.network.t >= event['t_start'] and not event['happened']:
+                for pop in event['affects']:
+                    for var in event['affects'][pop]:
+                        self.update_target_variables(pop, var, event['affects'][pop][var])
+
+                event['happened'] = True
+
+            elif self.model.network.t == event['t_end']:
+
+                if events:#[i]:
+                    current_events[i] = events.pop(0)#[i].pop(0)
+
 
 
     def run(self, save=True):
@@ -140,11 +185,12 @@ class Simulator:
             logging.info("Reinitializing")
             self.model.reinitialise()
 
-        events = self.protocol.get_events_for_channel()
-        current_events = []
-        for i in events:
-            if i:
-                current_events.append(i.pop(0))
+        # events = self.protocol.get_events_for_channel()
+        events = self.protocol.events
+        current_events = [events.pop(0)]
+        # for i in events:
+        #     if i:
+        #         current_events.append(i.pop(0))
 
         target_pop = self.model.connected_neurons['or']
 
@@ -156,7 +202,8 @@ class Simulator:
                 while genn_model.t < self.protocol.simulation_time:
                     logging.debug(f"Time: {genn_model.t}")
                     genn_model.step_time()
-                    self.update_target_pop(target_pop, current_events, events)
+                    # self.update_target_pop(target_pop, current_events, events)
+                    self.update_variables(current_events, events)
                     self.recorder.record(self.model, save)
                     if genn_model.t % 1 == 0:
                         pbar.update(1)
@@ -186,8 +233,11 @@ def pick_protocol(params):
             protocol = SecondProtocol(protocol_data[experiment_name])
         case "third_protocol":
             protocol = ThirdProtocol(protocol_data[experiment_name])
+        case "temperature":
+            protocol = TemperatureProtocol(protocol_data[experiment_name])
         case _:
             protocol = FirstProtocol(protocol_data[experiment_name])
+
     protocol.add_inhibitory_conductance(
         params['synapses']['ln_pn'], params['neuron_populations']['ln']['n'], params['neuron_populations']['pn']['n'])
     protocol.add_inhibitory_conductance(

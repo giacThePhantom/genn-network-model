@@ -67,10 +67,10 @@ class Recorder:
 
     def dump_protocol(self, protocol):
         events = deepcopy(protocol.events)
-        for i in events:
-            i.pop('binding_rates')
-            i.pop('activation_rates')
-            i.pop('happened')
+        # for i in events:
+        #     i.pop('binding_rates')
+        #     i.pop('activation_rates')
+        #     i.pop('happened')
         df = pd.DataFrame.from_dict(events, orient = 'columns')
         df.sort_values(by=['t_start', 't_end'])
         df.to_csv(str(self.dirpath / "events.csv"))

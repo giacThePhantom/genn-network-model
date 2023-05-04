@@ -14,7 +14,7 @@
         },
         "experiment_type": {
             "type": "string",
-            "enum": ["first_protocol", "second_protocol", "third_protocol", "test_protocol"],
+            "enum": ["first_protocol", "second_protocol", "third_protocol", "test_protocol", "temperature"],
             "description": "The name of the protocol to instantiate"
         },
         "batch": {
@@ -44,7 +44,7 @@
         },
         "tracked_variables": {
             "type": "object",
-            "description": "The wished variables to follow. See examples for details."    
+            "description": "The wished variables to follow. See examples for details."
         }
     },
     "required": ["dt", "experiment_name", "experiment_type", "batch", "n_timesteps_to_pull_var", "poll_spike_readings", "output_path", "tracked_variables"]

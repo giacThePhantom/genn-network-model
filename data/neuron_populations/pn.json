@@ -20,7 +20,7 @@
     "V_reset": -70.0,
     "V_thresh": -40.0,
     "V_leak": -60.0,
-    "g_leak_0": 0.01,
+    "g_leak_0": 1,
     "r_scale": 1.0,
     "g_adapt_0": 0.0,
     "V_adapt": -70.0,
@@ -62,7 +62,7 @@
 		{
 			"name" : "Q",
 			"type" : "scalar",
-			"value" : 0.0,
+			"value" : 2.0,
 			"_comment_" : "leak conductance"
 		}
 	]

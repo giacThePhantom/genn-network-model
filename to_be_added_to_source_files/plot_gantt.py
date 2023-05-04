@@ -12,6 +12,7 @@ import matplotlib.cm as cm
 from beegenn.parameters.reading_parameters import parse_cli
 
 
+
 def make_gantt(params, dataframe):
     """
     Make a Gantt plot of the protocol events. It will be saved to
