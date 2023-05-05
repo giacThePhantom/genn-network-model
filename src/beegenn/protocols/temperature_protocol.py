@@ -75,7 +75,7 @@ class TemperatureProtocol:
         """
         events = []
         temperature = self.param['starting_temperature']
-        time = self.param['resting_duration']
+        time = 0.0
         while temperature <= self.param['ending_temperature']:
             events.append(
                     self._event_generation(

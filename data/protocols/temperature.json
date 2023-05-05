@@ -5,8 +5,8 @@
 	"homogeneous" : false,
 	"event_duration" : 3000.0,
 	"resting_duration" : 3000.0,
-	"starting_temperature" : 0.0,
-	"ending_temperature" : 50.0,
+	"starting_temperature" : 35.0,
+	"ending_temperature" : 38.0,
 	"temperature_step" : 1.0,
 	"affects" : {
 		"orn" : ["T"],

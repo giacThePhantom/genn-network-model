@@ -20,13 +20,13 @@
     "V_reset": -70.0,
     "V_thresh": -40.0,
     "V_leak": -60.0,
-    "g_leak_0": 1,
+    "g_leak_0": 0.01,
     "r_scale": 1.0,
-    "g_adapt_0": 0.05,
+    "g_adapt_0": 0.0005,
     "V_adapt": -70.0,
     "T_ref" : 36,
     "tau_adapt": 1000.0,
-		"noise_A": "eval 1: 1.4/np.sqrt(params['simulations']['simulation']['dt'])"
+		"noise_A": "eval 1: 5.0/np.sqrt(params['simulations']['simulation']['dt'])"
 	},
 	"variables" : [
 		{
@@ -62,7 +62,7 @@
 		{
 			"name" : "Q",
 			"type" : "scalar",
-			"value" : 2.0,
+			"value" : 10.0,
 			"_comment_" : "leak conductance"
 		}
 	]
