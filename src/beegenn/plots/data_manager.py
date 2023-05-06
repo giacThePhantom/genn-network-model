@@ -414,6 +414,22 @@ class DataManager:
                 glomeruli_of_interest.append(i)
         return glomeruli_of_interest
 
+    def sdf_correlation(self, sdf):
+        """Computes the correlation matrix of the sdf
+
+        Parameters
+        ----------
+        sdf : numpy.ndArray
+            The spike density matrix
+
+        Returns
+        -------
+        res : numpy.ndArray
+            The correlation matrix
+        """
+
+        return np.corrcoef(sdf)
+
     def get_sim_dt(self):
         """Getter for the timestep of the simulation
 
