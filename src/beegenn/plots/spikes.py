@@ -139,4 +139,4 @@ if __name__ == "__main__":
 
     events = pd.read_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'events.csv')
 
-    plot_spikes(['orn', 'pn', 'ln'], 9000, 12000, data_manager, show = False)
+    plot_spikes(['orn'], 0, np.min(events['t_end']), data_manager, show = False)

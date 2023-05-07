@@ -1,6 +1,6 @@
 {
-	"name" : "orn",
-	"n" : "eval 1: params['neuron_populations']['or']['n'] * 60",
+	"name" : "PN",
+	"n" : "eval 1: params['neuron_populations']['or']['n'] * 5",
 	"spike_rec" : false,
 	"sim_code" : [
     "$(V)+= (-$(g_leak)*($(V)-$(V_leak)) - $(g_adapt)*$(a)*($(V)-$(V_adapt)) + $(r_scale)*$(Isyn)+$(noise_A)*$(gennrand_normal))*DT/$(C_mem);",
@@ -16,17 +16,17 @@
     "$(V) >= $(V_thresh)"
   ],
 	"parameters" : {
-		"C_mem": 1.0,
-		"V_reset": -70.0,
-		"V_thresh": -40.0,
-		"V_leak": -60.0,
-		"g_leak_0": 0.01,
-		"r_scale": 10.0,
-		"g_adapt_0": 0.0015,
-		"V_adapt": -70.0,
-		"tau_adapt": 1000.0,
-		"T_ref" : 36,
-		"noise_A": "eval 1: 1.4/np.sqrt(params['simulations']['simulation']['dt'])"
+    "C_mem": 1.0,
+    "V_reset": -70.0,
+    "V_thresh": -40.0,
+    "V_leak": -60.0,
+    "g_leak_0": 0.01,
+    "r_scale": 1.0,
+    "g_adapt_0": 0.0,
+    "V_adapt": -70.0,
+    "tau_adapt": 1000.0,
+    "T_ref" : 36,
+    "noise_A": "eval 1: 1.4/np.sqrt(params['simulations']['simulation']['dt'])"
 	},
 	"variables" : [
 		{
@@ -44,7 +44,7 @@
 		{
 			"name" : "g_adapt",
 			"type" : "scalar",
-			"value" : 0.0015,
+			"value" : 0.00,
 			"_comment_" : "adaptive conductance"
 		},
 		{
@@ -56,16 +56,14 @@
 		{
 			"name" : "T",
 			"type" : "scalar",
-			"value" : 36,
+			"value" : 36.0,
 			"_comment_" : "leak conductance"
 		},
 		{
 			"name" : "Q",
 			"type" : "scalar",
-			"value" : 100.0,
+			"value" : 10.0,
 			"_comment_" : "leak conductance"
 		}
-
-
 	]
 }

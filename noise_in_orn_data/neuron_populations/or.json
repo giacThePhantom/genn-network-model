@@ -5,17 +5,17 @@
 	"spike_rec" : false,
 	"sim_code" : [
     "// update all bound receptors and activated receptors",
-    "$(rb_0)+= ($(kp1cn_0)*$(r0) - $(km1_0)*$(rb_0) + $(km2_0)*$(ra_0) - $(kp2_0)*$(rb_0))*DT + std::sqrt($(D_b0)*$(T)*DT)*$(gennrand_normal);",
+    "$(rb_0)+= ($(kp1cn_0)*$(r0) - $(km1_0)*$(rb_0) + $(km2_0)*$(ra_0) - $(kp2_0)*$(rb_0))*DT;",
     "if ($(rb_0) > 1.0) $(rb_0)= 1.0;",
-    "$(ra_0)+= ($(kp2_0)*$(rb_0) - $(km2_0)*$(ra_0))*DT + std::sqrt($(D_a0)*$(T)*DT)*$(gennrand_normal);",
+    "$(ra_0)+= ($(kp2_0)*$(rb_0) - $(km2_0)*$(ra_0))*DT;",
     "if ($(ra_0) > 1.0) $(ra_0)= 1.0;",
-    "$(rb_1)+= ($(kp1cn_1)*$(r0) - $(km1_1)*$(rb_1) + $(km2_1)*$(ra_1) - $(kp2_1)*$(rb_1))*DT + std::sqrt($(D_b1)*$(T)*DT)*$(gennrand_normal);",
+    "$(rb_1)+= ($(kp1cn_1)*$(r0) - $(km1_1)*$(rb_1) + $(km2_1)*$(ra_1) - $(kp2_1)*$(rb_1))*DT;",
     "if ($(rb_1) > 1.0) $(rb_1)= 1.0;",
-    "$(ra_1)+= ($(kp2_1)*$(rb_1) - $(km2_1)*$(ra_1))*DT + std::sqrt($(D_a1)*$(T)*DT)*$(gennrand_normal);",
+    "$(ra_1)+= ($(kp2_1)*$(rb_1) - $(km2_1)*$(ra_1))*DT;",
     "if ($(ra_1) > 1.0) $(ra_1)= 1.0;",
-    "$(rb_2)+= ($(kp1cn_2)*$(r0) - $(km1_2)*$(rb_2) + $(km2_2)*$(ra_2) - $(kp2_2)*$(rb_2))*DT + std::sqrt($(D_b2)*$(T)*DT)*$(gennrand_normal);",
+    "$(rb_2)+= ($(kp1cn_2)*$(r0) - $(km1_2)*$(rb_2) + $(km2_2)*$(ra_2) - $(kp2_2)*$(rb_2))*DT;",
     "if ($(rb_2) > 1.0) $(rb_2)= 1.0;",
-    "$(ra_2)+= ($(kp2_2)*$(rb_2) - $(km2_2)*$(ra_2))*DT + std::sqrt($(D_a2)*$(T)*DT)*$(gennrand_normal);",
+    "$(ra_2)+= ($(kp2_2)*$(rb_2) - $(km2_2)*$(ra_2))*DT;",
     "if ($(ra_2) > 1.0) $(ra_2)= 1.0;",
     "// now update ra and calculate the sum of bound receptors",
     "scalar rb= $(rb_0) + $(rb_1) + $(rb_2);",
@@ -29,13 +29,6 @@
 	"reset_code" : [],
 	"threshold_condition_code" : [],
 	"parameters" : {
-		"T" : 30.0,
-		"D_b0" : 5e-7,
-		"D_a0" : 5e-7,
-		"D_b1" : 5e-7,
-		"D_a1" : 5e-7,
-		"D_b2" : 5e-7,
-		"D_a2" : 5e-7
 	},
 	"variables" : [
 		{
