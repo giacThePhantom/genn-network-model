@@ -149,18 +149,19 @@ class Simulator:
         target_pop = self.model.connected_neurons['or']
 
         # Kickstart the simulation
+        # FIXME
         total_timesteps = round(self.protocol.simulation_time)
 
         with logging_redirect_tqdm():
             with tqdm(total=total_timesteps) as pbar:
-                while genn_model.t < self.protocol.simulation_time:
+                while genn_model.t < total_timesteps:
                     logging.debug(f"Time: {genn_model.t}")
                     genn_model.step_time()
                     self.update_target_pop(target_pop, current_events, events)
                     self.recorder.record(self.model, save)
                     if genn_model.t % 1 == 0:
                         pbar.update(1)
-        self.recorder.flush()
+        self.recorder.flush(self.model)
 
 def pick_protocol(params):
     """Pick the correct protocol for the experiment
@@ -199,6 +200,7 @@ def pick_protocol(params):
 if __name__ == "__main__":
     params = parse_cli()
     protocol = pick_protocol(params)
+    protocol.events = protocol.events[:2]
 
     sim_params = params['simulations']
     name = sim_params['name']
