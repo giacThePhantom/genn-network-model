@@ -1,5 +1,7 @@
 import numpy as np
 import random
+from typing import Optional, cast
+
 
 class Odor:
     """
@@ -17,9 +19,10 @@ class Odor:
     num_glomeruli : int
         The number of glomeruli for which to build the activation
         and binding rates
-    homogeneous : bool
+    homogeneous : Optional[bool]
         Whether the odor has an homogeneous activation rate.
         If false they are sampled from a Gaussian distribution
+        If None the user has to provide already-fitted data (see the constructor for details)
 
     Methods
     -------
@@ -38,16 +41,29 @@ class Odor:
 
     """
 
-    def __init__(self, param, name, num_glomeruli, homogeneous):
-        """Builds the odor class with the corresponding binding and
-        activation rates
+    def __init__(
+        self,
+        param,
+        name,
+        num_glomeruli,
+        homogeneous: Optional[bool],
+    ):
+        """
+        Builds the odor class with the corresponding binding and
+        activation rates.
+
+        If the user does not have pre-fitted data all they have to do is
+        provide these binding rates as lists, otherwise they will be generated as random variables.
         """
         self._name = name
         self.param = param
         self.num_glomeruli = num_glomeruli
         self.homogeneous = homogeneous
+
         self._binding_rates = self._build_binding_rates()
         self._activation_rates = self._build_activation_rates()
+        self._unbinding_rates = np.zeros_like(self._binding_rates)
+        self._deactivation_rates = np.zeros_like(self._activation_rates)
 
     def _compute_random_variable(self, var):
         """From a dictionary containing the parameters sample a
@@ -66,8 +82,8 @@ class Odor:
 
         if isinstance(var, dict):
             while True:
-                res = np.random.normal(var['mu'], var['sigma'])
-                if res >= var['interval'][0] and res <= var['interval'][1]:
+                res = np.random.normal(var["mu"], var["sigma"])
+                if res >= var["interval"][0] and res <= var["interval"][1]:
                     var = res
                     break
         else:
@@ -90,19 +106,23 @@ class Odor:
         """
 
         # Traslate the index according to the midpoint of the distribution
-        x = i - binding_params['midpoint']
+        x = i - binding_params["midpoint"]
         # Set a threshold on the minimum value for the point
         x = np.minimum(np.abs(x), np.abs(x + self.num_glomeruli))
         # Set a threshold on the maximum value for the point
         x = np.minimum(np.abs(x), np.abs(x - self.num_glomeruli))
         # Compute the binding distribution as a Gaussian profile
-        binding_profile = np.power(10, self._compute_random_variable(binding_params['amplitude']))*\
-                np.exp(-np.power(x, 2)/(2*np.power(self._compute_random_variable(binding_params['sigma']), 2)))
-        if binding_profile < binding_params['min_thresh']:
+        binding_profile = np.power(
+            10, self._compute_random_variable(binding_params["amplitude"])
+        ) * np.exp(
+            -np.power(x, 2)
+            / (2 * np.power(self._compute_random_variable(binding_params["sigma"]), 2))
+        )
+        if binding_profile < binding_params["min_thresh"]:
             binding_profile = 0
         return binding_profile
 
-    def _build_activation_rate(self, prev = None):
+    def _build_activation_rate(self, prev=None):
         """From the activation parameters builds a activation rate for a glomerulus
         Parameters
         ----------
@@ -119,27 +139,46 @@ class Odor:
         if self.homogeneous and prev:
             res = prev
         else:
-            res = self._compute_random_variable(self.param['activation'])
+            res = self._compute_random_variable(self.param["activation"])
         return res
 
+    def _check_rates_list(self, param):
+        if isinstance(param, list):
+            return np.array(param)
+        if isinstance(param, float):
+            return np.full(self.num_glomeruli, param)
 
     def _build_binding_rates(self):
         """Builds the binding rates for all the glomeruli"""
 
+        params = self.param["binding"]
+        if (returned := self._check_rates_list(params)) is not None:
+            return returned
+
         res = []
         for i in range(self.num_glomeruli):
-            res.append(self._build_binding_rate(self.param['binding'], i))
+            res.append(self._build_binding_rate(params, i))
         return np.array(res)
+
+    def _build_unbinding_rates(self):
+        return self._check_rates_list(self.param["unbinding"])
 
     def _build_activation_rates(self):
         """Builds the activation rates for all the glomeruli"""
+
+        if (returned := self._check_rates_list(self.param["activation"])) is not None:
+            return returned
+
         res = []
         res.append(self._build_activation_rate())
         for i in range(1, self.num_glomeruli):
             res.append(self._build_activation_rate(res[0]))
         return np.array(res)
 
-    def shuffle_binding_rates(self, shuffle = None):
+    def _build_deactivation_rates(self):
+        return self._check_rates_list(self.param["deactivation"])
+
+    def shuffle_binding_rates(self, shuffle=None):
         """Permutes the binding rates according to a pre-existing shuffle
         if it exists
         Parameters
@@ -164,48 +203,41 @@ class Odor:
 
         return self._name
 
-    def get_cuda_rates(self):
-        """Get a cuda-friendly representation of these odors
-        Returns
-        -------
-        res : np.ndArray
-           A matrix composed of the activation and binding rates
-        """
-
-        return np.vstack([self._binding_rates, self._activation_rates]).T
-
     @property
     def binding_rates(self):
-        """Getter for binding_rates
-        Returns
-        -------
-        binding_rates : np.ndArray
-            The binding_rates of the odor
-        """
+        "The binding_rates (also known as k_1). They are not hill-powered yet."
 
         return self._binding_rates
 
     @property
-    def activation_rates(self):
-        """Getter for activation_rates
-        Returns
-        -------
-        activation_rates : np.ndArray
-            The activation_rates of the odor
-        """
+    def unbinding_rates(self):
+        "The unbinding_rates (also known as k_-1)"
 
+        return self._unbinding_rates
+
+    @property
+    def activation_rates(self):
+        "The activation rates (also known as k2)"
         return self._activation_rates
 
+    @property
+    def deactivation_rates(self):
+        "The activation rates (also known as k2)"
+        return self._deactivation_rates
 
 
-
-
+"""
 if __name__ == "__main__":
     import sys
     from reading_parameters import get_parameters
+
     param = get_parameters(sys.argv[1])
-    temp = Odor(param['protocols']['experiment1']['odors']['default'], 'iaa', 160, False)
-    temp1 = Odor(param['protocols']['experiment1']['odors']['default'], 'iaa', 160, False)
+    temp = Odor(
+        param["protocols"]["experiment1"]["odors"]["default"], "iaa", 160, False
+    )
+    temp1 = Odor(
+        param["protocols"]["experiment1"]["odors"]["default"], "iaa", 160, False
+    )
     print(temp.binding_rates)
     test = np.arange(160)
     random.shuffle(test)
@@ -214,3 +246,4 @@ if __name__ == "__main__":
     print(temp.binding_rates)
     print(temp.binding_rates)
     print(temp.binding_rates == temp1.binding_rates)
+"""

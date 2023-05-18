@@ -100,7 +100,7 @@
 			"name" : "km2_0",
 			"type" : "scalar",
 			"value" : 0.025,
-			"_comment_" : "inactivation rate 0"
+			"_comment_" : "deactivation rate 0"
 		},
     {
 			"name" : "kp1cn_1",
@@ -124,7 +124,7 @@
 			"name" : "km2_1",
 			"type" : "scalar",
 			"value" : 0.025,
-			"_comment_" : "inactivation rate 1"
+			"_comment_" : "deactivation rate 1"
 		},
     {
 			"name" : "kp1cn_2",
@@ -148,7 +148,7 @@
 			"name" : "km2_2",
 			"type" : "scalar",
 			"value" : 0.025,
-			"_comment_" : "inactivation rate 2"
+			"_comment_" : "deactivation rate 2"
 		}
 
 	]

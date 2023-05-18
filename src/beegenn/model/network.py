@@ -3,6 +3,7 @@ from . import synapse
 from typing import Dict
 from pygenn.genn_model import GeNNModel, NeuronGroup
 
+
 class NeuronalNetwork:
     """
     Class containing the neuronal network definition
@@ -39,29 +40,40 @@ class NeuronalNetwork:
             the population of neurons.
         """
         for i in neuron_populations:
-            self.neuron_populations[i] = neuron.NeuronPopulation(neuron_populations[i], i)
+            self.neuron_populations[i] = neuron.NeuronPopulation(
+                neuron_populations[i], i
+            )
 
     def _add_neurons_to_network(self):
         """Adds the NeuronPopulation to the GeNNModel"""
         for i in self.neuron_populations:
             if self.neuron_populations[i].size() > 0:
-                self.connected_neurons[i] = self.neuron_populations[i].add_to_network(self.network)
-
+                self.connected_neurons[i] = self.neuron_populations[i].add_to_network(
+                    self.network
+                )
 
     def _add_synapses(self, synapses):
         for i in synapses:
-            self.synapses[i] = synapse.Synapse(synapses[i],
-                                               synapses[i]['name'],
-                                               self.connected_neurons[synapses[i]['source']],
-                                               self.connected_neurons[synapses[i]['target']],
-                                               )
+            self.synapses[i] = synapse.Synapse(
+                synapses[i],
+                synapses[i]["name"],
+                self.connected_neurons[synapses[i]["source"]],
+                self.connected_neurons[synapses[i]["target"]],
+            )
 
     def _connect(self):
         for i in self.synapses:
             self.connected_synapses[i] = self.synapses[i].add_to_network(self.network)
 
-
-    def __init__(self, name, neuron_populations, synapses, dt, cuda_capable = True, **backend_kwargs):
+    def __init__(
+        self,
+        name,
+        neuron_populations,
+        synapses,
+        dt,
+        cuda_capable=True,
+        **backend_kwargs
+    ):
         """Builds a NeuronalNetwork object starting from a dictionary of
            neurons and one of synapses
         Parameters
@@ -82,7 +94,9 @@ class NeuronalNetwork:
         if cuda_capable:
             self.network = GeNNModel("double", name, **backend_kwargs)
         else:
-            self.network = GeNNModel("double", name, backend = "SingleThreadedCPU", **backend_kwargs)
+            self.network = GeNNModel(
+                "double", name, backend="SingleThreadedCPU", **backend_kwargs
+            )
 
         self.network.dT = dt
         self._add_neuron_population(neuron_populations)
@@ -124,29 +138,48 @@ class NeuronalNetwork:
         for i in self.connected_synapses:
             if self.connected_synapses[i].is_ragged:
                 self.connected_synapses[i].pull_connectivity_from_device()
-                for (j, z) in zip(self.connected_synapses[i].get_sparse_pre_inds(), self.connected_synapses[i].get_sparse_post_inds()):
-                    value = 1 if not 'g' in self.connected_synapses[i].vars else self.synapses[i].param['wu_var_space']['g']
-                    res.append({
-                        "pre_population" : self.connected_synapses[i].src.name,
-                        "post_population" : self.connected_synapses[i].trg.name,
-                        "pre_id" : j,
-                        "post_id" : z,
-                        "value" : value,
-                    })
+                for j, z in zip(
+                    self.connected_synapses[i].get_sparse_pre_inds(),
+                    self.connected_synapses[i].get_sparse_post_inds(),
+                ):
+                    value = (
+                        1
+                        if not "g" in self.connected_synapses[i].vars
+                        else self.synapses[i].param["wu_var_space"]["g"]
+                    )
+                    res.append(
+                        {
+                            "pre_population": self.connected_synapses[i].src.name,
+                            "post_population": self.connected_synapses[i].trg.name,
+                            "pre_id": j,
+                            "post_id": z,
+                            "value": value,
+                        }
+                    )
             else:
-                #self.connected_synapses[i].pull_connectivity_from_device()
+                # self.connected_synapses[i].pull_connectivity_from_device()
                 source_size = self.connected_synapses[i].src.size
                 target_size = self.connected_synapses[i].trg.size
-                connections = self.connected_synapses[i].get_var_values('g').reshape(source_size, target_size)
-                for (j, row) in enumerate(connections):
+                connections = (
+                    self.connected_synapses[i]
+                    .get_var_values("g")
+                    .reshape(source_size, target_size)
+                )
+                for j, row in enumerate(connections):
                     for z in range(len(row)):
                         if z != 0:
-                            res.append({
-                                "pre_population" : self.connected_synapses[i].src.name,
-                                "post_population" : self.connected_synapses[i].trg.name,
-                                "pre_id" : j,
-                                "post_id" : z,
-                                "value" : row[z]
-                            })
+                            res.append(
+                                {
+                                    "pre_population": self.connected_synapses[
+                                        i
+                                    ].src.name,
+                                    "post_population": self.connected_synapses[
+                                        i
+                                    ].trg.name,
+                                    "pre_id": j,
+                                    "post_id": z,
+                                    "value": row[z],
+                                }
+                            )
 
         return res
