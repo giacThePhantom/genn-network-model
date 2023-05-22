@@ -22,10 +22,11 @@ def process_correlation(correlation):
 
     return correlation[idx, :][:, idx]
 
-def plot_correlation_per_pop(correlation, mask, pop, subplot):
+def plot_correlation_per_pop(correlation, to_mask, mask, pop, subplot):
     correlation_df = process_correlation(correlation)
     res = sns.heatmap(correlation_df, cmap = 'plasma', ax = subplot, cbar = False, vmin = -1, vmax = 1, xticklabels=True, yticklabels=True)
-    res = sns.heatmap(mask, cmap = get_cmap(), ax = subplot, cbar = False, xticklabels=True, yticklabels=True)
+    if to_mask:
+        res = sns.heatmap(mask, cmap = get_cmap(), ax = subplot, cbar = False, xticklabels=True, yticklabels=True)
     subplot.set_title(pop)
     subplot.set_xlabel("Glomeruli")
     subplot.set_ylabel("Glomeruli")
@@ -69,7 +70,7 @@ def get_cmap():
 
 
 
-def plot_correlation_heatmap(pops, t_start, t_end, data_manager, show):
+def plot_correlation_heatmap(pops, t_start, t_end, data_manager, to_mask = False, show = False):
     figure, subplots = get_subplots(len(pops))
 
     for (pop, subplot) in zip(pops, subplots):
@@ -78,15 +79,18 @@ def plot_correlation_heatmap(pops, t_start, t_end, data_manager, show):
                 t_start,
                 t_end
                 )
-        glomeruli_of_interest = data_manager.get_active_glomeruli_per_pop(
-                sdf_avg
-                )
         correlation_matrix = data_manager.sdf_correlation(sdf_avg)
         mask = np.ones_like(correlation_matrix, dtype=bool)
-        mask[glomeruli_of_interest, :] = False
-        mask[:, glomeruli_of_interest] = False
+        if to_mask:
+            glomeruli_of_interest = data_manager.get_active_glomeruli_per_pop(
+                    sdf_avg
+                    )
+            for i in glomeruli_of_interest:
+                for j in glomeruli_of_interest:
+                    mask[i,j] = False
         plot_correlation_per_pop(
             correlation_matrix,
+            to_mask,
             mask,
             pop,
             subplot
@@ -108,4 +112,4 @@ if __name__ == "__main__":
     events = pd.read_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'events.csv')
 
     for i, row in events.iterrows():
-        plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, show = False)
+        plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, to_mask = False, show = False)
