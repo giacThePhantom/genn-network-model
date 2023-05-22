@@ -2,13 +2,30 @@ import numpy as np
 from mpl_toolkits.axes_grid1 import ImageGrid
 import matplotlib
 import matplotlib.pyplot as plt
+import seaborn as sns
 from .data_manager import DataManager
+import scipy.cluster.hierarchy as sch
+from matplotlib.colors import ListedColormap
 
+def process_correlation(correlation):
+    correlation[np.isnan(correlation)] = -1
+    correlation = pd.DataFrame(correlation, columns = np.arange(0, correlation.shape[0]))
+    pairwise_distances = sch.distance.pdist(correlation)
+    linkage = sch.linkage(pairwise_distances, method='complete')
+    cluster_distance_threshold = pairwise_distances.max()/2
+    idx_to_cluster_array = sch.fcluster(linkage, cluster_distance_threshold,
+                                        criterion='distance')
+    idx = np.argsort(idx_to_cluster_array)
 
-def plot_correlation_per_pop(correlation, pop, subplot):
-    res = subplot.matshow(correlation, cmap = 'plasma', aspect = 'equal')
-    subplot.set_xticklabels([int(i) for i in subplot.get_xticks()], rotation=45, fontsize = 7)
-    subplot.set_yticklabels([int(i) for i in subplot.get_yticks()], rotation=45, fontsize = 7)
+    if isinstance(correlation, pd.DataFrame):
+        return correlation.iloc[idx, :].T.iloc[idx, :]
+
+    return correlation[idx, :][:, idx]
+
+def plot_correlation_per_pop(correlation, mask, pop, subplot):
+    correlation_df = process_correlation(correlation)
+    res = sns.heatmap(correlation_df, cmap = 'plasma', ax = subplot, cbar = False, vmin = -1, vmax = 1, xticklabels=True, yticklabels=True)
+    res = sns.heatmap(mask, cmap = get_cmap(), ax = subplot, cbar = False, xticklabels=True, yticklabels=True)
     subplot.set_title(pop)
     subplot.set_xlabel("Glomeruli")
     subplot.set_ylabel("Glomeruli")
@@ -29,46 +46,58 @@ def plot_sdf_over_time_outliers(sdf_matrix_avg, subplot):
     subplot.legend()
 
 def get_subplots(n_pops):
-    figure = plt.figure()
-    subplots = ImageGrid(figure, 111,
-                    nrows_ncols = (1,n_pops),
-                    axes_pad = 0.05,
-                    cbar_location = "right",
-                    cbar_mode="single",
-                    cbar_size="5%",
-                    cbar_pad=0.05
-                    )
+    figure, subplots = plt.subplots(
+            1,
+            n_pops + 1,
+            gridspec_kw=dict(width_ratios=[1 for _ in range(n_pops)] + [0.1]),
+            figsize = (n_pops*10, 10)
+            )
     return figure, subplots
 
-def colorbar(image, subplots):
-    cbar = plt.colorbar(image, cax=subplots.cbar_axes[0])
-    cbar.ax.set_ylabel("Correlation")
+def colorbar(image, subplots, figure):
+    p = [subplot.get_position().get_points().flatten() for subplot in subplots]
+    ax_cbar = figure.add_axes([p[0][0], 0, p[-1][0], 0.05])
+    cbar = plt.colorbar(image, cax=ax_cbar, orientation='horizontal')
+    cbar.ax.set_xlabel("Correlation")
+
+def get_cmap():
+    n_colors = 256
+    alpha_levels = [max(min(i/n_colors, 0.8), 0) for i in range(n_colors)]
+    colors = [(1, 1, 1, alpha) for alpha in alpha_levels]
+    cmap = ListedColormap(colors)
+    return cmap
+
+
 
 def plot_correlation_heatmap(pops, t_start, t_end, data_manager, show):
-
-
     figure, subplots = get_subplots(len(pops))
-    image = []
 
-    for (pop, subplot) in zip(pops, subplots.axes_all):
+    for (pop, subplot) in zip(pops, subplots):
         sdf_avg = data_manager.sdf_per_glomerulus_avg(
                 pop,
                 t_start,
                 t_end
                 )
-        correlation_matrix = data_manager.sdf_correlation(sdf_avg)
-        image.append(
-                plot_correlation_per_pop(
-                    correlation_matrix,
-                    pop,
-                    subplot
-                    )
+        glomeruli_of_interest = data_manager.get_active_glomeruli_per_pop(
+                sdf_avg
                 )
-    colorbar(image[-1], subplots)
+        correlation_matrix = data_manager.sdf_correlation(sdf_avg)
+        mask = np.ones_like(correlation_matrix, dtype=bool)
+        mask[glomeruli_of_interest, :] = False
+        mask[:, glomeruli_of_interest] = False
+        plot_correlation_per_pop(
+            correlation_matrix,
+            mask,
+            pop,
+            subplot
+            )
+    figure.colorbar(subplots[-2].collections[0], cax = subplots[-1])
+    figure.tight_layout()
     filename = f"correlation/{t_start:.1f}_{t_end:.1f}.png"
     data_manager.show_or_save(filename, show)
 
 if __name__ == "__main__":
+    sns.set(font_scale = 0.4)
     from beegenn.parameters.reading_parameters import parse_cli
     from pathlib import Path
     import pandas as pd
@@ -77,7 +106,6 @@ if __name__ == "__main__":
                  ['name'], param['neuron_populations'], param['synapses'])
 
     events = pd.read_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'events.csv')
-    print(events)
 
     for i, row in events.iterrows():
         plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, show = False)

@@ -1,9 +1,9 @@
 {
   "dt": 0.2,
-  "experiment_name": "experiment1",
-  "experiment_type": "first_protocol",
-  "batch": 50000,
-  "n_timesteps_to_pull_var": 100,
+  "experiment_name": "experiment3",
+  "experiment_type": "third_protocol",
+  "batch": 40000,
+  "n_timesteps_to_pull_var": 1,
   "poll_spike_readings": false,
   "optimize_code": false,
   "generate_empty_state_push": false,
@@ -13,16 +13,18 @@
       "ra"
     ],
     "orn": [
+      "V",
+      "a",
+      "spikes"
+    ],
+    "ln": [
       "spikes",
       "V"
     ],
-    "ln": [
-      "spikes"
-    ],
     "pn": [
-      "spikes"
+      "spikes",
+      "V"
     ]
   },
-  "save": true,
-  "sdf_sigma" : 100
+  "save": true
 }

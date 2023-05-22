@@ -1,0 +1,200 @@
+{
+    "$schema": "http://json-schema.org/schema",
+    "$id": "protocol",
+    "properties": {
+        "num_odors": {
+            "type": "integer"
+        },
+        "concentration_increases": {
+            "type": "integer"
+        },
+        "connectivity_type": {
+            "type": "string"
+        },
+        "self_inhibition": {
+            "type": "boolean"
+        },
+        "num_glomeruli": {
+            "type": "string"
+        },
+        "num_channels": {
+            "type": "string"
+        },
+        "homogeneous": {
+            "type": "boolean"
+        },
+        "concentration": {
+            "type": "object",
+            "properties": {
+                "start": {
+                    "type": "number"
+                },
+                "dilution_factor": {
+                    "type": "object",
+                    "properties": {
+                        "base": {
+                            "type": "integer"
+                        },
+                        "exponent": {
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "base",
+                        "exponent"
+                    ]
+                }
+            },
+            "required": [
+                "start",
+                "dilution_factor"
+            ]
+        },
+        "event_duration": {
+            "type": "number"
+        },
+        "resting_duration": {
+            "type": "number"
+        },
+        "hill_exponential": {
+            "type": "object",
+            "properties": {
+                "min": {
+                    "type": "number"
+                },
+                "max": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "min",
+                "max"
+            ]
+        },
+        "odors": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "binding": {
+                        "type": "object",
+                        "properties": {
+                            "midpoint": {
+                                "type": "integer"
+                            },
+                            "amplitude": {
+                                "type": "object",
+                                "properties": {
+                                    "mu": {
+                                        "type": "number"
+                                    },
+                                    "sigma": {
+                                        "type": "number"
+                                    },
+                                    "interval": {
+                                        "type": "array",
+                                        "items": [
+                                            {
+                                                "type": "number"
+                                            },
+                                            {
+                                                "type": "number"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "mu",
+                                    "sigma",
+                                    "interval"
+                                ]
+                            },
+                            "sigma": {
+                                "type": "object",
+                                "properties": {
+                                    "mu": {
+                                        "type": "integer"
+                                    },
+                                    "sigma": {
+                                        "type": "number"
+                                    },
+                                    "interval": {
+                                        "type": "array",
+                                        "items": [
+                                            {
+                                                "type": "number"
+                                            },
+                                            {
+                                                "type": "string"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "mu",
+                                    "sigma",
+                                    "interval"
+                                ]
+                            },
+                            "min_thresh": {
+                                "type": "number"
+                            }
+                        },
+                        "required": [
+                            "midpoint",
+                            "amplitude",
+                            "sigma",
+                            "min_thresh"
+                        ]
+                    },
+                    "activation": {
+                        "type": "object",
+                        "properties": {
+                            "mu": {
+                                "type": "number"
+                            },
+                            "sigma": {
+                                "type": "number"
+                            },
+                            "interval": {
+                                "type": "array",
+                                "items": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            }
+                        },
+                        "required": [
+                            "mu",
+                            "sigma",
+                            "interval"
+                        ]
+                    }
+
+                },
+                "required": [
+                    "binding",
+                    "activation"
+                ]
+            }
+        }
+    },
+    "required": [
+        "num_odors",
+        "concentration_increases",
+        "connectivity_type",
+        "self_inhibition",
+        "num_glomeruli",
+        "num_channels",
+        "homogeneous",
+        "concentration",
+        "event_duration",
+        "resting_duration",
+        "hill_exponential",
+        "odors"
+    ]
+}

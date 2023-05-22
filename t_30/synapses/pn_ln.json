@@ -1,0 +1,45 @@
+{
+	"name" : "pn_ln",
+	"matrix_type" : "SPARSE_GLOBALG",
+	"delay_steps" : "eval 1: genn_wrapper.NO_DELAY",
+	"source" : "pn",
+	"target" : "ln",
+	"w_update_model" : "StaticPulse",
+	"wu_param_space" : {},
+	"wu_var_space" : {
+	"g" : 0.001
+	},
+	"wu_pre_var_space" : {},
+	"wu_post_var_space" : {},
+	"postsyn_model" : "ExpCond",
+	"ps_param_space" : {
+    "tau": 10.0,
+    "E": 0.0
+	},
+	"ps_var_space" : {},
+	"connectivity_initialiser": {
+		"name" : "pns_lns_within_glo",
+		"derived_params" : "eval 1: None",
+		"row_build_state_vars" : "eval 1: None",
+		"row_build_code" : [
+        "const unsigned int offset= (unsigned int) $(id_pre)/((unsigned int) $(n_pn))*$(n_ln);",
+        "for (unsigned int k= 0; k < $(n_ln); k++) {",
+        "$(addSynapse, (offset+k));",
+        "}",
+        "$(endRow);"
+		],
+    "col_build_code" : "eval 1: None",
+    "col_build_state_vars" : "eval 1: None",
+		"calc_max_row_len_func" : "eval 1: lambda num_pre, num_post, pars: int(pars[1])",
+		"calc_max_col_len_func" : "eval 1: None",
+		"calc_kernel_size_func" : "eval 1: None",
+		"extra_global_params" : "eval 1: None",
+		"custom_body" : "eval 1: None",
+		"param_space" : {
+			"n_pn" : "eval 2: params['neuron_populations']['pn']['n']/params['neuron_populations']['or']['n']",
+			"n_ln" : "eval 2: params['neuron_populations']['ln']['n']/params['neuron_populations']['or']['n']"
+
+		}
+	},
+	"n" : 12
+}

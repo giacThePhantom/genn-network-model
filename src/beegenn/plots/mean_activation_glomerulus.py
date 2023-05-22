@@ -73,4 +73,6 @@ if __name__ == "__main__":
 
     events = pd.read_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'events.csv')
 
-    plot_outliers_sdf_over_time(['orn', 'pn', 'ln'], 9000, 12000, data_manager, show = False)
+
+    for i, row in events.iterrows():
+        plot_outliers_sdf_over_time(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, show = False)
