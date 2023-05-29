@@ -9,6 +9,7 @@ from beegenn.protocols.no_input import NoInput
 from beegenn.recorder.recorder import Recorder
 
 import numpy as np
+from scipy.signal import convolve
 
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
@@ -85,7 +86,7 @@ class Simulator:
         self.recorder.dump_protocol(self.protocol)
         self.recorder.enable_spike_recording(self.model)
 
-    def update_target_pop(self, target_pop, current_events, events):
+    def update_target_pop(self, target_pop, current_events, events, poi_input):
         """
         Updates the target population based on a list of events determined by the protocol
 
@@ -98,6 +99,9 @@ class Simulator:
         events : list
             The list of all the remaining events
         """
+
+        target_pop.vars['ra'].view[:] = poi_input
+        self.model.network.push_state_to_device("or")
 
         for (i, event) in enumerate(current_events):
             if self.model.network.t >= event['t_start'] and not event['happened']:
@@ -152,16 +156,67 @@ class Simulator:
         # Kickstart the simulation
         total_timesteps = round(self.protocol.simulation_time)
 
+
+
+
+
+        poi_input = self.poisson_input(
+                l = 0.1,
+                sigma = 10,
+                tau = 3,
+                c = 0.3,
+                )
+
+
+
+
         with logging_redirect_tqdm():
             with tqdm(total=total_timesteps) as pbar:
                 while genn_model.t < self.protocol.simulation_time:
                     logging.debug(f"Time: {genn_model.t}")
                     genn_model.step_time()
-                    self.update_target_pop(target_pop, current_events, events)
+                    self.update_target_pop(target_pop, current_events, events, poi_input[int(genn_model.t/self.param['dt'])])
                     self.recorder.record(self.model, save)
                     if genn_model.t % 1 == 0:
                         pbar.update(1)
         self.recorder.flush()
+
+
+    def poisson_process(self, sim_time, dt, l = 0.1):
+        poi = np.zeros(int(sim_time / dt) + 1)
+        tau = -(1/l) * np.log(l * np.random.rand())
+        for i in np.arange(0, sim_time, dt):
+            if i <= tau and i + dt > tau:
+                poi[int(i * dt)] = 0.0
+                tau -= (1/l) * np.log(l * np.random.rand())
+        return poi
+
+    def add_template(self, poi, template, c):
+        for i in range(len(poi)):
+            if poi[i] != 0:
+                prob = np.random.rand()
+                if prob < c:
+                    poi[i] = 0
+            if template[i] != 0:
+                prob = np.random.rand()
+                if prob < c:
+                    poi[i] = template[i]
+        return poi
+
+
+
+    def kernel(self, sigma, tau, dt):
+        kernel = np.arange(0, sigma, dt)
+        kernel = (1/tau)*np.exp(-kernel/tau)
+        return kernel
+
+    def poisson_input(self, l = 0.1, sigma = 5, tau = 2, c = 0.1):
+        template = self.poisson_process(self.protocol.simulation_time, self.param['dt'], l)
+        pois = [self.poisson_process(self.protocol.simulation_time, self.param['dt'], l) for _ in range(160)]
+        ker = self.kernel(sigma, tau, self.param['dt'])
+        pois = [self.add_template(pois[i], template, c) for i in range(len(pois))]
+        pois = [convolve(poi, ker, mode = 'same') for poi in pois]
+        return np.array(pois).T
 
 def pick_protocol(params):
     """Pick the correct protocol for the experiment
