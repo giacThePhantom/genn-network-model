@@ -7,7 +7,7 @@ from .data_manager import DataManager
 import scipy.cluster.hierarchy as sch
 from matplotlib.colors import ListedColormap
 
-def process_correlation(correlation):
+def cluster(correlation):
     correlation[np.isnan(correlation)] = -1
     correlation = pd.DataFrame(correlation, columns = np.arange(0, correlation.shape[0]))
     pairwise_distances = sch.distance.pdist(correlation)
@@ -22,8 +22,11 @@ def process_correlation(correlation):
 
     return correlation[idx, :][:, idx]
 
-def plot_correlation_per_pop(correlation, to_mask, mask, pop, subplot):
-    correlation_df = process_correlation(correlation)
+def plot_correlation_per_pop(correlation, to_cluster, to_mask, mask, pop, subplot):
+    if to_cluster:
+        correlation_df = cluster(correlation)
+    else:
+        correlation_df = pd.DataFrame(correlation, columns = np.arange(0, correlation.shape[0]))
     res = sns.heatmap(correlation_df, cmap = 'plasma', ax = subplot, cbar = False, vmin = -1, vmax = 1, xticklabels=True, yticklabels=True)
     if to_mask:
         res = sns.heatmap(mask, cmap = get_cmap(), ax = subplot, cbar = False, xticklabels=True, yticklabels=True)
@@ -70,7 +73,7 @@ def get_cmap():
 
 
 
-def plot_correlation_heatmap(pops, t_start, t_end, data_manager, to_mask = False, show = False):
+def plot_correlation_heatmap(pops, t_start, t_end, data_manager, to_cluster = False, to_mask = False, show = False):
     figure, subplots = get_subplots(len(pops))
 
     for (pop, subplot) in zip(pops, subplots):
@@ -90,6 +93,7 @@ def plot_correlation_heatmap(pops, t_start, t_end, data_manager, to_mask = False
                     mask[i,j] = False
         plot_correlation_per_pop(
             correlation_matrix,
+            to_cluster,
             to_mask,
             mask,
             pop,
@@ -97,7 +101,9 @@ def plot_correlation_heatmap(pops, t_start, t_end, data_manager, to_mask = False
             )
     figure.colorbar(subplots[-2].collections[0], cax = subplots[-1])
     figure.tight_layout()
-    filename = f"correlation/{t_start:.1f}_{t_end:.1f}.png"
+    cluster_name = ("_not" if not cluster else "") + "_clustered"
+    masked_name = ("_not" if not to_mask else "") + "_masked"
+    filename = f"correlation{cluster_name}{masked_name}/{t_start:.1f}_{t_end:.1f}.png"
     data_manager.show_or_save(filename, show)
 
 if __name__ == "__main__":
@@ -111,5 +117,17 @@ if __name__ == "__main__":
 
     events = pd.read_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'events.csv')
 
-    for i, row in events.iterrows():
-        plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, to_mask = False, show = False)
+    if len(events.index) > 0:
+        for i, row in events.iterrows():
+            plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, to_cluster = False, to_mask = False, show = False)
+            plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, to_cluster = False, to_mask = True, show = False)
+            plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, to_cluster = True, to_mask = False, show = False)
+            plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, to_cluster = True, to_mask = True, show = False)
+
+    else:
+        for t_start in range(3000, int(data_manager.protocol.simulation_time), 6000):
+            t_end = t_start + 3000
+            plot_correlation_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, to_cluster = False, to_mask = False, show = False)
+            plot_correlation_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, to_cluster = False, to_mask = True, show = False)
+            plot_correlation_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, to_cluster = True, to_mask = False, show = False)
+            plot_correlation_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, to_cluster = True, to_mask = True, show = False)

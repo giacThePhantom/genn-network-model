@@ -6,7 +6,8 @@ from .data_manager import DataManager
 
 def plot_sdf_heatmap_per_pop(sdf_average, t_start, t_end, dt, pop, subplot):
     res = subplot.imshow(sdf_average, vmin = 0, cmap = 'plasma')
-    subplot.set_aspect((t_end-t_start)//10)
+    #subplot.set_aspect((t_end-t_start)//10)
+    subplot.set_aspect((t_end-t_start)//200)
     subplot.xaxis.set_major_locator(matplotlib.ticker.FixedLocator([3000*i//dt for i in range(int(t_end-t_start)//3000 + 1)]))
     subplot.set_xticklabels([f"{t_start * (i + 1):.1g}" for i in range(int(t_end-t_start)//3000 + 1)], rotation=45, fontsize = 8)
     subplot.set_title(pop)
@@ -31,6 +32,8 @@ def plot_sdf_over_time_outliers(sdf_matrix_avg, subplot):
 def get_subplots(n_pops):
     figure, subplots = plt.subplots(
         1, n_pops, sharey=True, layout="constrained")
+    if n_pops == 1:
+        subplots = [subplots]
     return figure, subplots
 
 def colorbar(image, subplot, figure):
@@ -74,5 +77,13 @@ if __name__ == "__main__":
     events = pd.read_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'events.csv')
     print(events)
 
-    for i, row in events.iterrows():
-        plot_sdf_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, show = False)
+    # if len(events.index) > 0:
+    #     for i, row in events.iterrows():
+    #         plot_sdf_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, show = False)
+    #
+    # else:
+    #     for t_start in range(3000, int(data_manager.protocol.simulation_time), 6000):
+    #         t_end = t_start + 3000
+    #         plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, show = False)
+
+    plot_sdf_heatmap(['pn'], 0, data_manager.protocol.simulation_time, data_manager, show = False)

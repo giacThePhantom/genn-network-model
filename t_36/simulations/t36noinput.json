@@ -1,0 +1,28 @@
+{
+  "dt": 0.2,
+  "experiment_name": "no_input",
+  "experiment_type": "no_input",
+  "batch": 50000,
+  "n_timesteps_to_pull_var": 100,
+  "poll_spike_readings": false,
+  "optimize_code": false,
+  "generate_empty_state_push": false,
+  "output_path": "/media/data/thesis_output/",
+  "tracked_variables": {
+    "or": [
+      "ra"
+    ],
+    "orn": [
+      "spikes",
+      "V"
+    ],
+    "ln": [
+      "spikes"
+    ],
+    "pn": [
+      "spikes"
+    ]
+  },
+  "save": true,
+  "sdf_sigma" : 100
+}

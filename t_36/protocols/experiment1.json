@@ -7,7 +7,7 @@
 	"num_channels" : "eval 2: params['neuron_populations']['or']['num_channels']",
 	"homogeneous" : false,
 	"concentration" : {
-		"start" : 0,
+		"start" : 1e-4,
 		"dilution_factor" : {
 			"base" : 10,
 			"exponent" : 0.25
@@ -53,7 +53,7 @@
 		"iaa" : {
 			"binding" : {
 				"midpoint" : "eval 2: params['neuron_populations']['or']['n']//2",
-				"amplitude" : 0.8,
+				"amplitude" : 0.6,
 				"sigma" : 3,
 				"min_thresh" : 0.0
 			},

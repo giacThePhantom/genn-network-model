@@ -1,4 +1,6 @@
+
 {
+	"simulation_time" : 21000.0,
 	"num_odors" : 1,
 	"concentration_increases" : 1,
 	"connectivity_type" : "homogeneous",
@@ -7,7 +9,7 @@
 	"num_channels" : "eval 2: params['neuron_populations']['or']['num_channels']",
 	"homogeneous" : false,
 	"concentration" : {
-		"start" : 1e-4,
+		"start" : 0,
 		"dilution_factor" : {
 			"base" : 10,
 			"exponent" : 0.25

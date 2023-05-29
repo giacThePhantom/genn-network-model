@@ -5,6 +5,7 @@ from beegenn.protocols.protocol import Protocol
 from beegenn.protocols.first_protocol import FirstProtocol
 from beegenn.protocols.second_protocol import SecondProtocol
 from beegenn.protocols.third_protocol import ThirdProtocol
+from beegenn.protocols.no_input import NoInput
 from beegenn.recorder.recorder import Recorder
 
 import numpy as np
@@ -187,7 +188,7 @@ def pick_protocol(params):
         case "third_protocol":
             protocol = ThirdProtocol(protocol_data[experiment_name])
         case _:
-            protocol = FirstProtocol(protocol_data[experiment_name])
+            protocol = NoInput(protocol_data[experiment_name])
     protocol.add_inhibitory_conductance(
         params['synapses']['ln_pn'], params['neuron_populations']['ln']['n'], params['neuron_populations']['pn']['n'])
     protocol.add_inhibitory_conductance(

@@ -14,7 +14,7 @@
         },
         "experiment_type": {
             "type": "string",
-            "enum": ["first_protocol", "second_protocol", "third_protocol", "test_protocol", "temperature"],
+            "enum": ["first_protocol", "second_protocol", "third_protocol", "test_protocol", "temperature", "no_input"],
             "description": "The name of the protocol to instantiate"
         },
         "batch": {

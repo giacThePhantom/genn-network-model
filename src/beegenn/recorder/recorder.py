@@ -72,7 +72,8 @@ class Recorder:
         #     i.pop('activation_rates')
         #     i.pop('happened')
         df = pd.DataFrame.from_dict(events, orient = 'columns')
-        df.sort_values(by=['t_start', 't_end'])
+        if len(df.index) > 0:
+            df.sort_values(by=['t_start', 't_end'])
         df.to_csv(str(self.dirpath / "events.csv"))
         with self.protocol_path.open('wb') as f:
             pickle.dump(protocol, f)
