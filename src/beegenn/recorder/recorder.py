@@ -47,9 +47,8 @@ class Recorder:
     def __init__(self, output_path, sim_name, to_be_tracked, connected_neurons, batch, n_timesteps_to_pull_var,  dt, simulation_time):
 
         self.dirpath = Path(output_path) / sim_name
-        self.logging_path = self.dirpath / "tracked_vars.h5"
         self.protocol_path = self.dirpath / "protocol.pickle"
-        self.dirpath.mkdir(exist_ok=True)
+        self.dirpath.mkdir(exist_ok=True, parents = True)
         self.filters = tables.Filters(complib='blosc:zstd', complevel=5)
 
         self.n_timesteps_to_pull_var = n_timesteps_to_pull_var
@@ -57,20 +56,20 @@ class Recorder:
         self.batch = batch
         self.dt = dt
         self.simulation_time = simulation_time
+        self.to_be_tracked = to_be_tracked
+        self.connected_neurons = connected_neurons
 
-        self.recorded_vars = self._set_up_var_recording(to_be_tracked, connected_neurons)
+
+    def update_run_number(self, i):
+        self.logging_path = self.dirpath / f"runs/tracked_vars_{i}.h5"
+        self.recorded_vars = self._set_up_var_recording(self.to_be_tracked, self.connected_neurons)
 
         self._row_count = 0
-        self._data = self._set_container_for_data_recording(self.recorded_vars, connected_neurons)
+        self._data = self._set_container_for_data_recording(self.recorded_vars, self.connected_neurons)
         self._output_table = None
-        pass
 
     def dump_protocol(self, protocol):
         events = deepcopy(protocol.events)
-        # for i in events:
-        #     i.pop('binding_rates')
-        #     i.pop('activation_rates')
-        #     i.pop('happened')
         df = pd.DataFrame.from_dict(events, orient = 'columns')
         if len(df.index) > 0:
             df.sort_values(by=['t_start', 't_end'])

@@ -17,10 +17,12 @@
       "V"
     ],
     "ln": [
-      "spikes"
+      "spikes",
+      "V"
     ],
     "pn": [
-      "spikes"
+      "spikes",
+      "V"
     ]
   },
   "save": true,

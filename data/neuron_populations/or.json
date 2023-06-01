@@ -20,7 +20,7 @@
     "// now update ra and calculate the sum of bound receptors",
     "scalar rb= $(rb_0) + $(rb_1) + $(rb_2);",
     "if (rb > 1.0) rb= 1.0;",
-    "$(ra)= $(ra_0) + $(ra_1) + $(ra_2);",
+    "$(ra)= $(ra_0) + $(ra_1) + $(ra_2) + $(poi);",
     "if ($(ra) > 1.0) $(ra)= 1.0;",
     "// then update r0 as a function of rb and ra",
     "$(r0)= 1.0 - rb - $(ra);",

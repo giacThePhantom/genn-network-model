@@ -85,6 +85,7 @@ def get_spikes_figure_and_subplots(n_pops):
 
 def plot_spikes(pops, t_start, t_end, data_manager, show = False):
     ra_times, ra = data_manager.get_data_window(("or", "ra"), t_start, t_end)
+    print(np.max(ra))
     most_active_or = data_manager.or_most_active(ra)
 
     figure, subplots = get_spikes_figure_and_subplots(len(pops))
@@ -139,4 +140,11 @@ if __name__ == "__main__":
 
     events = pd.read_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'events.csv')
 
-    plot_spikes(['orn'], 0, np.min(events['t_end']), data_manager, show = False)
+    if len(events.index) > 0:
+        for i, row in events.iterrows():
+            plot_spikes(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, show = False)
+
+    else:
+        for t_start in range(3000, int(data_manager.protocol.simulation_time), 6000):
+            t_end = t_start + 3000
+            plot_spikes(['orn', 'pn', 'ln'], t_start, t_end, data_manager, show = False)

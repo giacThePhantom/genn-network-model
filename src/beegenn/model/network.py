@@ -101,7 +101,7 @@ class NeuronalNetwork:
             used to keep track of the events (if using event batching). The user *must* pull from the
             event buffer once it is full, not any earlier (and possibly not further or it will fill up)
         """
-        self.network.build()
+        self.network.build(force_rebuild=True)
         self.network.load(num_recording_timesteps=num_recording_steps)
         for i in self.connected_neurons:
             self.connected_neurons[i].push_state_to_device()
