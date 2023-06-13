@@ -1,9 +1,8 @@
 {
   "dt": 0.2,
-  "experiment_name": "noinput",
-  "experiment_type": "no_input",
+  "experiment_name": "experiment1",
+  "experiment_type": "first_protocol",
   "batch": 50000,
-  "n_runs" : 1,
   "n_timesteps_to_pull_var": 100,
   "poll_spike_readings": false,
   "optimize_code": false,

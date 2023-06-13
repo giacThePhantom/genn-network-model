@@ -40,8 +40,7 @@ def colorbar(image, subplot, figure):
     cbar = figure.colorbar(image, ax=subplot)
     cbar.ax.set_ylabel("SDF ($Hz$)")
 
-def plot_sdf_heatmap(pops, t_start, t_end, data_manager, show):
-
+def plot_sdf_heatmap(pops, t_start, t_end, data_manager, run, show):
 
     figure, subplots = get_subplots(len(pops))
     image = []
@@ -50,7 +49,8 @@ def plot_sdf_heatmap(pops, t_start, t_end, data_manager, show):
         sdf_avg = data_manager.sdf_per_glomerulus_avg(
                 pop,
                 t_start,
-                t_end
+                t_end,
+                run
                 )
         image.append(
                 plot_sdf_heatmap_per_pop(
@@ -64,7 +64,7 @@ def plot_sdf_heatmap(pops, t_start, t_end, data_manager, show):
                 )
     colorbar(image[-1], subplots[-1], figure)
     filename = f"sdf/{t_start:.1f}_{t_end:.1f}.png"
-    data_manager.show_or_save(filename, show)
+    data_manager.show_or_save(filename, run, show)
 
 if __name__ == "__main__":
     from beegenn.parameters.reading_parameters import parse_cli
@@ -79,9 +79,15 @@ if __name__ == "__main__":
 
     if len(events.index) > 0:
         for i, row in events.iterrows():
-            plot_sdf_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, show = False)
+            for i in range(data_manager.get_nruns()):
+                plot_sdf_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, str(i), show = False)
+
+            plot_sdf_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, 'mean', show = False)
 
     else:
         for t_start in range(3000, int(data_manager.protocol.simulation_time), 6000):
             t_end = t_start + 3000
-            plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, show = False)
+            for i in range(data_manager.get_nruns()):
+                plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, str(i), show = False)
+
+            plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, 'mean', show = False)

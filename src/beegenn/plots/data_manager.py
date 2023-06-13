@@ -107,9 +107,10 @@ class DataManager:
         self._root_out_dir = Path(sim_param['output_path']) / sim_name
         self._root_plot_dir = self._root_out_dir / 'plots'
         self._root_plot_dir.mkdir(exist_ok=True)
-
-        self.run_dir = self._root_out_dir / 'runs'
-        self.data = [tables.open_file(str(i)) for i in self.run_dir.iterdir()]
+        self._root_raw_data_dir = self._root_out_dir / 'raw_data'
+        self._run_dir = self._root_out_dir / 'runs'
+        self.data = {str(i).split('/')[-1].split('.')[-2].split('_')[-1]:tables.open_file(str(i)) for i in self._run_dir.iterdir()}
+        print(self.data.keys())
         self.recorded_data = sim_param['tracked_variables']
         self.events = pd.read_csv(self._root_out_dir / 'events.csv')
         with (self._root_out_dir / 'protocol.pickle').open('rb') as f:
@@ -120,24 +121,9 @@ class DataManager:
         destructing this object
         """
         for i in self.data:
-            i.close()
+            self.data[i].close()
 
-    def _compute_avg_std(self, data, var_name):
-        if var_name == 'sdf':
-            to_compute_mean = np.zeros((len(data), *data['0'].shape))
-            for i in data:
-                to_compute_mean[int(i), :, :] = data[i]
-            data['mean'] = np.mean(to_compute_mean, axis = 0)
-            data['std'] = np.std(to_compute_mean, axis = 0)
-        elif var_name != 'spikes':
-            to_compute_mean = np.zeros((len(data), *data['0'][1].shape))
-            for i in data:
-                to_compute_mean[int(i), :, :] = data[i][1]
-            data['mean'] = np.mean(to_compute_mean, axis = 0)
-            data['std'] = np.std(to_compute_mean, axis = 0)
-
-
-    def get_data_window(self, var_path, t_start, t_end):
+    def get_data_window(self, var_path, t_start, t_end, run):
         """Get all the collected data for a given variable from time
         t_start to time t_end
 
@@ -160,34 +146,29 @@ class DataManager:
             interval
         """
 
-        res = {}
-
         path = '/' + '/'.join(var_path)
-        for run in self.data:
-            data = run.root[path]
-            if var_path[-1] == 'spikes':
-                # horrible hack to read the entire EArray as a numpy array.
-                copied_data = np.squeeze(data[:])
-                timesteps = data[:, 0]
-                timesteps_start = timesteps >= t_start
-                timesteps_end = timesteps < t_end
-                filtered = np.where(timesteps_start & timesteps_end)
-                filtered_timesteps = np.squeeze(copied_data[filtered, 0])
-                filtered_data = np.squeeze(copied_data[filtered, 1:])
+        data = self.data[run].root[path]
+        if var_path[-1] == 'spikes':
+            # horrible hack to read the entire EArray as a numpy array.
+            copied_data = np.squeeze(data[:])
+            timesteps = data[:, 0]
+            timesteps_start = timesteps >= t_start
+            timesteps_end = timesteps < t_end
+            filtered = np.where(timesteps_start & timesteps_end)
+            filtered_timesteps = np.squeeze(copied_data[filtered, 0])
+            filtered_data = np.squeeze(copied_data[filtered, 1:])
 
-                res[str(run).split('.')[0].split('_')[-1]] =  (filtered_timesteps, filtered_data)
+            return filtered_timesteps, filtered_data
 
-            else:
-                timestep_start = np.floor(
-                    t_start/(self.sim_param['dt']*self.sim_param['n_timesteps_to_pull_var']))
-                timestep_end = np.ceil(
-                    t_end/(self.sim_param['dt']*self.sim_param['n_timesteps_to_pull_var']))
-                data = data[timestep_start:timestep_end]
-                res[str(run).split('.')[0].split('_')[-1]] =  (data[:, 0], np.squeeze(data[:,1:]))
-        self._compute_avg_std(res, var_path[-1])
-        return res
+        else:
+            timestep_start = np.floor(
+                t_start/(self.sim_param['dt']*self.sim_param['n_timesteps_to_pull_var']))
+            timestep_end = np.ceil(
+                t_end/(self.sim_param['dt']*self.sim_param['n_timesteps_to_pull_var']))
+            data = data[timestep_start:timestep_end]
+            return data[:, 0], np.squeeze(data[:, 1:])
 
-    def get_data_for_first_neuron_in_glomerulus(self, glo_idx, pop, var, t_start, t_end):
+    def get_data_for_first_neuron_in_glomerulus(self, glo_idx, pop, var, t_start, t_end, run):
         """Gets the evolution of a variable during a time interval for the first
         neuron of a population in a glomerulus
 
@@ -215,11 +196,11 @@ class DataManager:
         """
 
         neuron_idx = self.get_first_neuron_in_glomerulus(glo_idx, pop)
-        time, var_value = self.get_data_window((pop, var), t_start, t_end)
+        time, var_value = self.get_data_window((pop, var), t_start, t_end, run)
         var_value = var_value[:, neuron_idx]
         return time, var_value
 
-    def get_spikes_for_first_neuron_in_glomerulus(self, glo_idx, pop, t_start, t_end):
+    def get_spikes_for_first_neuron_in_glomerulus(self, glo_idx, pop, t_start, t_end, run):
         """Gets the time at which spikes happen for the first neuron of a population
         in a glomerulus during a time step
 
@@ -243,7 +224,7 @@ class DataManager:
 
         neuron_idx = self.get_first_neuron_in_glomerulus(glo_idx, pop)
         spike_times, spike_id = self.get_data_window(
-            (pop, "spikes"), t_start, t_end)
+            (pop, "spikes"), t_start, t_end, run)
         filtered_spike_idx = spike_id == neuron_idx
         spike_times = spike_times[filtered_spike_idx]
         return spike_times
@@ -323,7 +304,17 @@ class DataManager:
 
         return res
 
-    def sdf_for_population(self, pop, t_start, t_end):
+    def run_mean_sdf_for_population(self, pop, t_start, t_end):
+        res = None
+        for run in self.data:
+            sdf = self.sdf_for_population(pop, t_start, t_end, run)
+            if res is None:
+                res = sdf
+            else:
+                res += sdf
+        return res / len(self.data)
+
+    def sdf_for_population(self, pop, t_start, t_end, run):
         """Computes the spike density matrix for a population
         in a time interval
 
@@ -342,41 +333,34 @@ class DataManager:
             The spike density matrix
         """
 
-        spike_data = self.get_data_window(
-                (pop, 'spikes'),
-                t_start,
-                t_end,
-                )
-
-        spike_matrices = {}
-
-        for i in spike_data:
-            spike_matrices[i] = self.get_spike_matrix(
-                    spike_data[i][0],
-                    spike_data[i][1],
+        if run != 'mean':
+            spike_times, spike_ids = self.get_data_window(
+                    (pop, 'spikes'),
+                    t_start,
+                    t_end,
+                    run
+                    )
+            spike_matrix = self.get_spike_matrix(
+                    spike_times,
+                    spike_ids,
                     pop,
                     t_start,
                     t_end
                     )
-        sigma = self.sim_param['sdf_sigma']
-        dt = self.sim_param['dt']
-        kernel = np.arange(-3*sigma, +3*sigma, dt)
-        kernel = np.exp(-np.power(kernel, 2)/(2*sigma*sigma))
-        kernel = kernel/(sigma*np.sqrt(2.0*np.pi))*1000.0
-        sdfs = {}
-        for i in spike_matrices:
-            sdfs[i] = np.apply_along_axis(
+            sigma = self.sim_param['sdf_sigma']
+            dt = self.sim_param['dt']
+            kernel = np.arange(-3*sigma, +3*sigma, dt)
+            kernel = np.exp(-np.power(kernel, 2)/(2*sigma*sigma))
+            kernel = kernel/(sigma*np.sqrt(2.0*np.pi))*1000.0
+            sdf = np.apply_along_axis(
                     lambda m : sp.signal.convolve(m, kernel, mode='same'),
                     axis = 1,
-                    arr=spike_matrices[i])
+                    arr=spike_matrix)
+        else:
+            sdf = self.run_mean_sdf_for_population(pop, t_start, t_end)
+        return sdf
 
-        self._compute_avg_std(sdfs, "sdf")
-        for i in sdfs:
-            print(i, sdfs[i].shape)
-
-        return sdfs
-
-    def sdf_per_glomerulus_avg(self, pop, t_start, t_end):
+    def sdf_per_glomerulus_avg(self, pop, t_start, t_end, run):
         """The average sdf in each glomerulus for each
         time step during a time interval.
 
@@ -394,16 +378,13 @@ class DataManager:
         res : numpy.ndArray
             The spike density matrix averaged over
             neurons in a glomerulus
-
         """
-        sdfs = self.sdf_for_population(pop, t_start, t_end)
+        sdf = self.sdf_for_population(pop, t_start, t_end, run)
         n_glomeruli = self.neuron_param['or']['n']
-        res = {}
-        for i in sdfs:
-            res[i] = np.zeros((n_glomeruli, sdfs[i].shape[1]))
-            glomerulus_dim = sdfs[i].shape[0] // n_glomeruli
-            for j in range(n_glomeruli):
-                res[i][j, :]= np.mean(sdfs[i][glomerulus_dim*j:glomerulus_dim*(j+1), :],axis=0)
+        res = np.zeros((n_glomeruli, sdf.shape[1]))
+        glomerulus_dim = sdf.shape[0] // n_glomeruli
+        for i in range(n_glomeruli):
+            res[i, :]= np.mean(sdf[glomerulus_dim*i:glomerulus_dim*(i+1), :],axis=0)
         return res
 
     def sdf_time_avg(self, sdf):
@@ -477,7 +458,7 @@ class DataManager:
 
         return self.sim_param['dt']
 
-    def show_or_save(self, filename, show=False):
+    def show_or_save(self, filename, run, show=False):
         """Whether to show or save a matplotlibe image
 
         Parameters
@@ -488,8 +469,8 @@ class DataManager:
             Whether to save or show the image
         """
 
-        filename = self._root_plot_dir / filename
-        filename.parent.mkdir(exist_ok=True)
+        filename = self._root_plot_dir / run / filename
+        filename.parent.mkdir(exist_ok=True, parents= True)
         if show:
             plt.show()
         else:
@@ -551,3 +532,20 @@ class DataManager:
         """
 
         return self.sim_name
+
+    def get_nruns(self):
+        """Getter for the number of runs
+
+        Returns
+        -------
+        res : int
+            The number of runs
+        """
+
+        return len(self.data)
+
+    def save_raw_data(self, filename, data, run):
+        filename = self._root_raw_data_dir / run / filename
+        filename.parent.mkdir(exist_ok=True, parents= True)
+        print("Saving to ", filename)
+        np.savetxt(filename, data, delimiter=',')

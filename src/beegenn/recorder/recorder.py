@@ -62,6 +62,7 @@ class Recorder:
 
     def update_run_number(self, i):
         self.logging_path = self.dirpath / f"runs/tracked_vars_{i}.h5"
+        self.logging_path.parent.mkdir(exist_ok=True, parents=True)
         self.recorded_vars = self._set_up_var_recording(self.to_be_tracked, self.connected_neurons)
 
         self._row_count = 0
