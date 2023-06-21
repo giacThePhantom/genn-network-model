@@ -6,6 +6,12 @@ import seaborn as sns
 from .data_manager import DataManager
 import scipy.cluster.hierarchy as sch
 from matplotlib.colors import ListedColormap
+import os, psutil
+process = psutil.Process()
+import matplotlib as mpl
+
+mpl.use('agg')
+
 
 def cluster(correlation):
     correlation[np.isnan(correlation)] = -1
@@ -74,6 +80,7 @@ def get_cmap():
 
 
 def plot_correlation_heatmap(pops, t_start, t_end, data_manager, nrun, to_cluster = False, to_mask = False, show = False):
+
     figure, subplots = get_subplots(len(pops))
 
     for (pop, subplot) in zip(pops, subplots):
@@ -113,6 +120,7 @@ def plot_correlation_heatmap(pops, t_start, t_end, data_manager, nrun, to_cluste
     filename = f"correlation{cluster_name}{masked_name}/{t_start:.1f}_{t_end:.1f}.png"
     data_manager.show_or_save(filename, str(nrun), show)
 
+
 if __name__ == "__main__":
     sns.set(font_scale = 0.4)
     from beegenn.parameters.reading_parameters import parse_cli
@@ -128,15 +136,11 @@ if __name__ == "__main__":
         for i, row in events.iterrows():
             for run in range(data_manager.get_nruns()):
                 plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, run, to_cluster = False, to_mask = False, show = False)
-                plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, run, to_cluster = False, to_mask = True, show = False)
                 plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, run, to_cluster = True, to_mask = False, show = False)
-                plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, run, to_cluster = True, to_mask = True, show = False)
 
     else:
-        for t_start in range(3000, int(data_manager.protocol.simulation_time), 6000):
-            t_end = t_start + 3000
+        for t_start in range(3000, int(data_manager.protocol.simulation_time), 60000):
+            t_end = t_start + 60000
             for run in range(data_manager.get_nruns()):
                 plot_correlation_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, run, to_cluster = False, to_mask = False, show = False)
-                plot_correlation_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, run, to_cluster = False, to_mask = True, show = False)
                 plot_correlation_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, run, to_cluster = True, to_mask = False, show = False)
-                plot_correlation_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, run, to_cluster = True, to_mask = True, show = False)

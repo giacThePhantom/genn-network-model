@@ -28,5 +28,5 @@
   },
   "save": true,
   "sdf_sigma" : 100,
-  "poisson_input" : false
+  "poisson_input" : true
 }

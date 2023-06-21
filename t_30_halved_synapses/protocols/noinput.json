@@ -1,6 +1,6 @@
 
 {
-	"simulation_time" : 21000.0,
+	"simulation_time" : 1260000.0,
 	"num_odors" : 1,
 	"concentration_increases" : 1,
 	"connectivity_type" : "homogeneous",
@@ -15,7 +15,7 @@
 			"exponent" : 0.25
 		}
 	},
-	"event_duration" : 3000.0,
+	"event_duration" : 60000.0,
 	"resting_duration" : 3000.0,
 	"hill_exponential" : {
 		"min" : 0.95,

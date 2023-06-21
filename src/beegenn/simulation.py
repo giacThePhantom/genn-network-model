@@ -103,9 +103,10 @@ class Simulator:
             The list of all the remaining events
         """
 
-        # self.model.network.pull_state_from_device("or")
-        # target_pop.vars['ra'].view[:] = target_pop.vars['ra'].view[:] + poi_input
-        # self.model.network.push_state_to_device("or")
+        if poi_input is not None:
+            self.model.network.pull_state_from_device("or")
+            target_pop.vars['ra'].view[:] = target_pop.vars['ra'].view[:] + poi_input
+            self.model.network.push_state_to_device("or")
 
         for (i, event) in enumerate(current_events):
             if self.model.network.t >= event['t_start'] and not event['happened']:
@@ -184,7 +185,10 @@ class Simulator:
                 while genn_model.t < self.protocol.simulation_time:
                     logging.debug(f"Time: {genn_model.t}")
                     genn_model.step_time()
-                    self.update_target_pop(target_pop, current_events, events, poi_input[int(genn_model.t/self.param['dt'])])
+                    if poi_input is not None:
+                        self.update_target_pop(target_pop, current_events, events, poi_input[int(genn_model.t/self.param['dt'])])
+                    else:
+                        self.update_target_pop(target_pop, current_events, events, None)
                     self.recorder.record(self.model, save)
                     if genn_model.t % 1 == 0:
                         pbar.update(1)
@@ -220,12 +224,15 @@ class Simulator:
         return kernel
 
     def poisson_input(self, l = 0.1, sigma = 5, tau = 2, c = 0.1):
-        template = self.poisson_process(self.protocol.simulation_time, self.param['dt'], l)
-        pois = [self.poisson_process(self.protocol.simulation_time, self.param['dt'], l) for _ in range(160)]
-        ker = self.kernel(sigma, tau, self.param['dt'])
-        pois = [self.add_template(pois[i], template, c) for i in range(len(pois))]
-        pois = [convolve(poi, ker, mode = 'same') for poi in pois]
-        return np.array(pois).T
+        if self.param['poisson_input']:
+            template = self.poisson_process(self.protocol.simulation_time, self.param['dt'], l)
+            pois = [self.poisson_process(self.protocol.simulation_time, self.param['dt'], l) for _ in range(160)]
+            ker = self.kernel(sigma, tau, self.param['dt'])
+            pois = [self.add_template(pois[i], template, c) for i in range(len(pois))]
+            pois = [convolve(poi, ker, mode = 'same') for poi in pois]
+            return np.array(pois).T
+        else:
+            return None
 
 def pick_protocol(params):
     """Pick the correct protocol for the experiment

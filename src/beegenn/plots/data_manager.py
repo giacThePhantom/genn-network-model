@@ -110,7 +110,6 @@ class DataManager:
         self._root_raw_data_dir = self._root_out_dir / 'raw_data'
         self._run_dir = self._root_out_dir / 'runs'
         self.data = {str(i).split('/')[-1].split('.')[-2].split('_')[-1]:tables.open_file(str(i)) for i in self._run_dir.iterdir()}
-        print(self.data.keys())
         self.recorded_data = sim_param['tracked_variables']
         self.events = pd.read_csv(self._root_out_dir / 'events.csv')
         with (self._root_out_dir / 'protocol.pickle').open('rb') as f:

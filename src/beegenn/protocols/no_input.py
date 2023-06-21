@@ -44,7 +44,7 @@ class NoInput(Protocol):
 
         t_start = t
         t_end = t + self.event_duration
-        concentration = self.starting_concentration*np.power(self.dilution_factor, c_exp) #Concentration is increased by increasing it by a dilution factor
+        concentration = 0
         event = {
             "t_start" : t_start,
             "t_end" : t_end,

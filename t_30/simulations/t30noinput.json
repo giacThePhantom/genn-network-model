@@ -27,5 +27,6 @@
     ]
   },
   "save": true,
-  "sdf_sigma" : 100
+  "sdf_sigma" : 100,
+  "poisson_input" : false
 }
