@@ -21,10 +21,8 @@ class FirstProtocol(Protocol):
 
     def __init__(self, param):
         super().__init__(param)
-        self.events_generation(param['concentration_increases'])
-        self.assign_channel_to_events() #Assign an odor to a channel in the OR population
-
-
+        self.events_generation(param["concentration_increases"])
+        self.assign_channel_to_events()  # Assign an odor to a channel in the OR population
 
     def _event_generation(self, t, odor, c_exp):
         """Builds an event
@@ -45,15 +43,21 @@ class FirstProtocol(Protocol):
 
         t_start = t
         t_end = t + self.event_duration
-        concentration = self.starting_concentration*np.power(self.dilution_factor, c_exp) #Concentration is increased by increasing it by a dilution factor
+        concentration = self.starting_concentration * np.power(
+            self.dilution_factor, c_exp
+        )  # Concentration is increased by increasing it by a dilution factor
         event = {
-            "t_start" : t_start,
-            "t_end" : t_end,
-            "concentration" : concentration,
-            "odor_name" : odor.name,
-            "binding_rates" : np.power(odor.binding_rates*concentration, self.hill_exponential), #Binding rates are updated so to include inforamtion about concentration
-            "activation_rates" : odor.activation_rates ,
-            "happened" : False,
+            "t_start": t_start,
+            "t_end": t_end,
+            "concentration": concentration,
+            "odor_name": odor.name,
+            "binding_rates": np.power(
+                odor.binding_rates * concentration, self.hill_exponential
+            ),  # Binding rates are updated so to include inforamtion about concentration
+            "unbinding_rates": odor.unbinding_rates,
+            "activation_rates": odor.activation_rates,
+            "deactivation_rates": odor.deactivation_rates,
+            "happened": False,
         }
         return event
 
@@ -66,16 +70,18 @@ class FirstProtocol(Protocol):
         """
         res = []
         t = self.resting_duration
-        for (i, odor) in enumerate(self.odors):
+        for i, odor in enumerate(self.odors):
             for c_exp in range(num_concentration_increases):
                 res.append(self._event_generation(t, odor, c_exp))
-                t = res[-1]['t_end'] + self.resting_duration
+                t = res[-1]["t_end"] + self.resting_duration
         self.events = res
+
 
 if __name__ == "__main__":
     from reading_parameters import get_parameters
     import sys
+
     params = get_parameters(sys.argv[1])
-    temp = FirstProtocol(params['protocols']['experiment1'], 1)
-    temp.generate_or_param(params['neuron_populations']['or'])
+    temp = FirstProtocol(params["protocols"]["experiment1"], 1)
+    temp.generate_or_param(params["neuron_populations"]["or"])
     temp.generate_inhibitory_connectivity(25 * 160, 5 * 160, sys.argv[2], False)

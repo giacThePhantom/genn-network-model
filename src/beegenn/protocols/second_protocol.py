@@ -1,6 +1,7 @@
 from .protocol import Protocol
 import numpy as np
 
+
 class SecondProtocol(Protocol):
     """
     Creates the events for the second experiment.
@@ -19,8 +20,8 @@ class SecondProtocol(Protocol):
 
     def __init__(self, param):
         super().__init__(param)
-        self.events_generation(param['concentration_increases'])
-        self.assign_channel_to_events() #Assign an odor to a channel in the OR population
+        self.events_generation(param["concentration_increases"])
+        self.assign_channel_to_events()  # Assign an odor to a channel in the OR population
 
     def _event_generation(self, t, odor, c_exp):
         """Builds an event
@@ -41,15 +42,21 @@ class SecondProtocol(Protocol):
 
         t_start = t
         t_end = t + self.event_duration
-        concentration = self.starting_concentration*np.power(self.dilution_factor, c_exp)
+        concentration = self.starting_concentration * np.power(
+            self.dilution_factor, c_exp
+        )
         event = {
-            "t_start" : t_start,
-            "t_end" : t_end,
-            "concentration" : concentration,
-            "odor_name" : odor.name,
-            "binding_rates" : np.power(odor.binding_rates*concentration, self.hill_exponential),
-            "activation_rates" : odor.activation_rates ,
-            "happened": False
+            "t_start": t_start,
+            "t_end": t_end,
+            "concentration": concentration,
+            "odor_name": odor.name,
+            "binding_rates": np.power(
+                odor.binding_rates * concentration, self.hill_exponential
+            ),  # Binding rates are updated so to include inforamtion about concentration
+            "unbinding_rates": odor.unbinding_rates,
+            "activation_rates": odor.activation_rates,
+            "deactivation_rates": odor.deactivation_rates,
+            "happened": False,
         }
         return event
 
@@ -63,22 +70,24 @@ class SecondProtocol(Protocol):
 
         res = []
         t = self.resting_duration
-        #for (i, odor) in enumerate(self.get_odors()):
+        # for (i, odor) in enumerate(self.get_odors()):
         odors = self.odors
         for c1_exp in range(num_concentration_increases):
             for c2_exp in range(num_concentration_increases):
                 # apply two odors at the same time, but with different concentrations.
                 res.append(self._event_generation(t, odors[1], c1_exp))
                 res.append(self._event_generation(t, odors[2], c2_exp))
-                t = res[-1]['t_end'] + self.resting_duration
+                t = res[-1]["t_end"] + self.resting_duration
 
         self.events = res
         self.assign_channel_to_events()
 
+
 if __name__ == "__main__":
     from reading_parameters import get_parameters
     import sys
+
     params = get_parameters(sys.argv[1])
-    temp = SecondProtocol(params['protocols']['experiment2'])
+    temp = SecondProtocol(params["protocols"]["experiment2"])
     print(len(temp.get_events()))
     print(temp.get_simulation_time())
