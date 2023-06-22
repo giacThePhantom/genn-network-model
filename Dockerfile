@@ -61,5 +61,7 @@ COPY . ${BEEGENN_PATH}
 WORKDIR ${BEEGENN_PATH}
 RUN pip3 install -e .
 
+RUN pip3 install scipy
+
 ENTRYPOINT ["/opt/beegenn/bin/docker-start-sim.sh"]
 CMD ["sim_docker"]
