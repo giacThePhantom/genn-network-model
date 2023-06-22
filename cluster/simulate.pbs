@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l select=1:ncpus=2:mpiprocs=10:mem=64GB
-#PBS -l walltime=00:00:00
+#PBS -l walltime=04:00:00
 #PBS -q short_gpuQ
 #PBS -N Beegenn
 #PBS -o beegenn.stdout.txt
