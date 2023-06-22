@@ -5,7 +5,7 @@
 #PBS -N Beegenn
 #PBS -o beegenn.stdout.txt
 #PBS -e beegenn.stderr.txt
-#PBS -abe
+#PBS -m abe
 #PBS -M giacomo.fantoni@studenti.unitn.it
 
 module load cuda-11.1
