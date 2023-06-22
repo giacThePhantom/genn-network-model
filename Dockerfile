@@ -4,7 +4,7 @@
 ARG BASE=11.1.1-devel-ubuntu20.04
 FROM nvidia/cuda:${BASE}
 
-LABEL maintainer="Enrico.Trombetta@studenti.unitn.it"
+LABEL maintainer="Enrico.Trombetta@studenti.unitn.it, Giacomo.Fantoni@studenti.unitn.it"
 LABEL version="0.0.1"
 LABEL org.opencontainers.image.source="https://github.com/giacThePhantom/genn-network-model"
 LABEL org.opencontainers.image.title="BeeGeNN Docker image"
