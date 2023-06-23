@@ -13,6 +13,8 @@ module load singularity-3.4.0
 
 cd $PBS_O_WORKDIR
 
+rm beegenn_sleep.sif
+
 # NOTE: you need to install squashfs-tools from source, or singularity will fail!
 # https://github.com/plougher/squashfs-tools/blob/master/INSTALL
 # Make sure to install mksquashfs inside ~/.local so that it can be found in the PATH
