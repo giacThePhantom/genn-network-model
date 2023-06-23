@@ -27,10 +27,22 @@ singularity exec \
   --bind $PBS_O_WORKDIR/genn-network-model/t_30:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
   --nv \
   docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.simulation /t_30 t30noinputcluster && python3 -m beegenn.plots.correlation /t_30 t30noinputcluster
+  python3 -m beegenn.simulation /t_30 t30noinputcluster
 
 singularity exec \
   --bind $PBS_O_WORKDIR/genn-network-model/t_30:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
   --nv \
   docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.simulation /t_30 t30noinputpoissoncluster && python3 -m beegenn.plots.correlation /t_30 t30noinputpoissoncluster
+  python3 -m beegenn.plots.correlation /t_30 t30noinputcluster
+
+singularity exec \
+  --bind $PBS_O_WORKDIR/genn-network-model/t_30:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
+  --nv \
+  docker://giacthephantom/beegenn:sleep \
+  python3 -m beegenn.simulation /t_30 t30noinputpoissoncluster
+
+singularity exec \
+  --bind $PBS_O_WORKDIR/genn-network-model/t_30:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
+  --nv \
+  docker://giacthephantom/beegenn:sleep \
+  python3 -m beegenn.plots.correlation /t_30 t30noinputpoissoncluster
