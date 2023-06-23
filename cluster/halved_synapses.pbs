@@ -27,10 +27,22 @@ singularity exec \
   --bind $PBS_O_WORKDIR/genn-network-model/t_30_halved_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
   --nv \
   docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.simulation /t_30_halved_synapses t30noinputhalvedsynapsescluster && python3 -m beegenn.plots.correlation /t_30_halved_synapses t30noinputhalvedsynapsescluster
+  python3 -m beegenn.simulation /t_30_halved_synapses t30noinputhalvedsynapsescluster
 
 singularity exec \
   --bind $PBS_O_WORKDIR/genn-network-model/t_30_halved_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
   --nv \
   docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.simulation /t_30_halved_synapses t30noinputhalvedsynapsespoissoncluster && python3 -m beegenn.plots.correlation /t_30_halved_synapses t30noinputhalvedsynapsespoissoncluster
+  python3 -m beegenn.plots.correlation /t_30_halved_synapses t30noinputhalvedsynapsescluster
+
+singularity exec \
+  --bind $PBS_O_WORKDIR/genn-network-model/t_30_halved_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
+  --nv \
+  docker://giacthephantom/beegenn:sleep \
+  python3 -m beegenn.simulation /t_30_halved_synapses t30noinputhalvedsynapsespoissoncluster
+
+singularity exec \
+  --bind $PBS_O_WORKDIR/genn-network-model/t_30_halved_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
+  --nv \
+  docker://giacthephantom/beegenn:sleep \
+  python3 -m beegenn.plots.correlation /t_30_halved_synapses t30noinputhalvedsynapsespoissoncluster

@@ -27,10 +27,23 @@ singularity exec \
   --bind $PBS_O_WORKDIR/genn-network-model/t_30_quarter_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
   --nv \
   docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.simulation /t_30_quarter_synapses t30noinputquartersynapsescluster && python3 -m beegenn.plots.correlation /t_30_quarter_synapses t30noinputquartersynapsescluster
+  python3 -m beegenn.simulation /t_30_quarter_synapses t30noinputquartersynapsescluster
+
 
 singularity exec \
   --bind $PBS_O_WORKDIR/genn-network-model/t_30_quarter_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
   --nv \
   docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.simulation /t_30_quarter_synapses t30noinputquartersynapsespoissoncluster && python3 -m beegenn.plots.correlation /t_30_quarter_synapses t30noinputquartersynapsespoissoncluster
+  python3 -m beegenn.plots.correlation /t_30_quarter_synapses t30noinputquartersynapsescluster
+
+singularity exec \
+  --bind $PBS_O_WORKDIR/genn-network-model/t_30_quarter_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
+  --nv \
+  docker://giacthephantom/beegenn:sleep \
+  python3 -m beegenn.simulation /t_30_quarter_synapses t30noinputquartersynapsespoissoncluster
+
+singularity exec \
+  --bind $PBS_O_WORKDIR/genn-network-model/t_30_quarter_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
+  --nv \
+  docker://giacthephantom/beegenn:sleep \
+  python3 -m beegenn.plots.correlation /t_30_quarter_synapses t30noinputquartersynapsespoissoncluster
