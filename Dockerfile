@@ -62,6 +62,7 @@ WORKDIR ${BEEGENN_PATH}
 RUN pip3 install -e .
 
 RUN pip3 install scipy
+RUN pip3 install seaborn
 
 ENTRYPOINT ["/opt/beegenn/bin/docker-start-sim.sh"]
 CMD ["sim_docker"]
