@@ -181,7 +181,7 @@ class Simulator:
 
         genn_model.t = 0
         with logging_redirect_tqdm():
-            with tqdm(total=total_timesteps) as pbar:
+            with tqdm(total=total_timesteps, disable = "cluster" in self.sim_name) as pbar:
                 while genn_model.t < self.protocol.simulation_time:
                     logging.debug(f"Time: {genn_model.t}")
                     genn_model.step_time()
