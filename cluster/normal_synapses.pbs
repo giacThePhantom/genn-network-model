@@ -17,17 +17,17 @@ cd $PBS_O_WORKDIR
 # https://github.com/plougher/squashfs-tools/blob/master/INSTALL
 # Make sure to install mksquashfs inside ~/.local so that it can be found in the PATH
 
-rm beegenn_sleep.sif
+[ -f "beegenn_sleep.sif"] && rm beegenn_sleep.sif
 
 singularity pull docker://giacthephantom/beegenn:sleep
 # TODO: genn-network-model/data can/should be replaced with anything we want
 # singularity run --bind $PBS_O_WORKDIR/genn-network-model/data:/data,$PBS_O_WORKDIR/outputs:/home/genn docker://giacthephantom/beegenn:sleep sim_docker
 
-# singularity exec \
-#   --bind $PBS_O_WORKDIR/genn-network-model/t_30:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
-#   --nv \
-#   docker://giacthephantom/beegenn:sleep \
-#   python3 -m beegenn.simulation /t_30 t30noinputcluster
+singularity exec \
+  --bind $PBS_O_WORKDIR/genn-network-model/t_30:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
+  --nv \
+  docker://giacthephantom/beegenn:sleep \
+  python3 -m beegenn.simulation /t_30 t30noinputcluster
 
 singularity exec \
   --bind $PBS_O_WORKDIR/genn-network-model/t_30:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
