@@ -11,19 +11,15 @@
   "output_path": "/moe/genn/outputs",
   "tracked_variables": {
     "or": [
-      "ra"
     ],
     "orn": [
-      "spikes",
-      "V"
+      "spikes"
     ],
     "ln": [
-      "spikes",
-      "V"
+      "spikes"
     ],
     "pn": [
-      "spikes",
-      "V"
+      "spikes"
     ]
   },
   "save": true,
