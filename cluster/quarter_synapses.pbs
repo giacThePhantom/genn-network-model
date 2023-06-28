@@ -13,7 +13,8 @@ module load singularity-3.4.0
 
 cd $PBS_O_WORKDIR
 
-rm beegenn_sleep.sif
+
+[ -f "beegenn_sleep" ] && rm beegenn_sleep.sif
 
 # NOTE: you need to install squashfs-tools from source, or singularity will fail!
 # https://github.com/plougher/squashfs-tools/blob/master/INSTALL
@@ -24,7 +25,7 @@ singularity pull docker://giacthephantom/beegenn:sleep
 # singularity run --bind $PBS_O_WORKDIR/genn-network-model/data:/data,$PBS_O_WORKDIR/outputs:/home/genn docker://giacthephantom/beegenn:sleep sim_docker
 
 singularity exec \
-  --bind $PBS_O_WORKDIR/genn-network-model/t_30_quarter_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
+  --bind $PBS_O_WORKDIR/genn-network-model/t_30_quarter_synapses:/t_30_quarter_synapses,$PBS_O_WORKDIR/outputs:/home/genn \
   --nv \
   docker://giacthephantom/beegenn:sleep \
   python3 -m beegenn.simulation /t_30_quarter_synapses t30noinputquartersynapsescluster
