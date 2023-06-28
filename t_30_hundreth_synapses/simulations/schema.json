@@ -1,0 +1,51 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://slim-project/config.json.schema",
+    "title": "Simulation",
+    "type": "object",
+    "properties": {
+        "dt": {
+            "type": "number",
+            "description": "The simulation timestep"
+        },
+        "experiment_name": {
+            "type": "string",
+            "description": "The name of the experimental setting. It must match with an existing 'experiment'."
+        },
+        "experiment_type": {
+            "type": "string",
+            "enum": ["first_protocol", "second_protocol", "third_protocol", "test_protocol", "temperature", "no_input"],
+            "description": "The name of the protocol to instantiate"
+        },
+        "batch": {
+            "type": "integer",
+            "description": "How often (in timesteps) to save the data on disk"
+        },
+        "n_timesteps_to_pull_var": {
+            "type": "integer",
+            "description": "How often (in timesteps) to pull variables from the model. This applies to polled variables and not spikes (unless poll_spike_readings is True)"
+        },
+        "backend": {
+            "type": "string",
+            "enum": ["OpenCL", "SingleThreadedCPU", "CUDA"],
+            "description": "Which backend GeNN should use."
+        },
+        "optimize_code": {
+            "type": "boolean",
+            "description": "(Internal Genn option) refer to https://genn-team.github.io/genn/documentation/4/html/d1/d7a/structCodeGenerator_1_1PreferencesBase.html"
+        },
+        "generate_empty_state_push": {
+            "type": "boolean",
+            "description": "(Internal Genn option) refer to https://genn-team.github.io/genn/documentation/4/html/d1/d7a/structCodeGenerator_1_1PreferencesBase.html"
+        },
+        "output_path": {
+            "type": "string",
+            "description": "The output path"
+        },
+        "tracked_variables": {
+            "type": "object",
+            "description": "The wished variables to follow. See examples for details."
+        }
+    },
+    "required": ["dt", "experiment_name", "experiment_type", "batch", "n_timesteps_to_pull_var", "poll_spike_readings", "output_path", "tracked_variables"]
+}

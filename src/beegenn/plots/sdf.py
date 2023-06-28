@@ -79,7 +79,6 @@ if __name__ == "__main__":
     )
 
     events = pd.read_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'events.csv')
-    print(events)
 
     if len(events.index) > 0:
         for i, row in events.iterrows():
@@ -89,8 +88,8 @@ if __name__ == "__main__":
             plot_sdf_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, 'mean', show = False)
 
     else:
-        for t_start in range(3000, int(data_manager.protocol.simulation_time), 6000):
-            t_end = t_start + 3000
+        for t_start in range(3000, int(data_manager.protocol.simulation_time), 60000):
+            t_end = t_start + 60000
             for i in range(data_manager.get_nruns()):
                 plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, str(i), show = False)
 

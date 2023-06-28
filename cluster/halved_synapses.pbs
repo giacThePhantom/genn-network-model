@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -l select=1:ncpus=2:mpiprocs=10:mem=64GB
+#PBS -l select=1:ncpus=2:mpiprocs=10:mem=10GB
 #PBS -l walltime=07:59:00
 #PBS -q short_gpuQ
 #PBS -N Beegenn_sleep_halved_synapses
@@ -28,21 +28,3 @@ singularity exec \
   --nv \
   docker://giacthephantom/beegenn:sleep \
   python3 -m beegenn.simulation /t_30_halved_synapses t30noinputhalvedsynapsescluster
-
-singularity exec \
-  --bind $PBS_O_WORKDIR/genn-network-model/t_30_halved_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
-  --nv \
-  docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.plots.correlation /t_30_halved_synapses t30noinputhalvedsynapsescluster
-
-singularity exec \
-  --bind $PBS_O_WORKDIR/genn-network-model/t_30_halved_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
-  --nv \
-  docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.simulation /t_30_halved_synapses t30noinputhalvedsynapsespoissoncluster
-
-singularity exec \
-  --bind $PBS_O_WORKDIR/genn-network-model/t_30_halved_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
-  --nv \
-  docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.plots.correlation /t_30_halved_synapses t30noinputhalvedsynapsespoissoncluster

@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -l select=1:ncpus=2:mpiprocs=10:mem=64GB
+#PBS -l select=1:ncpus=2:mpiprocs=10:mem=10GB
 #PBS -l walltime=07:59:00
 #PBS -q short_gpuQ
 #PBS -N Beegenn_sleep_normal_synapses
@@ -20,29 +20,9 @@ cd $PBS_O_WORKDIR
 rm beegenn_sleep.sif
 
 singularity pull docker://giacthephantom/beegenn:sleep
-# TODO: genn-network-model/data can/should be replaced with anything we want
-# singularity run --bind $PBS_O_WORKDIR/genn-network-model/data:/data,$PBS_O_WORKDIR/outputs:/home/genn docker://giacthephantom/beegenn:sleep sim_docker
-
-# singularity exec \
-#   --bind $PBS_O_WORKDIR/genn-network-model/t_30:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
-#   --nv \
-#   docker://giacthephantom/beegenn:sleep \
-#   python3 -m beegenn.simulation /t_30 t30noinputcluster
 
 singularity exec \
   --bind $PBS_O_WORKDIR/genn-network-model/t_30:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
   --nv \
   docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.plots.correlation /t_30 t30noinputcluster
-
-singularity exec \
-  --bind $PBS_O_WORKDIR/genn-network-model/t_30:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
-  --nv \
-  docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.simulation /t_30 t30noinputpoissoncluster
-
-singularity exec \
-  --bind $PBS_O_WORKDIR/genn-network-model/t_30:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
-  --nv \
-  docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.plots.correlation /t_30 t30noinputpoissoncluster
+  python3 -m beegenn.simulation /t_30 t30noinputcluster

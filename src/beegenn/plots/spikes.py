@@ -33,7 +33,7 @@ def add_spikes_to_voltage(voltage, time, spike_times):
         if time[i] == spike_times[spike_index]:
             voltage[i] = 20
             spike_index += 1
-        if time[i] < spike_times[spike_index] and time[i+1] > spike_times[spike_index]:
+        elif time[i] < spike_times[spike_index] and time[i+1] > spike_times[spike_index]:
             voltage = np.concatenate((voltage[:i], [20], voltage[i:]))
             time = np.concatenate((time[:i], [spike_times[spike_index]], time[i:]))
             spike_index += 1
@@ -83,9 +83,9 @@ def get_spikes_figure_and_subplots(n_pops):
         (n_pops*2) + 1, sharex=True, layout="constrained", gridspec_kw={'height_ratios': height_ratios})
 
 
-def plot_spikes(pops, t_start, t_end, data_manager, show = False):
-    ra_times, ra = data_manager.get_data_window(("or", "ra"), t_start, t_end)
-    print(np.max(ra))
+def plot_spikes(pops, t_start, t_end, data_manager, nrun, show = False):
+
+    ra_times, ra = data_manager.get_data_window(("or", "ra"), t_start, t_end, str(nrun))
     most_active_or = data_manager.or_most_active(ra)
 
     figure, subplots = get_spikes_figure_and_subplots(len(pops))
@@ -98,14 +98,16 @@ def plot_spikes(pops, t_start, t_end, data_manager, show = False):
                 pop,
                 'V',
                 t_start,
-                t_end
+                t_end,
+                str(nrun)
                 )
 
         spike_times = data_manager.get_spikes_for_first_neuron_in_glomerulus(
                 most_active_or,
                 pop,
                 t_start,
-                t_end
+                t_end,
+                str(nrun)
                 )
 
         neuron_idx = data_manager.get_first_neuron_in_glomerulus(
@@ -128,7 +130,7 @@ def plot_spikes(pops, t_start, t_end, data_manager, show = False):
 
     filename = f"spikes/{t_start:.1f}_{t_end:.1f}.png"
 
-    data_manager.show_or_save(filename, show)
+    data_manager.show_or_save(filename, str(nrun), show)
 
 if __name__ == "__main__":
     from beegenn.parameters.reading_parameters import parse_cli
@@ -142,9 +144,11 @@ if __name__ == "__main__":
 
     if len(events.index) > 0:
         for i, row in events.iterrows():
-            plot_spikes(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, show = False)
+            for run in range(data_manager.get_nruns()):
+                plot_spikes(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, run, show = False)
 
     else:
-        for t_start in range(3000, int(data_manager.protocol.simulation_time), 6000):
-            t_end = t_start + 3000
-            plot_spikes(['orn', 'pn', 'ln'], t_start, t_end, data_manager, show = False)
+        for t_start in range(3000, int(data_manager.protocol.simulation_time), 60000):
+            t_end = t_start + 60000
+            for run in range(data_manager.get_nruns()):
+                plot_spikes(['orn', 'pn', 'ln'], t_start, t_end, data_manager, run, show = False)

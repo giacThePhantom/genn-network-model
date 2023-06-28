@@ -24,14 +24,19 @@ def correlation_dir_per_sim(root_dir, sim_name, nrun):
 
     return res
 
-def compute_spearman_rank_test(sim_1_corr_files, sim_2_corr_files):
-    res = pd.DataFrame(columns=['run1', 'run2', 'pop', 't_start', 't_end', 'spearman', 'p_value'])
+def compute_spearman_rank_test(sim_1_corr_files, sim_2_corr_files, test):
+    res = pd.DataFrame(columns=['run1', 'run2', 'pop', 't_start', 't_end', test, 'p_value'])
     for first_run in sim_1_corr_files.keys():
         for second_run in sim_2_corr_files.keys():
             for i in sim_1_corr_files[first_run].keys():
                 if i in sim_2_corr_files[second_run]:
                     pop, t_start, t_end = i[:-4].split('_')
-                    spearman = stats.spearmanr(sim_1_corr_files[first_run][i].flatten(), sim_2_corr_files[second_run][i].flatten())
+                    if test == 'spearman':
+                        test_res = stats.spearmanr(sim_1_corr_files[first_run][i].flatten(), sim_2_corr_files[second_run][i].flatten())
+                    elif test == 'pearson':
+                        test_res = stats.pearsonr(sim_1_corr_files[first_run][i].flatten(), sim_2_corr_files[second_run][i].flatten())
+                    else:
+                        raise ValueError(f"Unknown test {test}")
 
                     df_line = {
                             'run1': first_run,
@@ -39,8 +44,8 @@ def compute_spearman_rank_test(sim_1_corr_files, sim_2_corr_files):
                             'pop': pop,
                             't_start': float(t_start),
                             't_end': float(t_end),
-                            'spearman': spearman.statistic,
-                            'p_value': spearman.pvalue
+                            test : test_res.statistic,
+                            'p_value': test_res.pvalue
                             }
                     res = res.append(df_line, ignore_index=True)
 
@@ -48,14 +53,15 @@ def compute_spearman_rank_test(sim_1_corr_files, sim_2_corr_files):
 
 
 if __name__ == "__main__":
-    root_dir = Path(sys.argv[1])
-    out_dir = root_dir / "comparison_conditions"
-    out_dir.mkdir(exist_ok=True)
     sim_1_name = sys.argv[2]
     sim_2_name = sys.argv[3]
+    test = sys.argv[4]
+    root_dir = Path(sys.argv[1])
+    out_dir = root_dir / f"comparison_conditions_{test}"
+    out_dir.mkdir(exist_ok=True)
     sim_1_corr_files = correlation_dir_per_sim(root_dir, sim_1_name, sim_2_name)
     sim_2_corr_files = correlation_dir_per_sim(root_dir, sim_2_name, sim_2_name)
 
-    res = compute_spearman_rank_test(sim_1_corr_files, sim_2_corr_files)
+    res = compute_spearman_rank_test(sim_1_corr_files, sim_2_corr_files, test)
 
-    pd.DataFrame.to_csv(res, str(out_dir / f'{sim_1_name}_{sim_2_name}_spearman_rank_test.csv'))
+    pd.DataFrame.to_csv(res, str(out_dir / f'{sim_1_name}_{sim_2_name}_{test}_rank_test.csv'))
