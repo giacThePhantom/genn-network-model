@@ -29,11 +29,12 @@ def cluster(correlation):
     return correlation[idx, :][:, idx]
 
 def plot_correlation_per_pop(correlation, to_cluster, to_mask, mask, pop, subplot):
+    mask = np.triu(np.ones_like(correlation, dtype=bool))
     if to_cluster:
         correlation_df = cluster(correlation)
     else:
         correlation_df = pd.DataFrame(correlation, columns = np.arange(0, correlation.shape[0]))
-    res = sns.heatmap(correlation_df, cmap = 'plasma', ax = subplot, cbar = False, vmin = -1, vmax = 1, xticklabels=True, yticklabels=True)
+    res = sns.heatmap(correlation_df, mask = mask, cmap = 'plasma', ax = subplot, cbar = False, xticklabels=True, yticklabels=True)
     if to_mask:
         res = sns.heatmap(mask, cmap = get_cmap(), ax = subplot, cbar = False, xticklabels=True, yticklabels=True)
     subplot.set_title(pop)
