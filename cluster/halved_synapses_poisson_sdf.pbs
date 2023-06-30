@@ -24,7 +24,7 @@ singularity pull docker://giacthephantom/beegenn:sleep
 # singularity run --bind $PBS_O_WORKDIR/genn-network-model/data:/data,$PBS_O_WORKDIR/outputs:/home/genn docker://giacthephantom/beegenn:sleep sim_docker
 
 singularity exec \
-  --bind $PBS_O_WORKDIR/genn-network-model/t_30_halved_synapses:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
+  --bind $PBS_O_WORKDIR/genn-network-model/t_30_halved_synapses:/t_30_halved_synapses,$PBS_O_WORKDIR/outputs:/home/genn \
   --nv \
   docker://giacthephantom/beegenn:sleep \
   python3 -m beegenn.plots.sdf /t_30_halved_synapses t30noinputhalvedsynapsespoissoncluster
