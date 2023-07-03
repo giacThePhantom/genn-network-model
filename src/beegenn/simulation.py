@@ -9,6 +9,7 @@ from beegenn.protocols.no_input import NoInput
 from beegenn.recorder.recorder import Recorder
 from pygenn.genn_model import GeNNModel
 
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import convolve
 from copy import deepcopy
@@ -165,7 +166,7 @@ class Simulator:
         # Kickstart the simulation
         total_timesteps = round(self.protocol.simulation_time)
 
-
+        from pathlib import Path
 
 
 
@@ -175,6 +176,18 @@ class Simulator:
                 tau = 3,
                 c = 0.8,
                 )
+
+        plt.matshow(poi_input)
+
+        plt.savefig(str(Path(self.param["output_path"]) / self.sim_name / "poi_input.png"))
+        plt.close()
+        plt.clf()
+        plt.cla()
+        plt.plot(poi_input[:, 0])
+        plt.savefig(str(Path(self.param["output_path"]) / self.sim_name / "poi_input_only_one.png"))
+        plt.close()
+        plt.clf()
+        plt.cla()
 
 
 
