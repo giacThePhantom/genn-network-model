@@ -170,10 +170,10 @@ class Simulator:
 
 
         poi_input = self.poisson_input(
-                l = 0.1,
+                l = 0.5,
                 sigma = 10,
                 tau = 3,
-                c = 0.3,
+                c = 0.8,
                 )
 
 
