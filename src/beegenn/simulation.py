@@ -9,7 +9,6 @@ from beegenn.protocols.no_input import NoInput
 from beegenn.recorder.recorder import Recorder
 from pygenn.genn_model import GeNNModel
 
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import convolve
 from copy import deepcopy
@@ -177,19 +176,6 @@ class Simulator:
                 c = 0.8,
                 )
 
-        plt.matshow(poi_input)
-
-        plt.savefig(str(Path(self.param["output_path"]) / self.sim_name / "poi_input.png"))
-        plt.close()
-        plt.clf()
-        plt.cla()
-        plt.plot(poi_input[:, 0])
-        plt.savefig(str(Path(self.param["output_path"]) / self.sim_name / "poi_input_only_one.png"))
-        plt.close()
-        plt.clf()
-        plt.cla()
-
-
 
 
         genn_model.t = 0
@@ -210,11 +196,11 @@ class Simulator:
 
     def poisson_process(self, sim_time, dt, l = 0.1):
         poi = np.zeros(int(sim_time / dt) + 1)
-        tau = -(1/l) * np.log(l * np.random.rand())
+        tau = -(dt/l) * np.log(l * np.random.rand())
         for i in np.arange(0, sim_time, dt):
             if i <= tau and i + dt > tau:
-                poi[int(i * dt)] = 0.5
-                tau -= (1/l) * np.log(l * np.random.rand())
+                poi[int(i / dt)] = 0.5
+                tau -= (dt/l) * np.log(l * np.random.rand())
         return poi
 
     def add_template(self, poi, template, c):
