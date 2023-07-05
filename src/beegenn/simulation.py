@@ -165,15 +165,11 @@ class Simulator:
         # Kickstart the simulation
         total_timesteps = round(self.protocol.simulation_time)
 
-        from pathlib import Path
-
-
-
         poi_input = self.poisson_input(
-                l = 0.5,
-                sigma = 10,
-                tau = 3,
-                c = 0.8,
+                l = self.param['poisson_input']['l'],
+                sigma = self.param['poisson_input']['sigma'],
+                tau = self.param['poisson_input']['tau'],
+                c = self.param['poisson_input']['c'],
                 )
 
 
@@ -199,7 +195,7 @@ class Simulator:
         tau = -(dt/l) * np.log(l * np.random.rand())
         for i in np.arange(0, sim_time, dt):
             if i <= tau and i + dt > tau:
-                poi[int(i / dt)] = 0.5
+                poi[int(i / dt)] = self.param['poisson_input']['amplitude']
                 tau -= (dt/l) * np.log(l * np.random.rand())
         return poi
 
