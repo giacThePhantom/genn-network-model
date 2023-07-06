@@ -268,6 +268,16 @@ class Protocol(ABC):
             self.max_time = max(self.events, key = lambda x : x['t_end'])['t_end'] + self.param['resting_duration']
         return self.max_time
 
+    @simulation_time.setter
+    def simulation_time(self, value):
+        """Setter for the simulation time in milliseconds
+        Parameters
+        ----------
+        value : double
+            The total simulation time
+        """
+        self.max_time = value
+
 
     @abstractmethod
     def _event_generation(self):

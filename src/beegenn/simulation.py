@@ -87,7 +87,6 @@ class Simulator:
                                  self.param['dt'],
                                  protocol.simulation_time)
 
-        self.recorder.dump_protocol(self.protocol)
 
     def update_target_pop(self, target_pop, current_events, events, poi_input):
         """
@@ -163,18 +162,22 @@ class Simulator:
         target_pop = self.model.connected_neurons['or']
 
         # Kickstart the simulation
+        if self.param['poisson_input']:
+            self.protocol.simulation_time = (np.prod([len(self.param['poisson_input'][i]) for i in self.param['poisson_input']]) * 120000)
         total_timesteps = round(self.protocol.simulation_time)
 
         poi_input = self.poisson_input(
-                l = self.param['poisson_input']['l'],
-                sigma = self.param['poisson_input']['sigma'],
-                tau = self.param['poisson_input']['tau'],
-                c = self.param['poisson_input']['c'],
+                ls = self.param['poisson_input']['l'],
+                sigmas = self.param['poisson_input']['sigma'],
+                taus = self.param['poisson_input']['tau'],
+                cs = self.param['poisson_input']['c'],
+                amplitudes = self.param['poisson_input']['amplitude'],
                 )
 
 
 
         genn_model.t = 0
+        self.recorder.dump_protocol(self.protocol)
         with logging_redirect_tqdm():
             with tqdm(total=total_timesteps, disable = "cluster" in self.sim_name) as pbar:
                 while genn_model.t < self.protocol.simulation_time:
@@ -190,12 +193,12 @@ class Simulator:
         self.recorder.flush()
 
 
-    def poisson_process(self, sim_time, dt, l = 0.1):
+    def poisson_process(self, sim_time, dt, l, amplitude):
         poi = np.zeros(int(sim_time / dt) + 1)
         tau = -(dt/l) * np.log(l * np.random.rand())
         for i in np.arange(0, sim_time, dt):
             if i <= tau and i + dt > tau:
-                poi[int(i / dt)] = self.param['poisson_input']['amplitude']
+                poi[int(i / dt)] = amplitude
                 tau -= (dt/l) * np.log(l * np.random.rand())
         return poi
 
@@ -218,14 +221,23 @@ class Simulator:
         kernel = (1/tau)*np.exp(-kernel/tau)
         return kernel
 
-    def poisson_input(self, l = 0.1, sigma = 5, tau = 2, c = 0.1):
+    def poisson_input(self, ls, sigmas, taus, cs, amplitudes):
         if self.param['poisson_input']:
-            template = self.poisson_process(self.protocol.simulation_time, self.param['dt'], l)
-            pois = [self.poisson_process(self.protocol.simulation_time, self.param['dt'], l) for _ in range(160)]
-            ker = self.kernel(sigma, tau, self.param['dt'])
-            pois = [self.add_template(pois[i], template, c) for i in range(len(pois))]
-            pois = [convolve(poi, ker, mode = 'same') for poi in pois]
-            return np.array(pois).T
+            res = None
+            for l in ls:
+                for sigma in sigmas:
+                    for tau in taus:
+                        for c in cs:
+                            for amplitude in amplitudes:
+                                template = self.poisson_process(120000, self.param['dt'], l, amplitude)
+                                pois = [self.poisson_process(120000, self.param['dt'], l, amplitude) for _ in range(160)]
+                                ker = self.kernel(sigma, tau, self.param['dt'])
+                                pois = [self.add_template(pois[i], template, c) for i in range(len(pois))]
+                                if res is None:
+                                    res = [convolve(poi, ker, mode = 'same') for poi in pois]
+                                else:
+                                    res = np.concatenate((res, [convolve(poi, ker, mode = 'same') for poi in pois]), axis = 1)
+            return res.T
         else:
             return None
 
