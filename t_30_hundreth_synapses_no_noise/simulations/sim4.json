@@ -1,0 +1,31 @@
+{
+  "dt": 0.2,
+  "experiment_name": "experiment3",
+  "experiment_type": "third_protocol",
+  "batch": 10000,
+  "n_timesteps_to_pull_var": 10,
+  "poll_spike_readings": false,
+  "optimize_code": false,
+  "generate_empty_state_push": false,
+  "output_path": "outputs",
+  "backend": "OpenCL",
+  "tracked_variables": {
+    "or": [
+      "ra"
+    ],
+    "orn": [
+      "V",
+      "a",
+      "spikes"
+    ],
+    "ln": [
+      "spikes",
+      "V"
+    ],
+    "pn": [
+      "spikes",
+      "V"
+    ]
+  },
+  "save": true
+}

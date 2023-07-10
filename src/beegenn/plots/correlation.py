@@ -34,7 +34,7 @@ def plot_correlation_per_pop(correlation, to_cluster, to_mask, mask, pop, subplo
         correlation_df = cluster(correlation)
     else:
         correlation_df = pd.DataFrame(correlation, columns = np.arange(0, correlation.shape[0]))
-    res = sns.heatmap(correlation_df, mask = mask, cmap = 'plasma', ax = subplot, cbar = False, xticklabels=True, yticklabels=True)
+    res = sns.heatmap(correlation_df, mask = mask, cmap = 'plasma', ax = subplot, cbar = False, xticklabels=True, yticklabels=True, vmin = -1, vmax = 1)
     if to_mask:
         res = sns.heatmap(mask, cmap = get_cmap(), ax = subplot, cbar = False, xticklabels=True, yticklabels=True)
     subplot.set_title(pop)
