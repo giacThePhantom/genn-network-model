@@ -1,7 +1,6 @@
 #!/bin/bash
 #PBS -l select=1:ncpus=2:mpiprocs=10:mem=64GB
-#PBS -l walltime=07:59:00
-#PBS -q short_gpuQ
+#PBS -q common_gpuQ
 #PBS -N Beegenn_sleep_tenth_synapses_poisson
 #PBS -o beegenn.stdout.txt
 #PBS -e beegenn.stderr.txt
