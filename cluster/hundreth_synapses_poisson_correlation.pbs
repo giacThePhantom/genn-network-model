@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l select=1:ncpus=2:mpiprocs=10:mem=64GB
-#PBS -q common_gpuQ
+#PBS -q common_cpuQ
 #PBS -N Beegenn_sleep_tenth_synapses_poisson_correlation
 #PBS -o beegenn.stdout.txt
 #PBS -e beegenn.stderr.txt
