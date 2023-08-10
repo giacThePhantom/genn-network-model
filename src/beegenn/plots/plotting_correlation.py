@@ -93,6 +93,7 @@ if __name__ == "__main__":
     dir = Path(sys.argv[1]) / "raw_data" / "0" / "correlation_not_clustered"
     with open(sys.argv[2]) as f:
         events = json.load(f)["poisson_input"]
+    print(events)
     events = get_events(events)
     csvs = read_csvs(dir)
 
