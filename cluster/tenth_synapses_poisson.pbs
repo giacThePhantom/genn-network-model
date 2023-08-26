@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -l select=1:ncpus=2:mpiprocs=10:mem=10GB
+#PBS -l select=1:ncpus=2:mpiprocs=10:mem=64GB
 #PBS -l walltime=07:59:00
 #PBS -q short_gpuQ
 #PBS -N tenth
