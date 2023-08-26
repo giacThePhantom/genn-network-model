@@ -3,7 +3,7 @@
   "experiment_name": "noinput",
   "experiment_type": "no_input",
   "batch": 50000,
-  "n_runs" : 5,
+  "n_runs" : 1,
   "n_timesteps_to_pull_var": 100,
   "poll_spike_readings": false,
   "optimize_code": false,
@@ -11,18 +11,30 @@
   "output_path": "/home/genn/outputs",
   "tracked_variables": {
     "or": [
+      "ra"
     ],
     "orn": [
-      "spikes"
+      "spikes",
+      "V"
     ],
     "ln": [
-      "spikes"
+      "spikes",
+      "V"
     ],
     "pn": [
-      "spikes"
+      "spikes",
+      "V"
     ]
   },
   "save": true,
   "sdf_sigma" : 100,
-  "poisson_input" : true
+  "poisson_input" : {
+    "l" : [0.5],
+    "sigma" : [5],
+    "tau" : [2],
+    "c" : [0.7],
+    "amplitude" : [1.8e-1, 1.8]
+  }
+
+
 }

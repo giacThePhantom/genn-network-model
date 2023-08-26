@@ -77,6 +77,7 @@ def subplot_correlation_change(events, data, var):
     plt.errorbar(x, min, yerr = std, label = "min", fmt='o-', capsize=5, markersize=8)
     plt.errorbar(x, mean, yerr = std, label = "mean", fmt='o-', capsize=5, markersize=8)
     plt.legend()
+    plt.xscale("log")
     plt.title(var)
     plt.show()
     plt.clf()
