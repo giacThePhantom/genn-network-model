@@ -111,6 +111,7 @@ if __name__ == "__main__":
             ]
 
 
+    all_features = []
     for t_start in range(60000, int(data_manager.protocol.simulation_time), 120000):
         t_end = t_start + 60000
         for i in range(data_manager.get_nruns()):
@@ -118,6 +119,7 @@ if __name__ == "__main__":
             features['t_start'] = t_start
             features['t_end'] = t_end
             features['run'] = i
+            all_features.append(features)
 
-            features = pd.DataFrame(features)
-            features.to_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'features.csv')
+    features_df = pd.DataFrame(all_features)
+    features_df.to_csv(Path(param['simulations']['simulation']['output_path']) / param['simulations']['name'] / 'features.csv')

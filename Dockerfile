@@ -64,7 +64,7 @@ RUN pip3 install -e .
 RUN pip3 install scipy
 RUN pip3 install seaborn
 RUN pip3 install nolds
-RUN pip3 install bct
+RUN pip3 install bctpy
 
 
 ENTRYPOINT ["/opt/beegenn/bin/docker-start-sim.sh"]
