@@ -8,7 +8,7 @@
   "poll_spike_readings": false,
   "optimize_code": false,
   "generate_empty_state_push": false,
-  "output_path": "/home/genn/outputs",
+  "output_path": "/media/data/thesis_output",
   "tracked_variables": {
     "or": [
       "ra"

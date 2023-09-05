@@ -102,10 +102,6 @@ class Simulator:
             The list of all the remaining events
         """
 
-        if poi_input is not None:
-            self.model.network.pull_state_from_device("or")
-            target_pop.vars['ra'].view[:] = target_pop.vars['ra'].view[:] + poi_input
-            self.model.network.push_state_to_device("or")
 
         for (i, event) in enumerate(current_events):
             if self.model.network.t >= event['t_start'] and not event['happened']:
@@ -124,6 +120,10 @@ class Simulator:
                 if events[i]:
                     current_events[i] = events[i].pop(0)
 
+        if poi_input is not None:
+            self.model.network.pull_state_from_device("or")
+            target_pop.vars['ra'].view[:] = target_pop.vars['ra'].view[:] + poi_input
+            self.model.network.push_state_to_device("or")
 
 
 

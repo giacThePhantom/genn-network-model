@@ -30,12 +30,12 @@
 	"threshold_condition_code" : [],
 	"parameters" : {
 		"T" : 30.0,
-		"D_b0" : 5e-8,
-		"D_a0" : 5e-8,
-		"D_b1" : 5e-8,
-		"D_a1" : 5e-8,
-		"D_b2" : 5e-8,
-		"D_a2" : 5e-8
+		"D_b0" : 5e-7,
+		"D_a0" : 5e-7,
+		"D_b1" : 5e-7,
+		"D_a1" : 5e-7,
+		"D_b2" : 5e-7,
+		"D_a2" : 5e-7
 	},
 	"variables" : [
 		{
