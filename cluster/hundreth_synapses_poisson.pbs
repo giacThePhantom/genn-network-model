@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l select=1:ncpus=2:mpiprocs=10:mem=64GB
-#PBS -q common_gpuQ
+#PBS -q short_gpuQ
 #PBS -N hundreth
 #PBS -o beegenn.stdout.txt
 #PBS -e beegenn.stderr.txt
