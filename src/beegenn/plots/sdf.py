@@ -89,8 +89,6 @@ if __name__ == "__main__":
 
     else:
         for t_start in range(60000, int(data_manager.protocol.simulation_time), 120000):
-            t_end = t_start + 60000
+            t_end = t_start + 6000
             for i in range(data_manager.get_nruns()):
-                plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, str(i), show = False)
-
-            plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, 'mean', show = False)
+                plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, str(i), show = True)
