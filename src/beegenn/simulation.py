@@ -165,15 +165,17 @@ class Simulator:
         if self.param['poisson_input']:
             self.protocol.simulation_time = (np.prod([len(self.param['poisson_input'][i]) for i in self.param['poisson_input']]) * 120000)
         total_timesteps = round(self.protocol.simulation_time)
-        print(self.protocol.simulation_time)
 
-        poi_input = self.poisson_input(
-                ls = self.param['poisson_input']['l'],
-                sigmas = self.param['poisson_input']['sigma'],
-                taus = self.param['poisson_input']['tau'],
-                cs = self.param['poisson_input']['c'],
-                amplitudes = self.param['poisson_input']['amplitude'],
-                )
+        if self.param['poisson_input']:
+            poi_input = self.poisson_input(
+                    ls = self.param['poisson_input']['l'],
+                    sigmas = self.param['poisson_input']['sigma'],
+                    taus = self.param['poisson_input']['tau'],
+                    cs = self.param['poisson_input']['c'],
+                    amplitudes = self.param['poisson_input']['amplitude'],
+                    )
+        else:
+            poi_input = None
 
 
 
