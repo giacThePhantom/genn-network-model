@@ -1,8 +1,8 @@
 #!/bin/bash
 #PBS -l select=1:ncpus=2:mpiprocs=10:mem=64GB
-#PBS -l walltime=07:59:00
-#PBS -q short_gpuQ
-#PBS -N normal
+#PBS -l walltime=30:00:00
+#PBS -q common_cpuQ
+#PBS -N normal_correlation
 #PBS -o beegenn.stdout.txt
 #PBS -e beegenn.stderr.txt
 #PBS -m abe
@@ -25,4 +25,4 @@ singularity exec \
   --bind $PBS_O_WORKDIR/genn-network-model/t_30:/t_30,$PBS_O_WORKDIR/outputs:/home/genn \
   --nv \
   docker://giacthephantom/beegenn:sleep \
-  python3 -m beegenn.simulation /t_30 t30noinputcluster
+  python3 -m beegenn.plots.correlation /t_30 t30noinputcluster
