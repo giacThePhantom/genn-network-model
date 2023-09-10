@@ -161,9 +161,6 @@ class Simulator:
 
         target_pop = self.model.connected_neurons['or']
 
-        print("SIMULATION TIME", self.protocol.simulation_time)
-        print(self.param['poisson_input'])
-
         # Kickstart the simulation
         if self.param['poisson_input'] and max([len(self.param['poisson_input'][i]) for i in self.param['poisson_input']]) > 1:
             self.protocol.simulation_time = (np.prod([len(self.param['poisson_input'][i]) for i in self.param['poisson_input']]) * 120000)
@@ -181,6 +178,8 @@ class Simulator:
                     )
         else:
             poi_input = None
+
+        print(poi_input.shape)
 
 
 
@@ -237,8 +236,9 @@ class Simulator:
                     for tau in taus:
                         for c in cs:
                             for amplitude in amplitudes:
-                                template = self.poisson_process(120000, self.param['dt'], l, amplitude)
-                                pois = [self.poisson_process(120000, self.param['dt'], l, amplitude) for _ in range(160)]
+                                template = self.poisson_process(self.protocol.simulation_time, self.param['dt'], l, amplitude)
+                                print(template.shape)
+                                pois = [self.poisson_process(self.protocol.simulation_time, self.param['dt'], l, amplitude) for _ in range(160)]
                                 ker = self.kernel(sigma, tau, self.param['dt'])
                                 pois = [self.add_template(pois[i], template, c) for i in range(len(pois))]
                                 if res is None:
