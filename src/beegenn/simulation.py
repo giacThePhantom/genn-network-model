@@ -240,7 +240,7 @@ class Simulator:
                                     res = [convolve(poi, ker, mode = 'same') for poi in pois]
                                 else:
                                     res = np.concatenate((res, [convolve(poi, ker, mode = 'same') for poi in pois]), axis = 1)
-            return res.T
+            return np.array(res).T
         else:
             return None
 
