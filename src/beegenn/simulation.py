@@ -162,7 +162,7 @@ class Simulator:
         target_pop = self.model.connected_neurons['or']
 
         # Kickstart the simulation
-        if self.param['poisson_input']:
+        if self.param['poisson_input'] and len(self.param['poisson_input']) > 1:
             self.protocol.simulation_time = (np.prod([len(self.param['poisson_input'][i]) for i in self.param['poisson_input']]) * 120000)
         total_timesteps = round(self.protocol.simulation_time)
 
