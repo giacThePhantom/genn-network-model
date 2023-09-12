@@ -140,7 +140,7 @@ if __name__ == "__main__":
                 plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, run, to_cluster = True, to_mask = False, show = False)
 
     else:
-        for t_start in range(60000, int(data_manager.protocol.simulation_time), 120000):
+        for t_start in range(60000, 120000, 120000):
             t_end = t_start + 60000
             for run in range(data_manager.get_nruns()):
                 plot_correlation_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, run, to_cluster = False, to_mask = False, show = False)
