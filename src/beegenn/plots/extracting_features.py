@@ -103,18 +103,6 @@ if __name__ == "__main__":
 
     all_features = []
     temp = 0
-    for t_start in range(0, int(data_manager.protocol.simulation_time), 60000):
-        t_end = t_start + 60000
-        for i in range(data_manager.get_nruns()):
-            temp += 1
-            features = extract_features('pn', t_start, t_end, data_manager, str(i), feature_functions, connectivity_features, show = False)
-            features['t_start'] = t_start
-            features['t_end'] = t_end
-            features['run'] = i
-            features['simulation'] = param['simulations']['name']
-            all_features.append(features)
-
-    features_df = pd.DataFrame(all_features)
     root_dir = Path(param['simulations']['simulation']['output_path']) / "features"
     root_dir.mkdir(parents=True, exist_ok=True)
     n = 0
@@ -125,4 +113,15 @@ if __name__ == "__main__":
 
 
     filename = param['simulations']['name'] + f"_features_{n}.csv"
-    features_df.to_csv(str(root_dir / filename))
+    for t_start in range(0, int(data_manager.protocol.simulation_time), 60000):
+        t_end = t_start + 60000
+        for i in range(data_manager.get_nruns()):
+            temp += 1
+            features = extract_features('pn', t_start, t_end, data_manager, str(i), feature_functions, connectivity_features, show = False)
+            features['t_start'] = t_start
+            features['t_end'] = t_end
+            features['run'] = i
+            features['simulation'] = param['simulations']['name']
+            all_features.append(features)
+            features_df = pd.DataFrame(all_features)
+            features_df.to_csv(str(root_dir / filename))
