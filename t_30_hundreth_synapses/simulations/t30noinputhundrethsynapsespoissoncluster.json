@@ -33,7 +33,7 @@
     "sigma" : [5],
     "tau" : [2],
     "c" : [0.7],
-    "amplitude" : [1.8e-1, 1.8]
+    "amplitude" : [1.8e-1]
   }
 
 

@@ -65,6 +65,7 @@ RUN pip3 install scipy
 RUN pip3 install seaborn
 RUN pip3 install nolds
 RUN pip3 install bctpy
+RUN pip3 install scikit-learn
 
 
 ENTRYPOINT ["/opt/beegenn/bin/docker-start-sim.sh"]
