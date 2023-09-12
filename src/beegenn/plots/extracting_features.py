@@ -50,6 +50,7 @@ def extract_features(pop, t_start, t_end, data_manager, run, features, connectiv
             t_end,
             run
             )
+    sdf_avg = - (sdf_avg - np.mean(sdf_avg, axis = 0)) / np.mean(sdf_avg, axis = 0)
 
     feature_values = {}
     for feature in features:
