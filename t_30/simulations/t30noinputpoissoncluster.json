@@ -28,13 +28,7 @@
   },
   "save": true,
   "sdf_sigma" : 100,
-  "poisson_input" : {
-    "l" : [0.5],
-    "sigma" : [5],
-    "tau" : [2],
-    "c" : [0.7],
-    "amplitude" : [1.8e-2]
-  }
+  "poisson_input" : false
 
 
 }
