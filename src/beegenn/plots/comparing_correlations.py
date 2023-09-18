@@ -34,6 +34,7 @@ def compute_spearman_rank_test(sim_1_corr_files, sim_2_corr_files, test):
                     if test == 'spearman':
                         test_res = stats.spearmanr(sim_1_corr_files[first_run][i].flatten(), sim_2_corr_files[second_run][i].flatten())
                     elif test == 'pearson':
+                        print(first_run, i)
                         test_res = stats.pearsonr(sim_1_corr_files[first_run][i].flatten(), sim_2_corr_files[second_run][i].flatten())
                     else:
                         raise ValueError(f"Unknown test {test}")
