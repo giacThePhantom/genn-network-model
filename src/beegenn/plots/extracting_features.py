@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
     filename = param['simulations']['name'] + f"_features_{n}.csv"
     for t_start in range(0, int(data_manager.protocol.simulation_time), 60000):
-        t_end = t_start + 60000
+        t_end = t_start + 1000
         for i in range(data_manager.get_nruns()):
             temp += 1
             features = extract_features('pn', t_start, t_end, data_manager, str(i), feature_functions, connectivity_features, show = False)
