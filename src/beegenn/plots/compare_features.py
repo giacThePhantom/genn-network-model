@@ -24,18 +24,20 @@ def get_dataframe(file_list):
         res = res.drop('t_start', axis = 1)
         res = res.drop('t_end', axis = 1)
         res = res.drop('run', axis = 1)
+        res['simulation'] = res['simulation'].str.replace('t30noinput', '')
+        res['simulation'] = res['simulation'].str.replace('synapsespoissoncluster', '')
+        res['simulation'] = res['simulation'].str.replace('poissoncluster', 'normal')
     return res
 
-def compare_two_conditions(first, second):
-    print(first)
-    print(second)
+def compare_two_conditions(first, second, root_dir):
+    print(first, second)
     sns.set(style = 'ticks')
     sns.set_palette('deep')
     fig = sns.pairplot(pd.concat([first, second], ignore_index = True), hue = 'simulation')
-    fig.savefig('compare.png')
-    plt.show()
-    plt.cla()
-    plt.clf()
+    out_dir = root_dir.parent / 'comparing_features'
+    out_dir.mkdir(parents = True, exist_ok = True)
+    print(str(out_dir / f'{first.simulation[0]}_{second.simulation[0]}.png'))
+    fig.savefig(str(out_dir / f'{first.simulation[0]}_{second.simulation[0]}.png'))
 
 if __name__ == "__main__":
     feature_dir = Path(sys.argv[1])
@@ -47,4 +49,4 @@ if __name__ == "__main__":
     for first in conditions:
         for second in conditions:
             if first != second:
-                compare_two_conditions(conditions[first], conditions[second])
+                compare_two_conditions(conditions[first], conditions[second], feature_dir)
