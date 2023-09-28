@@ -3,6 +3,7 @@
   "experiment_name": "experiment1",
   "experiment_type": "first_protocol",
   "batch": 100000,
+  "n_runs" : 1,
   "n_timesteps_to_pull_var": 1,
   "poll_spike_readings": false,
   "optimize_code": false,
@@ -20,5 +21,6 @@
     ]
   },
   "save": true,
-  "sdf_sigma" : 50
+  "sdf_sigma" : 50,
+  "poisson_input" : false
 }
