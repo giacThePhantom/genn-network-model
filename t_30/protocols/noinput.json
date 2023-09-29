@@ -1,6 +1,6 @@
 
 {
-	"simulation_time" : 240000.0,
+	"simulation_time" : 1260000.0,
 	"num_odors" : 1,
 	"concentration_increases" : 1,
 	"connectivity_type" : "homogeneous",
