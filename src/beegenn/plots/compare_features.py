@@ -33,9 +33,13 @@ def compare_two_conditions(first, second, root_dir):
     print(first, second)
     sns.set(style = 'ticks')
     sns.set_palette('deep')
+    sns.set_context('paper', rc = {"axes.labelsize":20})
     fig = sns.pairplot(pd.concat([first, second], ignore_index = True), hue = 'simulation')
+    fig._legend.get_title().set_fontsize(25)
+    for text in fig._legend.get_texts():
+        text.set_fontsize(25)
     out_dir = root_dir.parent / 'comparing_features'
-    out_dir.mkdir(parents = True, exist_ok = True)
+
     print(str(out_dir / f'{first.simulation[0]}_{second.simulation[0]}.png'))
     fig.savefig(str(out_dir / f'{first.simulation[0]}_{second.simulation[0]}.png'))
 
