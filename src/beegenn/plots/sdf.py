@@ -8,8 +8,8 @@ def plot_sdf_heatmap_per_pop(sdf_average, t_start, t_end, dt, pop, subplot):
     res = subplot.imshow(sdf_average, vmin = 0, cmap = 'plasma')
     #subplot.set_aspect((t_end-t_start)//10)
     subplot.set_aspect((t_end-t_start)//10)
-    subplot.xaxis.set_major_locator(matplotlib.ticker.FixedLocator([3000*i//dt for i in range(int(t_end-t_start)//3000 + 1)]))
-    subplot.set_xticklabels([f"{t_start * (i + 1):.1g}" for i in range(int(t_end-t_start)//3000 + 1)], rotation=45, fontsize = 8)
+    # subplot.xaxis.set_major_locator(matplotlib.ticker.FixedLocator([3000*i//dt for i in range(int(t_end-t_start)//3000 + 1)]))
+    # subplot.set_xticklabels([f"{t_start * (i + 1):.1g}" for i in range(int(t_end-t_start)//3000 + 1)], rotation=45, fontsize = 8)
     subplot.set_title(pop)
     subplot.set_xlabel("Time [ms]")
     subplot.set_ylabel("Glomeruli")
@@ -83,14 +83,14 @@ if __name__ == "__main__":
     if len(events.index) > 0:
         for i, row in events.iterrows():
             for i in range(data_manager.get_nruns()):
-                plot_sdf_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, str(i), show = False)
+                plot_sdf_heatmap(['orn', 'ln', 'pn'], row['t_start'], row['t_end'], data_manager, str(i), show = False)
 
-            plot_sdf_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, 'mean', show = False)
+            plot_sdf_heatmap(['orn', 'ln', 'pn'], row['t_start'], row['t_end'], data_manager, 'mean', show = False)
 
     else:
         for t_start in range(60000, int(data_manager.protocol.simulation_time), 120000):
             t_end = t_start + 60000
             for i in range(data_manager.get_nruns()):
-                plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, str(i), show = False)
+                plot_sdf_heatmap(['orn', 'ln', 'pn'], t_start, t_end, data_manager, str(i), show = False)
 
-            plot_sdf_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, 'mean', show = False)
+            plot_sdf_heatmap(['orn', 'ln', 'pn'], t_start, t_end, data_manager, 'mean', show = False)

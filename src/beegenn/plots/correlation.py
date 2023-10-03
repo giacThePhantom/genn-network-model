@@ -37,9 +37,9 @@ def plot_correlation_per_pop(correlation, to_cluster, to_mask, mask, pop, subplo
     res = sns.heatmap(correlation_df, mask = mask, cmap = 'plasma', ax = subplot, cbar = False, xticklabels=True, yticklabels=True, vmin = -1, vmax = 1)
     if to_mask:
         res = sns.heatmap(mask, cmap = get_cmap(), ax = subplot, cbar = False, xticklabels=True, yticklabels=True, vmin = -1, vmax = 1)
-    subplot.set_title(pop)
-    subplot.set_xlabel("Glomeruli")
-    subplot.set_ylabel("Glomeruli")
+    subplot.set_title(pop, fontsize = 35)
+    subplot.set_xlabel("Glomeruli", fontsize = 30)
+    subplot.set_ylabel("Glomeruli", fontsize = 30)
     return res
 
 def plot_sdf_over_time_outliers(sdf_matrix_avg, subplot):
@@ -114,7 +114,8 @@ def plot_correlation_heatmap(pops, t_start, t_end, data_manager, nrun, to_cluste
                 correlation_matrix,
                 str(nrun)
                 )
-    figure.colorbar(subplots[-2].collections[0], cax = subplots[-1])
+    cbar = figure.colorbar(subplots[-2].collections[0], cax = subplots[-1])
+    cbar.ax.tick_params(labelsize = 20)
     figure.tight_layout()
     cluster_name = ("_not" if not cluster else "") + "_clustered"
     masked_name = ("_not" if not to_mask else "") + "_masked"
@@ -136,12 +137,12 @@ if __name__ == "__main__":
     if len(events.index) > 0:
         for i, row in events.iterrows():
             for run in range(data_manager.get_nruns()):
-                plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, run, to_cluster = False, to_mask = False, show = False)
-                plot_correlation_heatmap(['orn', 'pn', 'ln'], row['t_start'], row['t_end'], data_manager, run, to_cluster = True, to_mask = False, show = False)
+                plot_correlation_heatmap(['orn', 'ln', 'pn'], row['t_start'], row['t_end'], data_manager, run, to_cluster = False, to_mask = False, show = False)
+                plot_correlation_heatmap(['orn', 'ln', 'pn'], row['t_start'], row['t_end'], data_manager, run, to_cluster = True, to_mask = False, show = False)
 
     else:
         for t_start in range(0, int(data_manager.protocol.simulation_time), 60000):
             t_end = t_start + 60000
             for run in range(data_manager.get_nruns()):
-                plot_correlation_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, run, to_cluster = False, to_mask = False, show = False)
-                plot_correlation_heatmap(['orn', 'pn', 'ln'], t_start, t_end, data_manager, run, to_cluster = True, to_mask = False, show = False)
+                plot_correlation_heatmap(['orn', 'ln', 'pn'], t_start, t_end, data_manager, run, to_cluster = False, to_mask = False, show = False)
+                plot_correlation_heatmap(['orn', 'ln', 'pn'], t_start, t_end, data_manager, run, to_cluster = True, to_mask = False, show = False)
