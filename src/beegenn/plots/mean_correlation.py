@@ -26,7 +26,8 @@ def correlation_dir_per_sim(root_dir):
                     res[sim_name_str][str(nrun).split('/')[-1]] = {}
                     for filename in (raw_data_dir  / nrun / "correlation_not_clustered").iterdir():
                         if filename.is_file():
-                            res[sim_name_str][str(nrun).split('/')[-1]][str(filename).split('/')[-1]] = np.mean(np.genfromtxt(str(filename), delimiter=','))
+                            temp = np.genfromtxt(str(filename), delimiter=',')
+                            res[sim_name_str][str(nrun).split('/')[-1]][str(filename).split('/')[-1]] = [np.mean(temp), np.max(temp), np.min(temp), np.std(temp)]
 
     return res
 
@@ -34,7 +35,7 @@ def correlation_dir_per_sim(root_dir):
 if __name__ == "__main__":
     root_dir = Path(sys.argv[1])
     sim_corr_means = correlation_dir_per_sim(root_dir)
-    df = pd.DataFrame(columns=['sim_name', 'run', 'pop', 't_start', 't_end', 'mean'])
+    df = pd.DataFrame(columns=['sim_name', 'run', 'pop', 't_start', 't_end', 'mean', "max", "min", 'std'])
 
     for i in sim_corr_means:
         for z in sim_corr_means[i]:
@@ -45,7 +46,10 @@ if __name__ == "__main__":
                         "pop" : j.split('_')[0],
                         "t_start" : j.split('_')[1],
                         "t_end" : j.split('_')[2].split('.')[0],
-                        "mean" : sim_corr_means[i][z][j]
+                        "mean" : sim_corr_means[i][z][j][0],
+                        "max" : sim_corr_means[i][z][j][1],
+                        "min" : sim_corr_means[i][z][j][2],
+                        "std" : sim_corr_means[i][z][j][3],
                         }
                 df = df.append(row, ignore_index=True)
 

@@ -28,13 +28,14 @@ def cluster(correlation):
 
     return correlation[idx, :][:, idx]
 
-def plot_correlation_per_pop(correlation, to_cluster, to_mask, mask, pop, subplot):
+def plot_correlation_per_pop(correlation, to_cluster, to_mask, mask, pop, subplot, raw_data_file_name):
     mask = np.triu(np.ones_like(correlation, dtype=bool))
     if to_cluster:
         correlation_df = cluster(correlation)
     else:
         correlation_df = pd.DataFrame(correlation, columns = np.arange(0, correlation.shape[0]))
     res = sns.heatmap(correlation_df, mask = mask, cmap = 'plasma', ax = subplot, cbar = False, xticklabels=True, yticklabels=True, vmin = -1, vmax = 1)
+    correlation_df.to_csv(raw_data_file_name)
     if to_mask:
         res = sns.heatmap(mask, cmap = get_cmap(), ax = subplot, cbar = False, xticklabels=True, yticklabels=True, vmin = -1, vmax = 1)
     subplot.set_title(pop, fontsize = 35)
@@ -100,20 +101,17 @@ def plot_correlation_heatmap(pops, t_start, t_end, data_manager, nrun, to_cluste
             for i in glomeruli_of_interest:
                 for j in glomeruli_of_interest:
                     mask[i,j] = False
+        raw_data_file_name = data_manager._root_raw_data_dir / str(nrun) / f"correlation{('_not' if not to_cluster else '')}_clustered/{pop}_{t_start:.1f}_{t_end:.1f}.csv"
         plot_correlation_per_pop(
             correlation_matrix,
             to_cluster,
             to_mask,
             mask,
             pop,
-            subplot
+            subplot,
+            raw_data_file_name
             )
 
-        data_manager.save_raw_data(
-                f"correlation{('_not' if not to_cluster else '')}_clustered/{pop}_{t_start:.1f}_{t_end:.1f}.csv",
-                correlation_matrix,
-                str(nrun)
-                )
     cbar = figure.colorbar(subplots[-2].collections[0], cax = subplots[-1])
     cbar.ax.tick_params(labelsize = 20)
     figure.tight_layout()
