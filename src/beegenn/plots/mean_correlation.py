@@ -24,11 +24,19 @@ def correlation_dir_per_sim(root_dir):
             for nrun in raw_data_dir.iterdir():
                 if nrun.is_dir():
                     res[sim_name_str][str(nrun).split('/')[-1]] = {}
-                    for filename in (raw_data_dir  / nrun / "correlation_not_clustered").iterdir():
+                    for filename in (raw_data_dir  / nrun / "correlation_clustered").iterdir():
                         if filename.is_file():
                             temp = np.genfromtxt(str(filename), delimiter=',')
-                            res[sim_name_str][str(nrun).split('/')[-1]][str(filename).split('/')[-1]] = [np.mean(temp), np.max(temp), np.min(temp), np.std(temp)]
-
+                            temp = np.delete(temp, 0, 0)
+                            temp = np.delete(temp, 0, 1)
+                            print(filename, np.mean(temp.flatten()))
+                            mean = np.mean(temp)
+                            std = np.std(temp)
+                            min = np.min(temp)
+                            np.fill_diagonal(temp, 0)
+                            max = np.max(temp)
+                            res[sim_name_str][str(nrun).split('/')[-1]][str(filename).split('/')[-1]] = [mean, max, min, std]
+                            print(res[sim_name_str][str(nrun).split('/')[-1]][str(filename).split('/')[-1]])
     return res
 
 
