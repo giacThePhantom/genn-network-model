@@ -1,0 +1,87 @@
+{
+	"num_odors" : 100,
+	"num_glomeruli" : "eval 2: params['neuron_populations']['or']['n']",
+	"num_channels" : "eval 2: params['neuron_populations']['or']['num_channels']",
+	"homogeneous" : false,
+	"connectivity_type" : "correlation",
+	"self_inhibition" : false,
+	"first_odor_concentrations" : [ 0, 1e-3, 1e-1 ],
+	"second_odor_concentrations" : [ 0, 1e-6, 1e-5, 1e-4, 1e-3 ],
+	"concentration" : {
+		"start" : 1e-7,
+		"dilution_factor" : {
+			"base" : 10,
+			"exponent" : 0.25
+		}
+	},
+	"event_duration" : 3000.0,
+	"resting_duration" : 3000.0,
+	"hill_exponential" : {
+		"min" : 0.95,
+		"max" : 1.05
+	},
+	"odors" :{
+		"default" : {
+			"binding" : {
+				"midpoint" : 0,
+				"amplitude" : {
+					"mu" : 1.5,
+					"sigma" : 0.5,
+					"interval" :  [
+						0.0,
+						4.0
+					]
+				},
+				"sigma" : {
+					"mu" : 3,
+					"sigma" : 0.5,
+					"interval" : [
+						1.5,
+						"eval 1: float('inf')"
+					]
+				},
+				"min_thresh" : 0.0
+			},
+			"activation" : {
+				"mu" : 0.02,
+				"sigma" : 0.02,
+				"interval" : [
+					0.003,
+					0.2
+				]
+			}
+		},
+		"iaa" : {
+			"binding" : {
+				"midpoint" : "eval 2: params['neuron_populations']['or']['n']//2",
+				"amplitude" : 0.8,
+				"sigma" : 3,
+				"min_thresh" : 0.0
+			},
+			"activation" : {
+				"mu" : 0.1,
+				"sigma" : 0.0,
+				"interval" : [
+					1e-10,
+					1.0
+				]
+			}
+		},
+		"geosmin" : {
+			"binding" : {
+				"midpoint" : "eval 2: params['neuron_populations']['or']['n']//2 + 30",
+				"amplitude" : 4.4,
+				"sigma" : 10,
+				"min_thresh" : 0.0
+			},
+			"activation" : {
+				"mu" : 0.003,
+				"sigma" : 0.0,
+				"interval" : [
+					1e-10,
+					1.0
+				]
+			}
+		}
+	}
+}

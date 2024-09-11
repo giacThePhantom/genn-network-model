@@ -1,15 +1,14 @@
 import numpy as np
-import matplotlib
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from .data_manager import DataManager
+
+mpl.use('agg')
 
 
 def plot_sdf_heatmap_per_pop(sdf_average, t_start, t_end, dt, pop, subplot):
     res = subplot.imshow(sdf_average, vmin = 0, cmap = 'plasma')
-    #subplot.set_aspect((t_end-t_start)//10)
     subplot.set_aspect((t_end-t_start)//10)
-    # subplot.xaxis.set_major_locator(matplotlib.ticker.FixedLocator([3000*i//dt for i in range(int(t_end-t_start)//3000 + 1)]))
-    # subplot.set_xticklabels([f"{t_start * (i + 1):.1g}" for i in range(int(t_end-t_start)//3000 + 1)], rotation=45, fontsize = 8)
     subplot.set_title(pop)
     subplot.set_xlabel("Time [ms]")
     subplot.set_ylabel("Glomeruli")
@@ -55,6 +54,14 @@ def plot_sdf_heatmap(pops, t_start, t_end, data_manager, run, show):
                 t_end,
                 run
                 )
+        raw_sdf_filename = data_manager._root_raw_data_dir / str(run) / "sdf" / f"{pop}_{t_start:.1f}_{t_end:.1f}.csv"
+        raw_sdf_filename.parent.mkdir(parents=True, exist_ok=True)
+        df_col_name = (np.arange(0, sdf_avg.shape[1]) * data_manager.get_sim_dt()) + t_start
+        df = pd.DataFrame(sdf_avg,
+                          columns = df_col_name,
+                          index = np.arange(0, sdf_avg.shape[0]) + 1
+                          )
+        df.T.to_csv(raw_sdf_filename)
         image.append(
             plot_sdf_heatmap_per_pop(
                 sdf_avg, t_start, t_end, data_manager.get_sim_dt(), pop, subplot
@@ -83,13 +90,13 @@ if __name__ == "__main__":
     if len(events.index) > 0:
         for i, row in events.iterrows():
             for i in range(data_manager.get_nruns()):
-                plot_sdf_heatmap(['orn', 'ln', 'pn'], row['t_start'], row['t_end'], data_manager, str(i), show = False)
+                plot_sdf_heatmap(['orn', 'ln', 'pn'], row['t_start'], row['t_start'] + 3000 , data_manager, str(i), show = False)
 
-            plot_sdf_heatmap(['orn', 'ln', 'pn'], row['t_start'], row['t_end'], data_manager, 'mean', show = False)
+            plot_sdf_heatmap(['orn', 'ln', 'pn'], row['t_start'], row['t_start'] + 3000, data_manager, 'mean', show = False)
 
     else:
-        for t_start in range(60000, int(data_manager.protocol.simulation_time), 120000):
-            t_end = t_start + 60000
+        for t_start in range(00000, int(data_manager.protocol.simulation_time), 120000):
+            t_end = t_start + 3000
             for i in range(data_manager.get_nruns()):
                 plot_sdf_heatmap(['orn', 'ln', 'pn'], t_start, t_end, data_manager, str(i), show = False)
 

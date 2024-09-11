@@ -1,0 +1,16 @@
+{
+	"connectivity_type" : "homogeneous",
+	"self_inhibition" : false,
+	"num_glomeruli" : "eval 2: params['neuron_populations']['or']['n']",
+	"homogeneous" : false,
+	"event_duration" : 3000.0,
+	"resting_duration" : 3000.0,
+	"starting_temperature" : 35.0,
+	"ending_temperature" : 38.0,
+	"temperature_step" : 1.0,
+	"affects" : {
+		"orn" : ["T"],
+		"pn" : ["T"],
+		"ln" : ["T"]
+	}
+}

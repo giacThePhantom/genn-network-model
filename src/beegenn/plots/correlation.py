@@ -35,6 +35,8 @@ def plot_correlation_per_pop(correlation, to_cluster, to_mask, mask, pop, subplo
     else:
         correlation_df = pd.DataFrame(correlation, columns = np.arange(0, correlation.shape[0]))
     res = sns.heatmap(correlation_df, mask = mask, cmap = 'plasma', ax = subplot, cbar = False, xticklabels=True, yticklabels=True, vmin = -1, vmax = 1)
+    print(raw_data_file_name)
+    raw_data_file_name.parent.mkdir(parents = True, exist_ok = True)
     correlation_df.to_csv(raw_data_file_name)
     if to_mask:
         res = sns.heatmap(mask, cmap = get_cmap(), ax = subplot, cbar = False, xticklabels=True, yticklabels=True, vmin = -1, vmax = 1)
@@ -142,5 +144,4 @@ if __name__ == "__main__":
         for t_start in range(0, int(data_manager.protocol.simulation_time), 60000):
             t_end = t_start + 60000
             for run in range(data_manager.get_nruns()):
-                plot_correlation_heatmap(['orn', 'ln', 'pn'], t_start, t_end, data_manager, run, to_cluster = False, to_mask = False, show = False)
-                plot_correlation_heatmap(['orn', 'ln', 'pn'], t_start, t_end, data_manager, run, to_cluster = True, to_mask = False, show = False)
+                plot_correlation_heatmap(['pn'], t_start, t_end, data_manager, run, to_cluster = True, to_mask = False, show = False)

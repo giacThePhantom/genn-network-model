@@ -1,0 +1,21 @@
+{
+	"name" : "ln_pn",
+	"matrix_type" : "DENSE_INDIVIDUALG",
+	"delay_steps" : "eval 1: genn_wrapper.NO_DELAY",
+	"source" : "ln",
+	"target" : "pn",
+	"w_update_model" : "StaticPulse",
+	"wu_param_space" : {},
+	"wu_var_space" : {
+	"g" : 11e-7
+	},
+	"wu_pre_var_space" : {},
+	"wu_post_var_space" : {},
+	"postsyn_model" : "ExpCond",
+	"ps_param_space" : {
+    "tau": 20.0,
+    "E": -80.0
+	},
+	"ps_var_space" : {},
+	"connectivity_initialiser": "eval 1: None"
+}

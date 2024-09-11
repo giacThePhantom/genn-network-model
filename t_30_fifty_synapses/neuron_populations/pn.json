@@ -1,0 +1,45 @@
+{
+	"name" : "PN",
+	"n" : "eval 1: params['neuron_populations']['or']['n'] * 5",
+	"spike_rec" : false,
+	"sim_code" : [
+    "$(V)+= (-$(g_leak)*($(V)-$(V_leak)) - $(g_adapt)*$(a)*($(V)-$(V_adapt)) + $(r_scale)*$(Isyn)+$(noise_A)*$(gennrand_normal))*DT/$(C_mem);",
+    "$(a)+= -$(a)*DT/$(tau_adapt);"
+	],
+	"reset_code" : [
+    "$(V)= $(V_reset);",
+    "$(a)+= 0.5;"
+  ],
+	"threshold_condition_code" : [
+    "$(V) >= $(V_thresh)"
+  ],
+	"parameters" : {
+    "C_mem": 1.0,
+    "V_reset": -70.0,
+    "V_thresh": -40.0,
+    "V_leak": -60.0,
+    "g_leak": "eval 1: 0.01*np.power(params['neuron_populations']['pn']['parameters']['Q'], (params['neuron_populations']['pn']['parameters']['T'] - params['neuron_populations']['pn']['parameters']['T_ref'])/10)",
+    "g_adapt": "eval 1: 0.0000*np.power(params['neuron_populations']['pn']['parameters']['Q'], (params['neuron_populations']['pn']['parameters']['T'] - params['neuron_populations']['pn']['parameters']['T_ref'])/10)",
+    "r_scale": 1.0,
+    "V_adapt": -70.0,
+    "tau_adapt": 1000.0,
+    "T" : 30.0,
+    "Q" : 1.1,
+    "T_ref" : 36,
+    "noise_A": "eval 1: 1.4/np.sqrt(params['simulations']['simulation']['dt'])"
+	},
+	"variables" : [
+		{
+			"name" : "V",
+			"type" : "scalar",
+			"value" : -60.0,
+			"_comment_" : "Membrane voltage"
+		},
+		{
+			"name" : "a",
+			"type" : "scalar",
+			"value" : 0.0,
+			"_comment_" : "adaptive strength"
+		}
+	]
+}
